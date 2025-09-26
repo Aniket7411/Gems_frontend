@@ -114,7 +114,7 @@ const GemDetail = () => {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
                     <p className="mt-4 text-gray-600">Loading gem details...</p>
                 </div>
             </div>
@@ -130,7 +130,7 @@ const GemDetail = () => {
                     <p className="text-gray-600 mb-4">{error}</p>
                     <button
                         onClick={() => navigate('/')}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                        className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700"
                     >
                         Go Home
                     </button>
@@ -148,9 +148,9 @@ const GemDetail = () => {
                 {/* Breadcrumb */}
                 <nav className="mb-8">
                     <ol className="flex items-center space-x-2 text-sm text-gray-500">
-                        <li><button onClick={() => navigate('/')} className="hover:text-blue-600">Home</button></li>
+                        <li><button onClick={() => navigate('/')} className="hover:text-emerald-600">Home</button></li>
                         <li>/</li>
-                        <li><button onClick={() => navigate('/shop')} className="hover:text-blue-600">Shop</button></li>
+                        <li><button onClick={() => navigate('/shop')} className="hover:text-emerald-600">Shop</button></li>
                         <li>/</li>
                         <li><span className="text-gray-900">{gem.name}</span></li>
                     </ol>
@@ -175,7 +175,7 @@ const GemDetail = () => {
                                     <button
                                         key={index}
                                         onClick={() => setSelectedImageIndex(index)}
-                                        className={`aspect-square rounded-lg overflow-hidden border-2 ${selectedImageIndex === index ? 'border-blue-600' : 'border-gray-200'
+                                        className={`aspect-square rounded-lg overflow-hidden border-2 ${selectedImageIndex === index ? 'border-emerald-600' : 'border-gray-200'
                                             }`}
                                     >
                                         <img
@@ -259,7 +259,7 @@ const GemDetail = () => {
                                 <h4 className="font-medium text-gray-900 mb-2">Suitable for Zodiac Signs:</h4>
                                 <div className="flex flex-wrap gap-2">
                                     {gem.whomToUse.map((sign, index) => (
-                                        <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                                        <span key={index} className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm">
                                             {sign}
                                         </span>
                                     ))}
@@ -315,7 +315,7 @@ const GemDetail = () => {
                                     onClick={handleAddToCart}
                                     disabled={!gem.availability}
                                     className={`flex-1 py-3 px-6 rounded-lg font-medium transition-colors ${gem.availability
-                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                        ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         }`}
                                 >
@@ -352,7 +352,7 @@ const GemDetail = () => {
                                         value={phoneNumber}
                                         onChange={(e) => setPhoneNumber(e.target.value)}
                                         placeholder="Enter your phone number"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                     />
                                 </div>
                                 <div className="flex space-x-3">
@@ -365,7 +365,7 @@ const GemDetail = () => {
                                     <button
                                         onClick={handleSendOTP}
                                         disabled={otpLoading}
-                                        className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                                        className="flex-1 py-2 px-4 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50"
                                     >
                                         {otpLoading ? 'Sending...' : 'Send OTP'}
                                     </button>
@@ -383,7 +383,7 @@ const GemDetail = () => {
                                         onChange={(e) => setOtp(e.target.value)}
                                         placeholder="Enter 6-digit OTP"
                                         maxLength="6"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                     />
                                 </div>
                                 <div className="flex space-x-3">
@@ -399,7 +399,7 @@ const GemDetail = () => {
                                     <button
                                         onClick={handleVerifyOTP}
                                         disabled={otpLoading}
-                                        className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                                        className="flex-1 py-2 px-4 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50"
                                     >
                                         {otpLoading ? 'Verifying...' : 'Verify & Add to Cart'}
                                     </button>

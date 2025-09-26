@@ -33,7 +33,7 @@ const ForgotPassword = () => {
 
     try {
       const response = await authAPI.forgotPassword(email);
-      
+
       if (response.success) {
         setSuccess(true);
       } else {
@@ -68,7 +68,7 @@ const ForgotPassword = () => {
             <div className="mt-6">
               <Link
                 to="/login"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
+                className="font-medium text-emerald-600 hover:text-indigo-500"
               >
                 Back to login
               </Link>
@@ -90,14 +90,14 @@ const ForgotPassword = () => {
             Enter your email address and we'll send you instructions to reset your password.
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
               {error}
             </div>
           )}
-          
+
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email address
@@ -110,7 +110,7 @@ const ForgotPassword = () => {
               required
               value={email}
               onChange={handleChange}
-              className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="Enter your email address"
             />
           </div>
@@ -119,7 +119,7 @@ const ForgotPassword = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Sending...' : 'Send reset instructions'}
             </button>
@@ -128,7 +128,7 @@ const ForgotPassword = () => {
           <div className="text-center">
             <Link
               to="/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+              className="font-medium text-emerald-600 hover:text-indigo-500"
             >
               Back to login
             </Link>

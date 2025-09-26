@@ -84,7 +84,7 @@ const Cart = () => {
                         <p className="text-gray-600 mb-8">Looks like you haven't added any gems to your cart yet.</p>
                         <button
                             onClick={() => navigate('/')}
-                            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                            className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
                         >
                             Continue Shopping
                         </button>
@@ -219,7 +219,7 @@ const Cart = () => {
                                 </div>
 
                                 {!cartSummary.isEligibleForFreeShipping && (
-                                    <div className="text-sm text-blue-600">
+                                    <div className="text-sm text-emerald-600">
                                         Add ₹{(cartSummary.freeShippingThreshold - cartSummary.subtotal).toLocaleString()} more for free shipping
                                     </div>
                                 )}
@@ -234,7 +234,7 @@ const Cart = () => {
 
                             <button
                                 onClick={handleCheckout}
-                                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                                className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
                             >
                                 {isAuthenticated ? 'Proceed to Checkout' : 'Checkout with OTP'}
                             </button>
@@ -269,7 +269,7 @@ const Cart = () => {
                                         value={phoneNumber}
                                         onChange={(e) => setPhoneNumber(e.target.value)}
                                         placeholder="Enter your phone number"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                     />
                                 </div>
                                 <div className="flex space-x-3">
@@ -282,7 +282,7 @@ const Cart = () => {
                                     <button
                                         onClick={handleSendOTP}
                                         disabled={otpLoading}
-                                        className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                                        className="flex-1 py-2 px-4 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50"
                                     >
                                         {otpLoading ? 'Sending...' : 'Send OTP'}
                                     </button>
@@ -300,7 +300,7 @@ const Cart = () => {
                                         onChange={(e) => setOtp(e.target.value)}
                                         placeholder="Enter 6-digit OTP"
                                         maxLength="6"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                     />
                                 </div>
                                 <div className="flex space-x-3">
@@ -316,7 +316,7 @@ const Cart = () => {
                                     <button
                                         onClick={handleVerifyOTP}
                                         disabled={otpLoading}
-                                        className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                                        className="flex-1 py-2 px-4 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50"
                                     >
                                         {otpLoading ? 'Verifying...' : 'Verify & Checkout'}
                                     </button>

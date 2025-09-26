@@ -221,11 +221,11 @@ const AddGem = () => {
             <div className=" mx-auto">
                 <div className="bg-white shadow-xl rounded-lg overflow-hidden">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+                    <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 px-6 py-4">
                         <h1 className="text-3xl font-bold text-white text-center">
                             Add New Gem
                         </h1>
-                        <p className="text-blue-100 text-center mt-2">
+                        <p className="text-emerald-100 text-center mt-2">
                             Fill in the details to add a new gem to the collection
                         </p>
                     </div>
@@ -263,7 +263,7 @@ const AddGem = () => {
                                         name="name"
                                         value={formData.name}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.name ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.name ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="e.g., Blue Sapphire"
                                     />
@@ -279,7 +279,7 @@ const AddGem = () => {
                                         name="category"
                                         value={formData.category}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.category ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.category ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                     >
                                         <option value="">Select Category</option>
@@ -301,7 +301,7 @@ const AddGem = () => {
                                     value={formData.description}
                                     onChange={handleInputChange}
                                     rows={4}
-                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.description ? 'border-red-500' : 'border-gray-300'
+                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.description ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                     placeholder="Describe the gem's characteristics, quality, and unique features..."
                                 />
@@ -329,7 +329,7 @@ const AddGem = () => {
                                                 value={sign}
                                                 checked={formData.whomToUse.includes(sign)}
                                                 onChange={handleInputChange}
-                                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                                             />
                                             <span className="text-sm text-gray-700">{sign}</span>
                                         </label>
@@ -352,7 +352,7 @@ const AddGem = () => {
                                                 value={benefit}
                                                 checked={formData.benefits.includes(benefit)}
                                                 onChange={handleInputChange}
-                                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                                             />
                                             <span className="text-sm text-gray-700">{benefit}</span>
                                         </label>
@@ -379,7 +379,7 @@ const AddGem = () => {
                                         name="price"
                                         value={formData.price}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.price ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.price ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="e.g., 50000"
                                         min="0"
@@ -399,7 +399,7 @@ const AddGem = () => {
                                             name="sizeWeight"
                                             value={formData.sizeWeight}
                                             onChange={handleInputChange}
-                                            className={`flex-1 px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.sizeWeight ? 'border-red-500' : 'border-gray-300'
+                                            className={`flex-1 px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.sizeWeight ? 'border-red-500' : 'border-gray-300'
                                                 }`}
                                             placeholder="e.g., 5"
                                             min="0"
@@ -409,7 +409,7 @@ const AddGem = () => {
                                             name="sizeUnit"
                                             value={formData.sizeUnit}
                                             onChange={handleInputChange}
-                                            className="px-3 py-2 border-t border-r border-b border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="px-3 py-2 border-t border-r border-b border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                         >
                                             <option value="carat">Carat</option>
                                             <option value="gram">Gram</option>
@@ -432,7 +432,7 @@ const AddGem = () => {
                                             name="discount"
                                             value={formData.discount}
                                             onChange={handleInputChange}
-                                            className="flex-1 px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-gray-300"
+                                            className="flex-1 px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-emerald-500 border-gray-300"
                                             placeholder="e.g., 10"
                                             min="0"
                                             step="0.01"
@@ -441,7 +441,7 @@ const AddGem = () => {
                                             name="discountType"
                                             value={formData.discountType}
                                             onChange={handleInputChange}
-                                            className="px-3 py-2 border-t border-r border-b border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="px-3 py-2 border-t border-r border-b border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                         >
                                             <option value="percentage">%</option>
                                             <option value="flat">₹</option>
@@ -459,7 +459,7 @@ const AddGem = () => {
                                         name="stock"
                                         value={formData.stock}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                         placeholder="e.g., 10"
                                         min="0"
                                     />
@@ -473,7 +473,7 @@ const AddGem = () => {
                                     name="availability"
                                     checked={formData.availability}
                                     onChange={handleInputChange}
-                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                                 />
                                 <label className="text-sm font-medium text-gray-700">
                                     Currently Available
@@ -561,13 +561,13 @@ const AddGem = () => {
                                 <div className="flex space-x-2">
                                     <input
                                         type="url"
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                         placeholder="Enter image URL"
                                     />
                                     <button
                                         type="button"
                                         onClick={handleImageUrlAdd}
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                     >
                                         Add URL
                                     </button>
@@ -597,8 +597,8 @@ const AddGem = () => {
 
                             {/* Total Images Summary */}
                             {(formData.images.length > 0 || formData.uploadedImages.length > 0) && (
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                                    <p className="text-sm text-blue-800">
+                                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                                    <p className="text-sm text-emerald-800">
                                         Total Images: {formData.images.length + formData.uploadedImages.length}
                                         {formData.images.length > 0 && ` (${formData.images.length} URLs)`}
                                         {formData.uploadedImages.length > 0 && ` (${formData.uploadedImages.length} uploaded)`}
@@ -624,7 +624,7 @@ const AddGem = () => {
                                         name="certification"
                                         value={formData.certification}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.certification ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.certification ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="e.g., Govt. Lab Certified"
                                     />
@@ -641,7 +641,7 @@ const AddGem = () => {
                                         name="origin"
                                         value={formData.origin}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.origin ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.origin ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="e.g., Sri Lanka"
                                     />
@@ -657,7 +657,7 @@ const AddGem = () => {
                                 disabled={isSubmitting}
                                 className={`px-8 py-3 rounded-lg font-medium text-white transition-colors ${isSubmitting
                                     ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                    : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 hover:from-emerald-700 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-emerald-500'
                                     }`}
                             >
                                 {isSubmitting ? 'Adding Gem...' : 'Add Gem'}

@@ -62,10 +62,9 @@ const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
-              <div className="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">J</span>
-              </div>
-              <span className="ml-2 text-xl font-bold text-gray-900">Jewel</span>
+              <div className="h-12 w-12  rounded-lg flex items-center justify-center">
+                <img src="images/emrald.png"  alt="emrald"/>
+         </div>
             </Link>
           </div>
 
@@ -73,25 +72,25 @@ const Header = () => {
           <nav className="hidden md:flex space-x-6">
             <Link
               to="/"
-              className="text-gray-600 hover:text-indigo-600 font-medium transition"
+              className="text-gray-600 hover:text-emerald-600 font-medium transition"
             >
               Home
             </Link>
             <Link
               to="/shop"
-              className="text-gray-600 hover:text-indigo-600 font-medium transition"
+              className="text-gray-600 hover:text-emerald-600 font-medium transition"
             >
               Shop
             </Link>
             <Link
               to="/about"
-              className="text-gray-600 hover:text-indigo-600 font-medium transition"
+              className="text-gray-600 hover:text-emerald-600 font-medium transition"
             >
               About
             </Link>
             <Link
               to="/contact"
-              className="text-gray-600 hover:text-indigo-600 font-medium transition"
+              className="text-gray-600 hover:text-emerald-600 font-medium transition"
             >
               Contact
             </Link>
@@ -99,13 +98,13 @@ const Header = () => {
               <>
                 <Link
                   to="/dashboard"
-                  className="text-gray-600 hover:text-indigo-600 font-medium transition"
+                  className="text-gray-600 hover:text-emerald-600 font-medium transition"
                 >
                   Dashboard
                 </Link>
                 <Link
                   to="/add-gem"
-                  className="text-gray-600 hover:text-indigo-600 font-medium transition"
+                  className="text-gray-600 hover:text-emerald-600 font-medium transition"
                 >
                   Add Gem
                 </Link>
@@ -146,7 +145,7 @@ const Header = () => {
             {/* Cart Icon */}
             <Link
               to="/cart"
-              className="relative p-2 text-gray-600 hover:text-indigo-600 transition-colors"
+              className="relative p-2 text-gray-600 hover:text-emerald-600 transition-colors"
             >
               <FaShoppingCart className="w-6 h-6" />
               {cartItemCount > 0 && (
@@ -172,13 +171,13 @@ const Header = () => {
               <>
                 <Link
                   to="/login"
-                  className="text-gray-600 hover:text-indigo-600 font-medium"
+                  className="text-gray-600 hover:text-emerald-600 font-medium"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                 >
                   Register
                 </Link>
@@ -190,7 +189,7 @@ const Header = () => {
           <div className="md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-gray-600 hover:text-indigo-600"
+              className="text-gray-600 hover:text-emerald-600"
             >
               {mobileMenuOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
             </button>
@@ -201,21 +200,21 @@ const Header = () => {
       {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t shadow-lg p-4 space-y-3">
-          <Link to="/" className="block text-gray-600 hover:text-indigo-600">
+          <Link to="/" className="block text-gray-600 hover:text-emerald-600">
             Home
           </Link>
-          <Link to="/shop" className="block text-gray-600 hover:text-indigo-600">
+          <Link to="/shop" className="block text-gray-600 hover:text-emerald-600">
             Shop
           </Link>
           <Link
             to="/about"
-            className="block text-gray-600 hover:text-indigo-600"
+            className="block text-gray-600 hover:text-emerald-600"
           >
             About
           </Link>
           <Link
             to="/contact"
-            className="block text-gray-600 hover:text-indigo-600"
+            className="block text-gray-600 hover:text-emerald-600"
           >
             Contact
           </Link>
@@ -223,13 +222,13 @@ const Header = () => {
             <>
               <Link
                 to="/dashboard"
-                className="block text-gray-600 hover:text-indigo-600"
+                className="block text-gray-600 hover:text-emerald-600"
               >
                 Dashboard
               </Link>
               <Link
                 to="/add-gem"
-                className="block text-gray-600 hover:text-indigo-600"
+                className="block text-gray-600 hover:text-emerald-600"
               >
                 Add Gem
               </Link>
@@ -268,7 +267,7 @@ const Header = () => {
             {/* Cart Link */}
             <Link
               to="/cart"
-              className="flex items-center justify-center space-x-2 text-gray-600 hover:text-indigo-600 p-2"
+              className="flex items-center justify-center space-x-2 text-gray-600 hover:text-emerald-600 p-2"
             >
               <FaShoppingCart className="w-5 h-5" />
               <span>Cart</span>
@@ -290,13 +289,13 @@ const Header = () => {
               <div className="space-y-2">
                 <Link
                   to="/login"
-                  className="block text-center text-gray-600 hover:text-indigo-600"
+                  className="block text-center text-gray-600 hover:text-emerald-600"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="block text-center bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  className="block text-center bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                 >
                   Register
                 </Link>
