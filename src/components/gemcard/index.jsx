@@ -189,61 +189,87 @@ const GemCards = () => {
 
                 {/* Mobile/Tablet Carousel View */}
                 <div className="lg:hidden">
-                    <Swiper
-                        modules={[Navigation, Pagination, Autoplay]}
-                        spaceBetween={20}
-                        slidesPerView={1}
-                        navigation
-                        pagination={{ clickable: true }}
-                        autoplay={{ delay: 4000, disableOnInteraction: false }}
-                        breakpoints={{
-                            640: {
-                                slidesPerView: 2,
-                            }
-                        }}
-                        className="pb-12"
-                    >
-                        {gems.map((gem, index) => (
-                            <SwiperSlide key={index}>
-                                <motion.div
-                                    className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 p-6"
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    whileInView={{ opacity: 1, scale: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.5 }}
-                                >
-                                    <div className="flex justify-center items-center mb-4">
-                                        <img
-                                            src={gem.image}
-                                            alt={gem.name}
-                                            className="h-32 w-auto object-contain drop-shadow-lg"
-                                        />
-                                    </div>
+                    <div className="relative overflow-hidden">
+                        <div
+                            className="flex transition-transform duration-500 ease-in-out"
+                            style={{ transform: `translateX(-${currentMobileSlide * 100}%)` }}
+                        >
+                            {gems.map((gem, index) => (
+                                <div key={index} className="w-full flex-shrink-0 px-4">
+                                    <motion.div
+                                        className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 p-6"
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        whileInView={{ opacity: 1, scale: 1 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.5 }}
+                                    >
+                                        <div className="flex justify-center items-center mb-4">
+                                            <img
+                                                src={gem.image}
+                                                alt={gem.name}
+                                                className="h-32 w-auto object-contain drop-shadow-lg"
+                                            />
+                                        </div>
 
-                                    <h2 className="text-xl font-bold text-white mb-3 text-center">
-                                        {gem.name}
-                                    </h2>
+                                        <h2 className="text-xl font-bold text-white mb-3 text-center">
+                                            {gem.name}
+                                        </h2>
 
-                                    <p className="text-white/80 text-sm mb-4 leading-relaxed">
-                                        {gem.description}
-                                    </p>
+                                        <p className="text-white/80 text-sm mb-4 leading-relaxed">
+                                            {gem.description}
+                                        </p>
 
-                                    <div className="space-y-1 mb-4">
-                                        {gem.benefits.slice(0, 3).map((benefit, i) => (
-                                            <div key={i} className="flex items-center text-white/90 text-xs">
-                                                <span className="text-purple-400 mr-2">✨</span>
-                                                {benefit}
-                                            </div>
-                                        ))}
-                                    </div>
+                                        <div className="space-y-1 mb-4">
+                                            {gem.benefits.slice(0, 3).map((benefit, i) => (
+                                                <div key={i} className="flex items-center text-white/90 text-xs">
+                                                    <span className="text-purple-400 mr-2">✨</span>
+                                                    {benefit}
+                                                </div>
+                                            ))}
+                                        </div>
 
-                                    <button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300">
-                                        Discover Power
-                                    </button>
-                                </motion.div>
-                            </SwiperSlide>
-                        ))}
-                    </Swiper>
+                                        <button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300">
+                                            Discover Power
+                                        </button>
+                                    </motion.div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Mobile Navigation Dots */}
+                        <div className="flex justify-center mt-6 space-x-2">
+                            {gems.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => setCurrentMobileSlide(index)}
+                                    className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentMobileSlide
+                                            ? 'bg-white scale-125'
+                                            : 'bg-white/50'
+                                        }`}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Mobile Navigation Arrows */}
+                        <button
+                            onClick={() => setCurrentMobileSlide((prev) => Math.max(0, prev - 1))}
+                            disabled={currentMobileSlide === 0}
+                            className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors disabled:opacity-50"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <button
+                            onClick={() => setCurrentMobileSlide((prev) => Math.min(gems.length - 1, prev + 1))}
+                            disabled={currentMobileSlide === gems.length - 1}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors disabled:opacity-50"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Call to Action */}

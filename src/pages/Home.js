@@ -93,19 +93,19 @@ const Home = () => {
                             key={slide.id}
                             className={`absolute inset-0 ${index === currentSlide ? 'z-10' : 'z-0'}`}
                             initial={{ opacity: 0 }}
-                            animate={{ 
+                            animate={{
                                 opacity: index === currentSlide ? 1 : 0,
                                 scale: index === currentSlide ? 1 : 1.1
                             }}
                             transition={{ duration: 1, ease: "easeInOut" }}
                         >
-                            <div 
+                            <div
                                 className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                                 style={{ backgroundImage: `url('${slide.image}')` }}
                             />
                             <div className={`absolute inset-0 bg-gradient-to-r ${slide.color} opacity-80`} />
-                            
-                            <motion.div 
+
+                            <motion.div
                                 className="relative z-10 h-full flex items-center justify-center text-center px-4"
                                 initial={{ opacity: 0, y: 50 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -114,11 +114,11 @@ const Home = () => {
                                 <div className="max-w-4xl mx-auto">
                                     <motion.div
                                         className="text-8xl mb-6"
-                                        animate={{ 
+                                        animate={{
                                             rotate: [0, 10, -10, 0],
                                             scale: [1, 1.1, 1]
                                         }}
-                                        transition={{ 
+                                        transition={{
                                             duration: 2,
                                             repeat: Infinity,
                                             repeatDelay: 3
@@ -126,7 +126,7 @@ const Home = () => {
                                     >
                                         {slide.gem}
                                     </motion.div>
-                                    <motion.h1 
+                                    <motion.h1
                                         className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6"
                                         initial={{ opacity: 0, y: 30 }}
                                         animate={{ opacity: 1, y: 0 }}
@@ -134,7 +134,7 @@ const Home = () => {
                                     >
                                         {slide.title}
                                     </motion.h1>
-                                    <motion.p 
+                                    <motion.p
                                         className="text-lg md:text-xl lg:text-2xl text-white/90 mb-8 max-w-2xl mx-auto"
                                         initial={{ opacity: 0, y: 30 }}
                                         animate={{ opacity: 1, y: 0 }}
@@ -166,11 +166,10 @@ const Home = () => {
                         <button
                             key={index}
                             onClick={() => setCurrentSlide(index)}
-                            className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                                index === currentSlide 
-                                    ? 'bg-white scale-125' 
+                            className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentSlide
+                                    ? 'bg-white scale-125'
                                     : 'bg-white/50 hover:bg-white/75'
-                            }`}
+                                }`}
                         />
                     ))}
                 </div>
