@@ -1,4 +1,12 @@
 import React from "react";
+import { motion } from "framer-motion";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 // Data for gems
 const gems = [
@@ -90,42 +98,177 @@ const gems = [
 
 const GemCards = () => {
     return (
-        <div className="bg-[#c9d7e5] py-10 px-5 min-h-screen">
-            <h1 className="text-3xl font-bold text-center mb-10 text-white">
-                Explore Our Precious Gems
-            </h1>
-
-            <div className="flex flex-wrap justify-center gap-8">
-                {gems.map((gem, index) => (
-                    <div
-                        key={index}
-                        className="bg-white shadow-lg rounded-2xl overflow-hidden w-80 flex flex-col hover:scale-105 transition-transform duration-300"
-                    >
-                        <div className="bg-white flex justify-center items-center p-4">
-                            <img
-                                src={gem.image}
-                                alt={gem.name}
-                                className="h-32 w-auto object-contain"
-                            />
-                        </div>
-                        <div className="p-5 flex flex-col flex-1">
-                            <h2 className="text-xl font-semibold text-gray-800 mb-3 text-center">
-                                {gem.name}
-                            </h2>
-                            <p className="text-gray-600 text-sm mb-4">{gem.description}</p>
-                            <ul className="list-disc pl-5 space-y-1 text-gray-700 text-sm">
-                                {gem.benefits.map((benefit, i) => (
-                                    <li key={i}>{benefit}</li>
-                                ))}
-                            </ul>
-                            <button className="mt-5 w-full bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 transition">
-                                Buy Now
-                            </button>
-                        </div>
-                    </div>
-                ))}
+        <motion.section
+            className="py-20 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+        >
+            {/* Background decoration */}
+            <div className="absolute inset-0 opacity-20">
+                <div className="absolute inset-0" style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'repeat'
+                }}></div>
             </div>
-        </div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <motion.div
+                    className="text-center mb-16"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8 }}
+                >
+                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+                        Explore Our Precious Gems
+                    </h1>
+                    <p className="text-xl text-white/80 max-w-3xl mx-auto">
+                        Discover the mystical power and timeless beauty of authentic gemstones, each carefully selected for their spiritual significance and exceptional quality.
+                    </p>
+                </motion.div>
+
+                {/* Desktop Grid View */}
+                <div className="hidden lg:grid lg:grid-cols-3 gap-8">
+                    {gems.map((gem, index) => (
+                        <motion.div
+                            key={index}
+                            className="group"
+                            initial={{ opacity: 0, y: 50 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, delay: index * 0.1 }}
+                            whileHover={{ y: -10 }}
+                        >
+                            <div className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 hover:border-white/40 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-purple-500/25">
+                                <div className="relative p-8">
+                                    <motion.div
+                                        className="flex justify-center items-center mb-6"
+                                        whileHover={{ scale: 1.1, rotate: 5 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        <img
+                                            src={gem.image}
+                                            alt={gem.name}
+                                            className="h-40 w-auto object-contain drop-shadow-lg"
+                                        />
+                                    </motion.div>
+
+                                    <h2 className="text-2xl font-bold text-white mb-4 text-center group-hover:text-purple-300 transition-colors">
+                                        {gem.name}
+                                    </h2>
+
+                                    <p className="text-white/80 text-sm mb-6 leading-relaxed">
+                                        {gem.description}
+                                    </p>
+
+                                    <div className="space-y-2 mb-6">
+                                        {gem.benefits.map((benefit, i) => (
+                                            <motion.div
+                                                key={i}
+                                                className="flex items-center text-white/90 text-sm"
+                                                initial={{ opacity: 0, x: -20 }}
+                                                whileInView={{ opacity: 1, x: 0 }}
+                                                viewport={{ once: true }}
+                                                transition={{ duration: 0.5, delay: i * 0.1 }}
+                                            >
+                                                <span className="text-purple-400 mr-2">✨</span>
+                                                {benefit}
+                                            </motion.div>
+                                        ))}
+                                    </div>
+
+                                    <motion.button
+                                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/50"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                    >
+                                        Discover Power
+                                    </motion.button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* Mobile/Tablet Carousel View */}
+                <div className="lg:hidden">
+                    <Swiper
+                        modules={[Navigation, Pagination, Autoplay]}
+                        spaceBetween={20}
+                        slidesPerView={1}
+                        navigation
+                        pagination={{ clickable: true }}
+                        autoplay={{ delay: 4000, disableOnInteraction: false }}
+                        breakpoints={{
+                            640: {
+                                slidesPerView: 2,
+                            }
+                        }}
+                        className="pb-12"
+                    >
+                        {gems.map((gem, index) => (
+                            <SwiperSlide key={index}>
+                                <motion.div
+                                    className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 p-6"
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    whileInView={{ opacity: 1, scale: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.5 }}
+                                >
+                                    <div className="flex justify-center items-center mb-4">
+                                        <img
+                                            src={gem.image}
+                                            alt={gem.name}
+                                            className="h-32 w-auto object-contain drop-shadow-lg"
+                                        />
+                                    </div>
+
+                                    <h2 className="text-xl font-bold text-white mb-3 text-center">
+                                        {gem.name}
+                                    </h2>
+
+                                    <p className="text-white/80 text-sm mb-4 leading-relaxed">
+                                        {gem.description}
+                                    </p>
+
+                                    <div className="space-y-1 mb-4">
+                                        {gem.benefits.slice(0, 3).map((benefit, i) => (
+                                            <div key={i} className="flex items-center text-white/90 text-xs">
+                                                <span className="text-purple-400 mr-2">✨</span>
+                                                {benefit}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300">
+                                        Discover Power
+                                    </button>
+                                </motion.div>
+                            </SwiperSlide>
+                        ))}
+                    </Swiper>
+                </div>
+
+                {/* Call to Action */}
+                <motion.div
+                    className="text-center mt-16"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: 0.5 }}
+                >
+                    <motion.button
+                        className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-full hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-yellow-500/50"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        View All Gems Collection
+                    </motion.button>
+                </motion.div>
+            </div>
+        </motion.section >
     );
 };
 

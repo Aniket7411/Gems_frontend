@@ -1,164 +1,355 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { authAPI } from '../services/api';
 import GemCards from '../components/gemcard';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 const Home = () => {
     const isAuthenticated = authAPI.isAuthenticated();
     const user = authAPI.getCurrentUser();
+    const { scrollYProgress } = useScroll();
+    const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
+
+    // Hero carousel data
+    const heroSlides = [
+        {
+            id: 1,
+            title: "Discover Exquisite Gems",
+            subtitle: "Handpicked, certified gemstones that bring timeless elegance and lasting value",
+            image: "images/gemtop.jpeg",
+            gem: "💎",
+            color: "from-emerald-600 to-teal-700"
+        },
+        {
+            id: 2,
+            title: "Premium Ruby Collection",
+            subtitle: "Experience the pinnacle of luxury with rare, investment-worthy rubies",
+            image: "gemimages/ruby.webp",
+            gem: "🔴",
+            color: "from-red-600 to-pink-700"
+        },
+        {
+            id: 3,
+            title: "Elegant Emerald Stones",
+            subtitle: "Adorned by royalty, these emeralds whisper legacy, prestige, and timeless power",
+            image: "gemimages/emrald.webp",
+            gem: "💚",
+            color: "from-green-600 to-emerald-700"
+        },
+        {
+            id: 4,
+            title: "Mystical Blue Sapphires",
+            subtitle: "The most powerful and fastest-acting gemstone in Vedic astrology",
+            image: "gemimages/bluesapphire.webp",
+            gem: "💙",
+            color: "from-blue-600 to-indigo-700"
+        }
+    ];
+
+    // Testimonials data
+    const testimonials = [
+        {
+            id: 1,
+            name: "Sarah Johnson",
+            role: "Jewelry Collector",
+            content: "The quality and authenticity of gems here is unmatched. My emerald ring has brought incredible positive energy to my life.",
+            rating: 5,
+            image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
+        },
+        {
+            id: 2,
+            name: "Rajesh Kumar",
+            role: "Business Owner",
+            content: "Since wearing the yellow sapphire, my business has seen remarkable growth. Highly recommended for anyone seeking prosperity.",
+            rating: 5,
+            image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
+        },
+        {
+            id: 3,
+            name: "Priya Sharma",
+            role: "Fashion Designer",
+            content: "The pearl necklace I purchased here has become my signature piece. The elegance and quality are simply divine.",
+            rating: 5,
+            image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face"
+        }
+    ];
 
     return (
-        <div>
-            <div
-                className="relative w-full h-72  bg-cover bg-center bg-no-repeat flex items-center justify-start text-center px-4"
-                style={{ backgroundImage: "url('images/gemtop.jpeg')" }}
-            >
-                {/* Overlay for better text visibility */}
-                <div className="absolute inset-0 bg-black/20"></div>
+        <div className="overflow-hidden">
+            {/* Hero Carousel Section */}
+            <section className="relative h-screen">
+                <Swiper
+                    modules={[Navigation, Pagination, Autoplay]}
+                    spaceBetween={0}
+                    slidesPerView={1}
+                    navigation
+                    pagination={{ clickable: true }}
+                    autoplay={{ delay: 5000, disableOnInteraction: false }}
+                    className="h-full"
+                >
+                    {heroSlides.map((slide, index) => (
+                        <SwiperSlide key={slide.id}>
+                            <div className="relative h-screen w-full">
+                                <div
+                                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                                    style={{ backgroundImage: `url('${slide.image}')` }}
+                                />
+                                <div className={`absolute inset-0 bg-gradient-to-r ${slide.color} opacity-80`} />
 
-                {/* Content */}
-                <div className="relative z-10 text-white max-w-2xl">
-                    <h1 className="text-2xl md:text-4xl font-bold mb-4">
-                        Discover Exquisite Gems
-                    </h1>
-                    <p className="text-sm md:text-lg mb-6">
-                        Handpicked, certified gemstones that bring timeless elegance and lasting value.
-                    </p>
-                    <button className="px-6 py-2 bg-[#00A3A1] hover:bg-[#0a8f8d] text-white font-semibold rounded-lg transition duration-300">
-                        Shop Now
-                    </button>
-                </div>
-            </div>
-
-            <GemCards />
-
-            {/* Hero Section */}
-            <div className="relative bg-white overflow-hidden">
-                <div className="max-w-7xl mx-auto">
-                    <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
-                        <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-                            <div className="sm:text-center lg:text-left">
-                                <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-                                    <span className="block xl:inline">Welcome to</span>{' '}
-                                    <span className="block text-emerald-600 xl:inline">Jewel</span>
-                                </h1>
-                                <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                                    Your trusted platform for jewelry management and authentication.
-                                    Secure, reliable, and easy to use.
-                                </p>
-                                <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
-                                    <div className="rounded-md shadow">
-                                        {isAuthenticated ? (
-                                            <Link
-                                                to="/dashboard"
-                                                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 md:py-4 md:text-lg md:px-10"
-                                            >
-                                                Go to Dashboard
-                                            </Link>
-                                        ) : (
+                                <motion.div
+                                    className="relative z-10 h-full flex items-center justify-center text-center px-4"
+                                    initial={{ opacity: 0, y: 50 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.8, delay: index * 0.2 }}
+                                >
+                                    <div className="max-w-4xl mx-auto">
+                                        <motion.div
+                                            className="text-8xl mb-6"
+                                            animate={{
+                                                rotate: [0, 10, -10, 0],
+                                                scale: [1, 1.1, 1]
+                                            }}
+                                            transition={{
+                                                duration: 2,
+                                                repeat: Infinity,
+                                                repeatDelay: 3
+                                            }}
+                                        >
+                                            {slide.gem}
+                                        </motion.div>
+                                        <motion.h1
+                                            className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6"
+                                            initial={{ opacity: 0, y: 30 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.8, delay: 0.3 }}
+                                        >
+                                            {slide.title}
+                                        </motion.h1>
+                                        <motion.p
+                                            className="text-lg md:text-xl lg:text-2xl text-white/90 mb-8 max-w-2xl mx-auto"
+                                            initial={{ opacity: 0, y: 30 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.8, delay: 0.5 }}
+                                        >
+                                            {slide.subtitle}
+                                        </motion.p>
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 30 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.8, delay: 0.7 }}
+                                        >
                                             <Link
                                                 to="/register"
-                                                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 md:py-4 md:text-lg md:px-10"
+                                                className="inline-block px-8 py-4 bg-white text-gray-900 font-semibold rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg"
                                             >
-                                                Get started
+                                                Explore Collection
                                             </Link>
-                                        )}
+                                        </motion.div>
                                     </div>
-                                    <div className="mt-3 sm:mt-0 sm:ml-3">
-                                        <Link
-                                            to="/login"
-                                            className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 md:py-4 md:text-lg md:px-10"
-                                        >
-                                            Sign in
-                                        </Link>
-                                    </div>
-                                </div>
+                                </motion.div>
                             </div>
-                        </main>
-                    </div>
-                </div>
-                <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-                    <div className="h-56 w-full bg-emerald-600 sm:h-72 md:h-96 lg:w-full lg:h-full flex items-center justify-center">
-                        <div className="text-center text-white">
-                            <div className="h-32 w-32 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <span className="text-6xl font-bold">💎</span>
-                            </div>
-                            <h2 className="text-2xl font-bold mb-2">Jewel Platform</h2>
-                            <p className="text-indigo-100">Secure & Reliable</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                        </SwiperSlide>
+                    ))}
+                </Swiper>
+            </section>
+
+            {/* Gem Cards Section */}
+            <GemCards />
 
             {/* Features Section */}
-            <div className="py-12 bg-white">
+            <motion.section
+                className="py-20 bg-gradient-to-br from-gray-50 to-white"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+            >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="lg:text-center">
-                        <h2 className="text-base text-emerald-600 font-semibold tracking-wide uppercase">Features</h2>
-                        <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-                            Everything you need to manage your jewelry
+                    <motion.div
+                        className="text-center mb-16"
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                            Why Choose Our Gems?
+                        </h2>
+                        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                            We offer the finest collection of authentic, certified gemstones with unmatched quality and spiritual significance.
                         </p>
-                        <p className="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
-                            Our platform provides comprehensive tools for jewelry authentication, management, and security.
-                        </p>
-                    </div>
+                    </motion.div>
 
-                    <div className="mt-10">
-                        <div className="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10">
-                            <div className="relative">
-                                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
-                                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Secure Authentication</p>
-                                <p className="mt-2 ml-16 text-base text-gray-500">
-                                    Advanced security features to protect your account and data.
-                                </p>
-                            </div>
-
-                            <div className="relative">
-                                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
-                                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                    </svg>
-                                </div>
-                                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Data Protection</p>
-                                <p className="mt-2 ml-16 text-base text-gray-500">
-                                    Your personal information is encrypted and protected with industry-standard security.
-                                </p>
-                            </div>
-
-                            <div className="relative">
-                                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
-                                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
-                                </div>
-                                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Fast & Reliable</p>
-                                <p className="mt-2 ml-16 text-base text-gray-500">
-                                    Lightning-fast performance with 99.9% uptime guarantee.
-                                </p>
-                            </div>
-
-                            <div className="relative">
-                                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
-                                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z" />
-                                    </svg>
-                                </div>
-                                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Easy to Use</p>
-                                <p className="mt-2 ml-16 text-base text-gray-500">
-                                    Intuitive interface designed for both beginners and professionals.
-                                </p>
-                            </div>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {[
+                            {
+                                icon: "🔍",
+                                title: "100% Authentic",
+                                description: "Every gemstone is certified and verified for authenticity by expert gemologists."
+                            },
+                            {
+                                icon: "✨",
+                                title: "Premium Quality",
+                                description: "Handpicked from the finest sources worldwide, ensuring exceptional quality and beauty."
+                            },
+                            {
+                                icon: "🛡️",
+                                title: "Secure Delivery",
+                                description: "Insured and secure shipping with tracking to ensure your precious gems arrive safely."
+                            },
+                            {
+                                icon: "📜",
+                                title: "Certification",
+                                description: "Complete documentation and certification for every gemstone you purchase."
+                            }
+                        ].map((feature, index) => (
+                            <motion.div
+                                key={index}
+                                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.8, delay: index * 0.1 }}
+                                whileHover={{ scale: 1.05 }}
+                            >
+                                <div className="text-4xl mb-4">{feature.icon}</div>
+                                <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
+                                <p className="text-gray-600">{feature.description}</p>
+                            </motion.div>
+                        ))}
                     </div>
                 </div>
-            </div>
+            </motion.section>
 
+            {/* Testimonials Section */}
+            <motion.section
+                className="py-20 bg-gradient-to-r from-emerald-600 to-teal-700"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+            >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        className="text-center mb-16"
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                            What Our Customers Say
+                        </h2>
+                        <p className="text-xl text-white/90 max-w-3xl mx-auto">
+                            Join thousands of satisfied customers who have experienced the power of authentic gemstones.
+                        </p>
+                    </motion.div>
 
-        </div >
+                    <Swiper
+                        modules={[Navigation, Pagination, Autoplay]}
+                        spaceBetween={30}
+                        slidesPerView={1}
+                        navigation
+                        pagination={{ clickable: true }}
+                        autoplay={{ delay: 4000, disableOnInteraction: false }}
+                        breakpoints={{
+                            768: {
+                                slidesPerView: 2,
+                            },
+                            1024: {
+                                slidesPerView: 3,
+                            }
+                        }}
+                        className="pb-12"
+                    >
+                        {testimonials.map((testimonial) => (
+                            <SwiperSlide key={testimonial.id}>
+                                <motion.div
+                                    className="bg-white p-8 rounded-2xl shadow-lg h-full"
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    whileInView={{ opacity: 1, scale: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.5 }}
+                                >
+                                    <div className="flex items-center mb-4">
+                                        {[...Array(testimonial.rating)].map((_, i) => (
+                                            <span key={i} className="text-yellow-400 text-xl">⭐</span>
+                                        ))}
+                                    </div>
+                                    <p className="text-gray-600 mb-6 italic">"{testimonial.content}"</p>
+                                    <div className="flex items-center">
+                                        <img
+                                            src={testimonial.image}
+                                            alt={testimonial.name}
+                                            className="w-12 h-12 rounded-full mr-4 object-cover"
+                                        />
+                                        <div>
+                                            <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
+                                            <p className="text-gray-600 text-sm">{testimonial.role}</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </SwiperSlide>
+                        ))}
+                    </Swiper>
+                </div>
+            </motion.section>
+
+            {/* CTA Section */}
+            <motion.section
+                className="py-20 bg-gradient-to-r from-gray-900 to-black text-white"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+            >
+                <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                            Ready to Find Your Perfect Gem?
+                        </h2>
+                        <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                            Discover the power and beauty of authentic gemstones. Start your journey with us today.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            {isAuthenticated ? (
+                                <Link
+                                    to="/dashboard"
+                                    className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105"
+                                >
+                                    Go to Dashboard
+                                </Link>
+                            ) : (
+                                <Link
+                                    to="/register"
+                                    className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105"
+                                >
+                                    Get Started
+                                </Link>
+                            )}
+                            <Link
+                                to="/login"
+                                className="px-8 py-4 border-2 border-white text-white hover:bg-white hover:text-gray-900 font-semibold rounded-full transition-all duration-300 transform hover:scale-105"
+                            >
+                                Sign In
+                            </Link>
+                        </div>
+                    </motion.div>
+                </div>
+            </motion.section>
+        </div>
     );
 };
 

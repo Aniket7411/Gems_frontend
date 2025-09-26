@@ -62,9 +62,9 @@ const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
-              <div className="h-12 w-12  rounded-lg flex items-center justify-center">
-                <img src="images/emrald.png"  alt="emrald"/>
-         </div>
+              <div className="h-24 w-24  rounded-lg flex items-center justify-center">
+                <img src="images/aurelane.png" alt="emrald" />
+              </div>
             </Link>
           </div>
 
