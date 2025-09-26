@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { authAPI } from '../services/api';
 import GemCards from '../components/gemcard';
-
-// Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
 
 const Home = () => {
     const isAuthenticated = authAPI.isAuthenticated();
     const user = authAPI.getCurrentUser();
     const { scrollYProgress } = useScroll();
     const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
+    const [currentSlide, setCurrentSlide] = useState(0);
+
+    // Auto-slide functionality
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+        }, 5000);
+        return () => clearInterval(interval);
+    }, []);
 
     // Hero carousel data
     const heroSlides = [
@@ -84,80 +86,112 @@ const Home = () => {
     return (
         <div className="overflow-hidden">
             {/* Hero Carousel Section */}
-            <section className="relative h-screen">
-                <Swiper
-                    modules={[Navigation, Pagination, Autoplay]}
-                    spaceBetween={0}
-                    slidesPerView={1}
-                    navigation
-                    pagination={{ clickable: true }}
-                    autoplay={{ delay: 5000, disableOnInteraction: false }}
-                    className="h-full"
-                >
+            <section className="relative h-screen overflow-hidden">
+                <div className="relative h-full">
                     {heroSlides.map((slide, index) => (
-                        <SwiperSlide key={slide.id}>
-                            <div className="relative h-screen w-full">
-                                <div
-                                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                                    style={{ backgroundImage: `url('${slide.image}')` }}
-                                />
-                                <div className={`absolute inset-0 bg-gradient-to-r ${slide.color} opacity-80`} />
-
-                                <motion.div
-                                    className="relative z-10 h-full flex items-center justify-center text-center px-4"
-                                    initial={{ opacity: 0, y: 50 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.8, delay: index * 0.2 }}
-                                >
-                                    <div className="max-w-4xl mx-auto">
-                                        <motion.div
-                                            className="text-8xl mb-6"
-                                            animate={{
-                                                rotate: [0, 10, -10, 0],
-                                                scale: [1, 1.1, 1]
-                                            }}
-                                            transition={{
-                                                duration: 2,
-                                                repeat: Infinity,
-                                                repeatDelay: 3
-                                            }}
+                        <motion.div
+                            key={slide.id}
+                            className={`absolute inset-0 ${index === currentSlide ? 'z-10' : 'z-0'}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ 
+                                opacity: index === currentSlide ? 1 : 0,
+                                scale: index === currentSlide ? 1 : 1.1
+                            }}
+                            transition={{ duration: 1, ease: "easeInOut" }}
+                        >
+                            <div 
+                                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                                style={{ backgroundImage: `url('${slide.image}')` }}
+                            />
+                            <div className={`absolute inset-0 bg-gradient-to-r ${slide.color} opacity-80`} />
+                            
+                            <motion.div 
+                                className="relative z-10 h-full flex items-center justify-center text-center px-4"
+                                initial={{ opacity: 0, y: 50 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8, delay: 0.2 }}
+                            >
+                                <div className="max-w-4xl mx-auto">
+                                    <motion.div
+                                        className="text-8xl mb-6"
+                                        animate={{ 
+                                            rotate: [0, 10, -10, 0],
+                                            scale: [1, 1.1, 1]
+                                        }}
+                                        transition={{ 
+                                            duration: 2,
+                                            repeat: Infinity,
+                                            repeatDelay: 3
+                                        }}
+                                    >
+                                        {slide.gem}
+                                    </motion.div>
+                                    <motion.h1 
+                                        className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6"
+                                        initial={{ opacity: 0, y: 30 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.8, delay: 0.3 }}
+                                    >
+                                        {slide.title}
+                                    </motion.h1>
+                                    <motion.p 
+                                        className="text-lg md:text-xl lg:text-2xl text-white/90 mb-8 max-w-2xl mx-auto"
+                                        initial={{ opacity: 0, y: 30 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.8, delay: 0.5 }}
+                                    >
+                                        {slide.subtitle}
+                                    </motion.p>
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 30 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.8, delay: 0.7 }}
+                                    >
+                                        <Link
+                                            to="/register"
+                                            className="inline-block px-8 py-4 bg-white text-gray-900 font-semibold rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg"
                                         >
-                                            {slide.gem}
-                                        </motion.div>
-                                        <motion.h1
-                                            className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6"
-                                            initial={{ opacity: 0, y: 30 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.8, delay: 0.3 }}
-                                        >
-                                            {slide.title}
-                                        </motion.h1>
-                                        <motion.p
-                                            className="text-lg md:text-xl lg:text-2xl text-white/90 mb-8 max-w-2xl mx-auto"
-                                            initial={{ opacity: 0, y: 30 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.8, delay: 0.5 }}
-                                        >
-                                            {slide.subtitle}
-                                        </motion.p>
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 30 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.8, delay: 0.7 }}
-                                        >
-                                            <Link
-                                                to="/register"
-                                                className="inline-block px-8 py-4 bg-white text-gray-900 font-semibold rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                                            >
-                                                Explore Collection
-                                            </Link>
-                                        </motion.div>
-                                    </div>
-                                </motion.div>
-                            </div>
-                        </SwiperSlide>
+                                            Explore Collection
+                                        </Link>
+                                    </motion.div>
+                                </div>
+                            </motion.div>
+                        </motion.div>
                     ))}
-                </Swiper>
+                </div>
+
+                {/* Navigation Dots */}
+                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
+                    {heroSlides.map((_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => setCurrentSlide(index)}
+                            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                                index === currentSlide 
+                                    ? 'bg-white scale-125' 
+                                    : 'bg-white/50 hover:bg-white/75'
+                            }`}
+                        />
+                    ))}
+                </div>
+
+                {/* Navigation Arrows */}
+                <button
+                    onClick={() => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)}
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 text-white hover:text-gray-300 transition-colors"
+                >
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <button
+                    onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 text-white hover:text-gray-300 transition-colors"
+                >
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
             </section>
 
             {/* Gem Cards Section */}
@@ -252,53 +286,36 @@ const Home = () => {
                         </p>
                     </motion.div>
 
-                    <Swiper
-                        modules={[Navigation, Pagination, Autoplay]}
-                        spaceBetween={30}
-                        slidesPerView={1}
-                        navigation
-                        pagination={{ clickable: true }}
-                        autoplay={{ delay: 4000, disableOnInteraction: false }}
-                        breakpoints={{
-                            768: {
-                                slidesPerView: 2,
-                            },
-                            1024: {
-                                slidesPerView: 3,
-                            }
-                        }}
-                        className="pb-12"
-                    >
-                        {testimonials.map((testimonial) => (
-                            <SwiperSlide key={testimonial.id}>
-                                <motion.div
-                                    className="bg-white p-8 rounded-2xl shadow-lg h-full"
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    whileInView={{ opacity: 1, scale: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.5 }}
-                                >
-                                    <div className="flex items-center mb-4">
-                                        {[...Array(testimonial.rating)].map((_, i) => (
-                                            <span key={i} className="text-yellow-400 text-xl">⭐</span>
-                                        ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {testimonials.map((testimonial, index) => (
+                            <motion.div
+                                key={testimonial.id}
+                                className="bg-white p-8 rounded-2xl shadow-lg h-full"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5, delay: index * 0.1 }}
+                            >
+                                <div className="flex items-center mb-4">
+                                    {[...Array(testimonial.rating)].map((_, i) => (
+                                        <span key={i} className="text-yellow-400 text-xl">⭐</span>
+                                    ))}
+                                </div>
+                                <p className="text-gray-600 mb-6 italic">"{testimonial.content}"</p>
+                                <div className="flex items-center">
+                                    <img
+                                        src={testimonial.image}
+                                        alt={testimonial.name}
+                                        className="w-12 h-12 rounded-full mr-4 object-cover"
+                                    />
+                                    <div>
+                                        <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
+                                        <p className="text-gray-600 text-sm">{testimonial.role}</p>
                                     </div>
-                                    <p className="text-gray-600 mb-6 italic">"{testimonial.content}"</p>
-                                    <div className="flex items-center">
-                                        <img
-                                            src={testimonial.image}
-                                            alt={testimonial.name}
-                                            className="w-12 h-12 rounded-full mr-4 object-cover"
-                                        />
-                                        <div>
-                                            <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
-                                            <p className="text-gray-600 text-sm">{testimonial.role}</p>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </SwiperSlide>
+                                </div>
+                            </motion.div>
                         ))}
-                    </Swiper>
+                    </div>
                 </div>
             </motion.section>
 

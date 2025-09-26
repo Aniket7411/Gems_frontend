@@ -1,12 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-
-// Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
 
 // Data for gems
 const gems = [
@@ -97,6 +90,8 @@ const gems = [
 ];
 
 const GemCards = () => {
+    const [currentMobileSlide, setCurrentMobileSlide] = useState(0);
+
     return (
         <motion.section
             className="py-20 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden"
