@@ -1,5 +1,5 @@
-// const API_BASE_URL = 'https://gems-backend-zfpw.onrender.com/api';
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://gems-backend-zfpw.onrender.com/api';
+// const API_BASE_URL = 'http://localhost:5000/api';
 
 // Helper function to get auth token
 const getAuthToken = () => {

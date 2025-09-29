@@ -41,17 +41,17 @@ function App() {
         <Router>
           <div className="App">
             <Routes>
-               {/* Public Routes */}
-               <Route path="/" element={
-                 <MainLayout>
-                   <Home />
-                 </MainLayout>
-               } />
-               <Route path="/gemstones" element={
-                 <MainLayout>
-                   <Gemstones />
-                 </MainLayout>
-               } />
+              {/* Public Routes */}
+              <Route path="/" element={
+                <MainLayout>
+                  <Home />
+                </MainLayout>
+              } />
+              <Route path="/gemstones" element={
+                <MainLayout>
+                  <Gemstones />
+                </MainLayout>
+              } />
 
               {/* Auth Routes */}
               <Route
