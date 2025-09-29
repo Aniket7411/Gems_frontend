@@ -27,6 +27,7 @@ const Home = () => {
             subtitle: "Handpicked, certified gemstones that bring timeless elegance and lasting value",
             image: "images/gemtop.jpeg",
             gem: "💎",
+            img: "./gemimages/bluestone.jpeg",
             color: "from-emerald-600 to-teal-700"
         },
         {
@@ -35,6 +36,8 @@ const Home = () => {
             subtitle: "Experience the pinnacle of luxury with rare, investment-worthy rubies",
             image: "gemimages/ruby.webp",
             gem: "🔴",
+            img: "./gemimages/hessonite.webp",
+
             color: "from-red-600 to-pink-700"
         },
         {
@@ -43,6 +46,8 @@ const Home = () => {
             subtitle: "Adorned by royalty, these emeralds whisper legacy, prestige, and timeless power",
             image: "gemimages/emrald.webp",
             gem: "💚",
+            img: "./gemimages/greenstone.jpeg",
+
             color: "from-green-600 to-emerald-700"
         },
         {
@@ -51,6 +56,8 @@ const Home = () => {
             subtitle: "The most powerful and fastest-acting gemstone in Vedic astrology",
             image: "gemimages/bluesapphire.webp",
             gem: "💙",
+            img: "./gemimages/bluesapphire.webp",
+
             color: "from-blue-600 to-indigo-700"
         }
     ];
@@ -85,6 +92,7 @@ const Home = () => {
 
     return (
         <div className="overflow-hidden">
+
             {/* Hero Carousel Section */}
             <section className="relative h-screen overflow-hidden">
                 <div className="relative h-full">
@@ -112,6 +120,20 @@ const Home = () => {
                                 transition={{ duration: 0.8, delay: 0.2 }}
                             >
                                 <div className="max-w-4xl mx-auto">
+                                    {/* <motion.div
+                                        className="text-8xl mb-6"
+                                        animate={{
+                                            rotate: [0, 10, -10, 0],
+                                            scale: [1, 1.1, 1]
+                                        }}
+                                        transition={{
+                                            duration: 2,
+                                            repeat: Infinity,
+                                            repeatDelay: 3
+                                        }}
+                                    >
+                                        <img src={slide.img} alt={slide.title} className="w-20 h-20" />
+                                    </motion.div> */}
                                     <motion.div
                                         className="text-8xl mb-6"
                                         animate={{
@@ -167,8 +189,8 @@ const Home = () => {
                             key={index}
                             onClick={() => setCurrentSlide(index)}
                             className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentSlide
-                                    ? 'bg-white scale-125'
-                                    : 'bg-white/50 hover:bg-white/75'
+                                ? 'bg-white scale-125'
+                                : 'bg-white/50 hover:bg-white/75'
                                 }`}
                         />
                     ))}
