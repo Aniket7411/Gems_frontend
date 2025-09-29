@@ -127,3 +127,5 @@ The application uses Tailwind CSS for styling with:
 - Mobile app integration
 
 
+
+

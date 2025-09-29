@@ -83,6 +83,12 @@ const Header = () => {
               Shop
             </Link>
             <Link
+              to="/gemstones"
+              className="text-gray-600 hover:text-emerald-600 font-medium transition"
+            >
+              Gemstones
+            </Link>
+            <Link
               to="/about"
               className="text-gray-600 hover:text-emerald-600 font-medium transition"
             >
@@ -205,6 +211,12 @@ const Header = () => {
           </Link>
           <Link to="/shop" className="block text-gray-600 hover:text-emerald-600">
             Shop
+          </Link>
+          <Link
+            to="/gemstones"
+            className="block text-gray-600 hover:text-emerald-600"
+          >
+            Gemstones
           </Link>
           <Link
             to="/about"

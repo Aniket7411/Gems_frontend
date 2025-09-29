@@ -11,6 +11,7 @@ import AddGem from './pages/AddGem';
 import GemDetail from './pages/GemDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
+import Gemstones from './pages/Gemstones';
 
 // Auth Components
 import Login from './components/auth/Login';
@@ -40,12 +41,17 @@ function App() {
         <Router>
           <div className="App">
             <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={
-                <MainLayout>
-                  <Home />
-                </MainLayout>
-              } />
+               {/* Public Routes */}
+               <Route path="/" element={
+                 <MainLayout>
+                   <Home />
+                 </MainLayout>
+               } />
+               <Route path="/gemstones" element={
+                 <MainLayout>
+                   <Gemstones />
+                 </MainLayout>
+               } />
 
               {/* Auth Routes */}
               <Route
