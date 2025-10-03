@@ -1,121 +1,125 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { gemAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
-import { useAuth } from '../contexts/AuthContext';
+import { FaHeart, FaShoppingCart, FaStar, FaArrowLeft, FaShare, FaCheck, FaTruck, FaCertificate } from 'react-icons/fa';
 
 const GemDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { addToCart } = useCart();
-    const { isAuthenticated } = useAuth();
-
+    const { addToCart, isInCart } = useCart();
     const [gem, setGem] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [error, setError] = useState(null);
+    const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
-    const [showOTPModal, setShowOTPModal] = useState(false);
-    const [phoneNumber, setPhoneNumber] = useState('');
-    const [otp, setOtp] = useState('');
-    const [otpSent, setOtpSent] = useState(false);
-    const [otpLoading, setOtpLoading] = useState(false);
+    const [isWishlisted, setIsWishlisted] = useState(false);
 
-    const fetchGemDetails = useCallback(async () => {
+    useEffect(() => {
+        fetchGemDetails();
+    }, [id]);
+
+    const fetchGemDetails = async () => {
         try {
             setLoading(true);
+            setError(null);
             const response = await gemAPI.getGemById(id);
+
             if (response.success) {
                 setGem(response.data);
             } else {
                 setError('Gem not found');
             }
-        } catch (error) {
-            console.error('Error fetching gem:', error);
-            setError('Failed to load gem details');
+        } catch (err) {
+            console.error('Error fetching gem details:', err);
+            setError(err.message || 'Failed to fetch gem details');
         } finally {
             setLoading(false);
         }
-    }, [id]);
+    };
 
-    useEffect(() => {
-        fetchGemDetails();
-    }, [fetchGemDetails]);
+    const calculatePrice = () => {
+        if (!gem) return 0;
+        if (gem.discount && gem.discount > 0) {
+            const discountAmount = gem.discountType === 'percentage'
+                ? (gem.price * gem.discount) / 100
+                : gem.discount;
+            return gem.price - discountAmount;
+        }
+        return gem.price;
+    };
+
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0,
+        }).format(price);
+    };
+
+    const getGemEmoji = (category) => {
+        const emojiMap = {
+            'Emerald': '💚',
+            'Ruby': '🔴',
+            'Sapphire': '💙',
+            'Diamond': '💎',
+            'Pearl': '🤍',
+            'Coral': '🟥',
+            'Gomed': '🤎',
+            'Cat\'s Eye': '👁️',
+            'Moonstone': '🌙',
+            'Turquoise': '🩵',
+            'Opal': '🌈',
+            'Yellow Sapphire': '💛',
+        };
+        return emojiMap[category] || '💎';
+    };
+
+    const getGemGradient = (category) => {
+        const gradientMap = {
+            'Emerald': 'from-green-500 to-emerald-600',
+            'Ruby': 'from-red-500 to-pink-600',
+            'Sapphire': 'from-blue-500 to-indigo-600',
+            'Diamond': 'from-gray-300 to-gray-500',
+            'Pearl': 'from-gray-100 to-gray-300',
+            'Coral': 'from-red-400 to-red-600',
+            'Gomed': 'from-amber-500 to-orange-600',
+            'Cat\'s Eye': 'from-yellow-400 to-gray-500',
+            'Moonstone': 'from-blue-100 to-purple-200',
+            'Turquoise': 'from-cyan-400 to-teal-500',
+            'Opal': 'from-pink-200 to-purple-300',
+            'Yellow Sapphire': 'from-yellow-400 to-amber-500',
+        };
+        return gradientMap[category] || 'from-gray-400 to-gray-600';
+    };
 
     const handleAddToCart = () => {
-        if (isAuthenticated) {
-            addToCart(gem, quantity);
-            // Show success message or notification
-            alert('Added to cart successfully!');
-        } else {
-            setShowOTPModal(true);
+        if (gem) {
+            addToCart({
+                id: gem.id,
+                name: gem.name,
+                price: gem.price,
+                discount: gem.discount,
+                discountType: gem.discountType,
+                image: gem.allImages?.[0] || null,
+                category: gem.category
+            });
         }
     };
 
-    const handleSendOTP = async () => {
-        if (!phoneNumber.trim()) {
-            alert('Please enter a valid phone number');
-            return;
+    const handleQuantityChange = (newQuantity) => {
+        if (newQuantity >= 1 && newQuantity <= (gem?.stock || 10)) {
+            setQuantity(newQuantity);
         }
-
-        setOtpLoading(true);
-        try {
-            // Simulate OTP sending - replace with actual API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            setOtpSent(true);
-            alert('OTP sent to your phone number');
-        } catch (error) {
-            alert('Failed to send OTP. Please try again.');
-        } finally {
-            setOtpLoading(false);
-        }
-    };
-
-    const handleVerifyOTP = async () => {
-        if (!otp.trim()) {
-            alert('Please enter the OTP');
-            return;
-        }
-
-        setOtpLoading(true);
-        try {
-            // Simulate OTP verification - replace with actual API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Add to cart after successful OTP verification
-            addToCart(gem, quantity);
-            setShowOTPModal(false);
-            setPhoneNumber('');
-            setOtp('');
-            setOtpSent(false);
-            alert('Added to cart successfully!');
-        } catch (error) {
-            alert('Invalid OTP. Please try again.');
-        } finally {
-            setOtpLoading(false);
-        }
-    };
-
-    const calculateDiscountedPrice = () => {
-        if (!gem) return 0;
-
-        let discountedPrice = gem.price;
-        if (gem.discount && gem.discount > 0) {
-            if (gem.discountType === 'percentage') {
-                discountedPrice = gem.price - (gem.price * gem.discount / 100);
-            } else {
-                discountedPrice = gem.price - gem.discount;
-            }
-        }
-        return Math.max(0, discountedPrice);
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading gem details...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+                    <p className="text-xl text-gray-600">Loading gem details...</p>
                 </div>
             </div>
         );
@@ -123,49 +127,73 @@ const GemDetail = () => {
 
     if (error || !gem) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="text-red-500 text-6xl mb-4">⚠️</div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Gem Not Found</h2>
-                    <p className="text-gray-600 mb-4">{error}</p>
+                    <div className="text-6xl mb-4">💎</div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Gem Not Found</h2>
+                    <p className="text-gray-600 mb-8">{error || 'The gem you are looking for does not exist.'}</p>
                     <button
-                        onClick={() => navigate('/')}
-                        className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700"
+                        onClick={() => navigate('/shop')}
+                        className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
                     >
-                        Go Home
+                        Back to Shop
                     </button>
                 </div>
             </div>
         );
     }
 
-    const discountedPrice = calculateDiscountedPrice();
-    const discountAmount = gem.price - discountedPrice;
-
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Breadcrumb */}
-                <nav className="mb-8">
-                    <ol className="flex items-center space-x-2 text-sm text-gray-500">
-                        <li><button onClick={() => navigate('/')} className="hover:text-emerald-600">Home</button></li>
-                        <li>/</li>
-                        <li><button onClick={() => navigate('/shop')} className="hover:text-emerald-600">Shop</button></li>
-                        <li>/</li>
-                        <li><span className="text-gray-900">{gem.name}</span></li>
-                    </ol>
-                </nav>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50">
+            {/* Header */}
+            <div className="bg-white shadow-sm border-b border-gray-200">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex items-center space-x-4">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="flex items-center space-x-2 text-gray-600 hover:text-emerald-600 transition-colors"
+                        >
+                            <FaArrowLeft className="w-4 h-4" />
+                            <span>Back</span>
+                        </button>
+                        <div className="flex-1">
+                            <h1 className="text-2xl font-bold text-gray-900">{gem.name}</h1>
+                            <p className="text-gray-600">{gem.category}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <button className="p-2 text-gray-600 hover:text-emerald-600 transition-colors">
+                                <FaShare className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => setIsWishlisted(!isWishlisted)}
+                                className={`p-2 transition-colors ${isWishlisted ? 'text-red-500' : 'text-gray-600 hover:text-red-500'
+                                    }`}
+                            >
+                                <FaHeart className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {/* Image Gallery */}
                     <div className="space-y-4">
                         {/* Main Image */}
-                        <div className="aspect-square bg-white rounded-lg overflow-hidden shadow-lg">
-                            <img
-                                src={gem.allImages && gem.allImages[selectedImageIndex] ? gem.allImages[selectedImageIndex] : '/placeholder-gem.jpg'}
-                                alt={gem.name}
-                                className="w-full h-full object-cover"
-                            />
+                        <div className="aspect-square bg-white rounded-2xl shadow-lg overflow-hidden">
+                            {gem.allImages && gem.allImages.length > 0 ? (
+                                <img
+                                    src={gem.allImages[selectedImage]}
+                                    alt={gem.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className={`w-full h-full bg-gradient-to-br ${getGemGradient(gem.category)} flex items-center justify-center`}>
+                                    <span className="text-8xl">{getGemEmoji(gem.category)}</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Thumbnail Images */}
@@ -174,8 +202,10 @@ const GemDetail = () => {
                                 {gem.allImages.map((image, index) => (
                                     <button
                                         key={index}
-                                        onClick={() => setSelectedImageIndex(index)}
-                                        className={`aspect-square rounded-lg overflow-hidden border-2 ${selectedImageIndex === index ? 'border-emerald-600' : 'border-gray-200'
+                                        onClick={() => setSelectedImage(index)}
+                                        className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${selectedImage === index
+                                            ? 'border-emerald-500 ring-2 ring-emerald-200'
+                                            : 'border-gray-200 hover:border-emerald-300'
                                             }`}
                                     >
                                         <img
@@ -191,224 +221,181 @@ const GemDetail = () => {
 
                     {/* Product Details */}
                     <div className="space-y-6">
-                        {/* Basic Info */}
+                        {/* Title and Rating */}
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 mb-2">{gem.name}</h1>
-                            <p className="text-lg text-gray-600 mb-4">{gem.category}</p>
-
-                            {/* Price */}
                             <div className="flex items-center space-x-4 mb-4">
-                                <span className="text-3xl font-bold text-gray-900">₹{discountedPrice.toLocaleString()}</span>
-                                {discountAmount > 0 && (
+                                <div className="flex items-center space-x-1">
+                                    <FaStar className="w-5 h-5 text-yellow-400" />
+                                    <span className="text-lg font-semibold">4.8</span>
+                                    <span className="text-gray-500">(127 reviews)</span>
+                                </div>
+                                <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">
+                                    {gem.category}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Price */}
+                        <div className="space-y-2">
+                            <div className="flex items-center space-x-4">
+                                <span className="text-3xl font-bold text-gray-900">
+                                    {formatPrice(calculatePrice())}
+                                </span>
+                                {gem.discount && gem.discount > 0 && (
                                     <>
-                                        <span className="text-xl text-gray-500 line-through">₹{gem.price.toLocaleString()}</span>
+                                        <span className="text-xl text-gray-500 line-through">
+                                            {formatPrice(gem.price)}
+                                        </span>
                                         <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm font-medium">
                                             {gem.discountType === 'percentage' ? `${gem.discount}% OFF` : `₹${gem.discount} OFF`}
                                         </span>
                                     </>
                                 )}
                             </div>
-
-                            {/* Rating & Reviews */}
-                            <div className="flex items-center space-x-2 mb-4">
-                                <div className="flex text-yellow-400">
-                                    {[...Array(5)].map((_, i) => (
-                                        <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
-                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                                        </svg>
-                                    ))}
-                                </div>
-                                <span className="text-sm text-gray-600">(4.8) • 24 reviews</span>
-                            </div>
                         </div>
 
                         {/* Description */}
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
-                            <p className="text-gray-700 leading-relaxed">{gem.description}</p>
-                        </div>
+                        {gem.description && (
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+                                <p className="text-gray-600 leading-relaxed">{gem.description}</p>
+                            </div>
+                        )}
 
-                        {/* Physical Properties */}
+                        {/* Specifications */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="bg-gray-50 p-4 rounded-lg">
-                                <h4 className="font-medium text-gray-900 mb-1">Size/Weight</h4>
+                                <h4 className="font-semibold text-gray-900 mb-1">Weight</h4>
                                 <p className="text-gray-600">{gem.sizeWeight} {gem.sizeUnit}</p>
                             </div>
                             <div className="bg-gray-50 p-4 rounded-lg">
-                                <h4 className="font-medium text-gray-900 mb-1">Origin</h4>
-                                <p className="text-gray-600">{gem.origin}</p>
+                                <h4 className="font-semibold text-gray-900 mb-1">Stock</h4>
+                                <p className="text-gray-600">{gem.stock || 'Available'} pieces</p>
                             </div>
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                                <h4 className="font-medium text-gray-900 mb-1">Certification</h4>
-                                <p className="text-gray-600">{gem.certification}</p>
-                            </div>
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                                <h4 className="font-medium text-gray-900 mb-1">Availability</h4>
-                                <p className={`${gem.availability ? 'text-green-600' : 'text-red-600'}`}>
-                                    {gem.availability ? 'In Stock' : 'Out of Stock'}
-                                </p>
-                            </div>
+                            {gem.origin && (
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <h4 className="font-semibold text-gray-900 mb-1">Origin</h4>
+                                    <p className="text-gray-600">{gem.origin}</p>
+                                </div>
+                            )}
+                            {gem.certification && (
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <h4 className="font-semibold text-gray-900 mb-1">Certification</h4>
+                                    <p className="text-gray-600">{gem.certification}</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Astrological Information */}
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Astrological Information</h3>
-
-                            {/* Zodiac Signs */}
-                            <div className="mb-4">
-                                <h4 className="font-medium text-gray-900 mb-2">Suitable for Zodiac Signs:</h4>
+                        {gem.whomToUse && gem.whomToUse.length > 0 && (
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Suitable For</h3>
                                 <div className="flex flex-wrap gap-2">
-                                    {gem.whomToUse.map((sign, index) => (
-                                        <span key={index} className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm">
-                                            {sign}
+                                    {gem.whomToUse.map((zodiac, index) => (
+                                        <span
+                                            key={index}
+                                            className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm"
+                                        >
+                                            {zodiac}
                                         </span>
                                     ))}
                                 </div>
                             </div>
+                        )}
 
-                            {/* Benefits */}
+                        {/* Benefits */}
+                        {gem.benefits && gem.benefits.length > 0 && (
                             <div>
-                                <h4 className="font-medium text-gray-900 mb-2">Benefits:</h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Benefits</h3>
+                                <ul className="space-y-2">
                                     {gem.benefits.map((benefit, index) => (
-                                        <div key={index} className="flex items-center space-x-2">
-                                            <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                            </svg>
-                                            <span className="text-sm text-gray-700">{benefit}</span>
-                                        </div>
+                                        <li key={index} className="flex items-center space-x-2">
+                                            <FaCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                            <span className="text-gray-600">{benefit}</span>
+                                        </li>
                                     ))}
-                                </div>
+                                </ul>
                             </div>
-                        </div>
+                        )}
 
-                        {/* Add to Cart Section */}
-                        <div className="border-t pt-6">
-                            <div className="flex items-center space-x-4 mb-4">
-                                <label className="text-sm font-medium text-gray-900">Quantity:</label>
+                        {/* Quantity and Add to Cart */}
+                        <div className="space-y-4">
+                            <div className="flex items-center space-x-4">
+                                <span className="font-semibold text-gray-900">Quantity:</span>
                                 <div className="flex items-center border rounded-lg">
                                     <button
-                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                        onClick={() => handleQuantityChange(quantity - 1)}
                                         className="px-3 py-2 text-gray-600 hover:text-gray-800"
                                         disabled={quantity <= 1}
                                     >
                                         -
                                     </button>
-                                    <span className="px-4 py-2 border-x">{quantity}</span>
+                                    <span className="px-4 py-2 border-x min-w-[3rem] text-center">
+                                        {quantity}
+                                    </span>
                                     <button
-                                        onClick={() => setQuantity(quantity + 1)}
+                                        onClick={() => handleQuantityChange(quantity + 1)}
                                         className="px-3 py-2 text-gray-600 hover:text-gray-800"
-                                        disabled={!gem.availability || (gem.stock && quantity >= gem.stock)}
+                                        disabled={gem.stock && quantity >= gem.stock}
                                     >
                                         +
                                     </button>
                                 </div>
-                                {gem.stock && (
-                                    <span className="text-sm text-gray-500">
-                                        {gem.stock} available
-                                    </span>
-                                )}
                             </div>
 
                             <div className="flex space-x-4">
                                 <button
                                     onClick={handleAddToCart}
                                     disabled={!gem.availability}
-                                    className={`flex-1 py-3 px-6 rounded-lg font-medium transition-colors ${gem.availability
-                                        ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                                    className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${gem.availability
+                                        ? 'bg-emerald-600 text-white hover:bg-emerald-700 transform hover:scale-105'
                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         }`}
                                 >
-                                    {gem.availability ? 'Add to Cart' : 'Out of Stock'}
+                                    <FaShoppingCart className="w-5 h-5" />
+                                    <span>{gem.availability ? 'Add to Cart' : 'Out of Stock'}</span>
                                 </button>
                                 <button
-                                    onClick={() => navigate('/cart')}
-                                    className="py-3 px-6 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                                    onClick={() => navigate('/checkout')}
+                                    disabled={!gem.availability}
+                                    className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${gem.availability
+                                        ? 'bg-gray-900 text-white hover:bg-gray-800'
+                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        }`}
                                 >
-                                    View Cart
+                                    Buy Now
                                 </button>
+                            </div>
+                        </div>
+
+                        {/* Features */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t">
+                            <div className="flex items-center space-x-3">
+                                <FaTruck className="w-6 h-6 text-emerald-600" />
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Free Shipping</h4>
+                                    <p className="text-sm text-gray-600">On orders over ₹50,000</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                                <FaTruck className="w-6 h-6 text-emerald-600" />
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Secure Payment</h4>
+                                    <p className="text-sm text-gray-600">100% secure checkout</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                                <FaCertificate className="w-6 h-6 text-emerald-600" />
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Authentic</h4>
+                                    <p className="text-sm text-gray-600">Certified gemstones</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            {/* OTP Modal */}
-            {showOTPModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                            {otpSent ? 'Verify OTP' : 'Enter Phone Number'}
-                        </h3>
-
-                        {!otpSent ? (
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Phone Number
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        value={phoneNumber}
-                                        onChange={(e) => setPhoneNumber(e.target.value)}
-                                        placeholder="Enter your phone number"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                    />
-                                </div>
-                                <div className="flex space-x-3">
-                                    <button
-                                        onClick={() => setShowOTPModal(false)}
-                                        className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handleSendOTP}
-                                        disabled={otpLoading}
-                                        className="flex-1 py-2 px-4 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50"
-                                    >
-                                        {otpLoading ? 'Sending...' : 'Send OTP'}
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Enter OTP
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={otp}
-                                        onChange={(e) => setOtp(e.target.value)}
-                                        placeholder="Enter 6-digit OTP"
-                                        maxLength="6"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                    />
-                                </div>
-                                <div className="flex space-x-3">
-                                    <button
-                                        onClick={() => {
-                                            setOtpSent(false);
-                                            setOtp('');
-                                        }}
-                                        className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-                                    >
-                                        Back
-                                    </button>
-                                    <button
-                                        onClick={handleVerifyOTP}
-                                        disabled={otpLoading}
-                                        className="flex-1 py-2 px-4 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50"
-                                    >
-                                        {otpLoading ? 'Verifying...' : 'Verify & Add to Cart'}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

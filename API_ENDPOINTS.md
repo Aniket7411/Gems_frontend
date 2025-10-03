@@ -104,6 +104,70 @@ http://localhost:5000/api
 }
 ```
 
+### 6. Get User Profile
+- **GET** `/auth/profile`
+- **Description**: Get current user profile
+- **Headers**: `Authorization: Bearer <token>`
+- **Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "user_id",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "+1234567890",
+    "emailVerified": true,
+    "createdAt": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+### 7. Update User Profile
+- **PUT** `/auth/profile`
+- **Description**: Update user profile
+- **Headers**: `Authorization: Bearer <token>`
+- **Request Body**:
+```json
+{
+  "name": "John Smith",
+  "phone": "+1234567891"
+}
+```
+- **Response**:
+```json
+{
+  "success": true,
+  "message": "Profile updated successfully",
+  "data": {
+    "id": "user_id",
+    "name": "John Smith",
+    "email": "john@example.com",
+    "phone": "+1234567891",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+### 8. Change Password
+- **PUT** `/auth/change-password`
+- **Description**: Change user password
+- **Headers**: `Authorization: Bearer <token>`
+- **Request Body**:
+```json
+{
+  "currentPassword": "oldpassword123",
+  "newPassword": "newpassword123"
+}
+```
+- **Response**:
+```json
+{
+  "success": true,
+  "message": "Password changed successfully"
+}
+```
+
 ## Gem Management Endpoints
 
 ### 1. Add New Gem
@@ -113,11 +177,37 @@ http://localhost:5000/api
 - **Request Body**:
 ```json
 {
-  "name": "Blue Sapphire",
-  "description": "High quality blue sapphire with excellent clarity",
-  "category": "Sapphire",
-  "whomToUse": ["Aries", "Taurus", "Gemini"],
-  "benefits": ["Financial Prosperity", "Health & Healing", "Mental Clarity"],
+  "id": "emerald",
+  "name": "Emerald",
+  "hindiName": "Panna (पन्ना)",
+  "planet": "Mercury (Budh Grah)",
+  "planetHindi": "बुध ग्रह",
+  "color": "Green",
+  "hardness": "7.5-8",
+  "metal": "Gold or Silver",
+  "finger": "Little finger of right hand",
+  "day": "Wednesday morning",
+  "mantra": "Om Budhaya Namah",
+  "emoji": "💚",
+  "gradient": "from-green-600 to-emerald-700",
+  "bgColor": "bg-green-50",
+  "borderColor": "border-green-200",
+  "textColor": "text-green-800",
+  "description": "Emerald, known as Panna in Hindi, is one of the most revered gemstones in Vedic astrology...",
+  "astrologicalSignificance": "In Vedic astrology, Emerald is directly associated with Budh Grah (Mercury)...",
+  "benefits": [
+    "Enhances intelligence and communication skills",
+    "Improves business acumen and analytical ability",
+    "Brings mental clarity and focus"
+  ],
+  "features": {
+    "color": "Ranges from light green to deep, rich green...",
+    "hardness": "7.5–8 on Mohs scale, making it durable...",
+    "cut": "Commonly cut into rectangular step-cut forms...",
+    "bestMetal": "Traditionally worn in gold or silver..."
+  },
+  "history": "Emeralds have been cherished since ancient times...",
+  "suitableFor": ["Teachers", "Lawyers", "Writers", "Media professionals"],
   "price": 50000,
   "sizeWeight": 5,
   "sizeUnit": "carat",
@@ -155,6 +245,9 @@ http://localhost:5000/api
   - `minPrice` (optional): Minimum price filter
   - `maxPrice` (optional): Maximum price filter
   - `zodiac` (optional): Filter by zodiac sign
+  - `availability` (optional): Filter by availability (true/false)
+  - `q` (optional): Search query for name, description, or category
+  - `sortBy` (optional): Sort by field (newest, oldest, price-low, price-high, name)
 - **Response**:
 ```json
 {
@@ -322,6 +415,37 @@ http://localhost:5000/api
       "quantity": 2,
       "addedAt": "2024-01-01T00:00:00Z"
     }
+  }
+}
+```
+
+### 1.1. Add Multiple Items to Cart (Bulk)
+- **POST** `/cart/add-bulk`
+- **Description**: Add multiple gems to cart at once
+- **Headers**: `Authorization: Bearer <token>`
+- **Request Body**:
+```json
+{
+  "items": [
+    {
+      "gemId": "gem_id_1",
+      "quantity": 2
+    },
+    {
+      "gemId": "gem_id_2", 
+      "quantity": 1
+    }
+  ]
+}
+```
+- **Response**:
+```json
+{
+  "success": true,
+  "message": "Items added to cart",
+  "data": {
+    "addedItems": 2,
+    "cartItems": [...]
   }
 }
 ```
@@ -504,6 +628,55 @@ http://localhost:5000/api
 }
 ```
 
+### 5. Update Order Status
+- **PUT** `/orders/:orderId/status`
+- **Description**: Update order status (admin only)
+- **Headers**: `Authorization: Bearer <token>`
+- **Request Body**:
+```json
+{
+  "status": "shipped",
+  "trackingNumber": "TRK123456",
+  "notes": "Order shipped via Express Delivery"
+}
+```
+- **Response**:
+```json
+{
+  "success": true,
+  "message": "Order status updated successfully"
+}
+```
+
+### 6. Get Order Analytics
+- **GET** `/orders/analytics`
+- **Description**: Get order analytics and statistics (admin only)
+- **Headers**: `Authorization: Bearer <token>`
+- **Query Parameters**:
+  - `period` (optional): Time period (daily, weekly, monthly, yearly)
+  - `startDate` (optional): Start date for custom period
+  - `endDate` (optional): End date for custom period
+- **Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "totalOrders": 150,
+    "totalRevenue": 5000000,
+    "averageOrderValue": 33333,
+    "ordersByStatus": {
+      "pending": 10,
+      "confirmed": 25,
+      "shipped": 30,
+      "delivered": 80,
+      "cancelled": 5
+    },
+    "revenueByMonth": [...],
+    "topGems": [...]
+  }
+}
+```
+
 ## OTP Endpoints (for Non-Logged Users)
 
 ### 1. Send OTP
@@ -546,6 +719,79 @@ http://localhost:5000/api
   "data": {
     "tempToken": "temp_jwt_token",
     "expiresAt": "2024-01-01T00:30:00Z"
+  }
+}
+```
+
+## Admin Endpoints
+
+### 1. Get All Users
+- **GET** `/admin/users`
+- **Description**: Get all users (admin only)
+- **Headers**: `Authorization: Bearer <token>`
+- **Query Parameters**:
+  - `page` (optional): Page number
+  - `limit` (optional): Items per page
+  - `search` (optional): Search by name or email
+- **Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "users": [
+      {
+        "id": "user_id",
+        "name": "John Doe",
+        "email": "john@example.com",
+        "phone": "+1234567890",
+        "emailVerified": true,
+        "createdAt": "2024-01-01T00:00:00Z",
+        "lastLogin": "2024-01-15T10:30:00Z"
+      }
+    ],
+    "pagination": {...}
+  }
+}
+```
+
+### 2. Get Dashboard Statistics
+- **GET** `/admin/dashboard`
+- **Description**: Get admin dashboard statistics
+- **Headers**: `Authorization: Bearer <token>`
+- **Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "totalUsers": 1500,
+    "totalGems": 250,
+    "totalOrders": 500,
+    "totalRevenue": 10000000,
+    "recentOrders": [...],
+    "topGems": [...],
+    "monthlyRevenue": [...]
+  }
+}
+```
+
+### 3. Upload Gem Images
+- **POST** `/admin/gems/upload-images`
+- **Description**: Upload images for gems
+- **Headers**: `Authorization: Bearer <token>`
+- **Content-Type**: `multipart/form-data`
+- **Request Body**: Form data with image files
+- **Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "uploadedImages": [
+      {
+        "filename": "gem_image_1.jpg",
+        "url": "https://storage.example.com/gems/gem_image_1.jpg",
+        "size": 1024000
+      }
+    ]
   }
 }
 ```
@@ -614,86 +860,159 @@ For gem images, the API should support:
 - Maximum file size: 5MB per image
 - Maximum images per gem: 10
 
-## Database Schema Suggestions
+## MongoDB Schema Suggestions
 
-### Users Table
-```sql
-CREATE TABLE users (
-  id UUID PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  phone VARCHAR(20),
-  email_verified BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
+### Users Collection
+```javascript
+{
+  _id: ObjectId,
+  name: String,
+  email: String, // unique index
+  password: String, // hashed
+  phone: String,
+  emailVerified: Boolean,
+  role: String, // 'user' or 'admin'
+  createdAt: Date,
+  updatedAt: Date,
+  lastLogin: Date
+}
 ```
 
-### Gems Table
-```sql
-CREATE TABLE gems (
-  id UUID PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
-  category VARCHAR(100) NOT NULL,
-  price DECIMAL(10,2) NOT NULL,
-  discount DECIMAL(5,2) DEFAULT 0,
-  discount_type VARCHAR(20) DEFAULT 'percentage',
-  size_weight DECIMAL(8,2) NOT NULL,
-  size_unit VARCHAR(20) NOT NULL,
-  images JSON,
-  stock INTEGER DEFAULT 0,
-  availability BOOLEAN DEFAULT TRUE,
-  certification VARCHAR(255),
-  origin VARCHAR(255),
-  whom_to_use JSON,
-  benefits JSON,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
+### Gems Collection
+```javascript
+{
+  _id: ObjectId,
+  id: String, // unique identifier like "emerald", "ruby"
+  name: String,
+  hindiName: String,
+  planet: String,
+  planetHindi: String,
+  color: String,
+  hardness: String,
+  metal: String,
+  finger: String,
+  day: String,
+  mantra: String,
+  emoji: String,
+  gradient: String,
+  bgColor: String,
+  borderColor: String,
+  textColor: String,
+  description: String,
+  astrologicalSignificance: String,
+  benefits: [String], // array of benefits
+  features: {
+    color: String,
+    hardness: String,
+    cut: String,
+    bestMetal: String
+  },
+  history: String,
+  suitableFor: [String], // array of professions
+  price: Number,
+  discount: Number,
+  discountType: String, // 'percentage' or 'fixed'
+  sizeWeight: Number,
+  sizeUnit: String,
+  images: [String], // array of image URLs
+  uploadedImages: [String], // base64 images
+  allImages: [String], // combined images
+  stock: Number,
+  availability: Boolean,
+  certification: String,
+  origin: String,
+  createdAt: Date,
+  updatedAt: Date
+}
 ```
 
-### Cart Items Table
-```sql
-CREATE TABLE cart_items (
-  id UUID PRIMARY KEY,
-  user_id UUID REFERENCES users(id),
-  gem_id UUID REFERENCES gems(id),
-  quantity INTEGER NOT NULL DEFAULT 1,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(user_id, gem_id)
-);
+### Cart Items Collection
+```javascript
+{
+  _id: ObjectId,
+  userId: ObjectId, // reference to users
+  gemId: ObjectId, // reference to gems
+  quantity: Number,
+  createdAt: Date,
+  updatedAt: Date
+}
+// Compound index: { userId: 1, gemId: 1 } - unique
 ```
 
-### Orders Table
-```sql
-CREATE TABLE orders (
-  id UUID PRIMARY KEY,
-  order_id VARCHAR(50) UNIQUE NOT NULL,
-  user_id UUID REFERENCES users(id),
-  status VARCHAR(20) DEFAULT 'pending',
-  total DECIMAL(10,2) NOT NULL,
-  shipping_address JSON NOT NULL,
-  payment_method VARCHAR(50) NOT NULL,
-  order_notes TEXT,
-  tracking_number VARCHAR(100),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
+### Orders Collection
+```javascript
+{
+  _id: ObjectId,
+  orderId: String, // unique order number like "ORD123456789"
+  userId: ObjectId, // reference to users
+  status: String, // 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'
+  total: Number,
+  shippingAddress: {
+    firstName: String,
+    lastName: String,
+    email: String,
+    phone: String,
+    address: String,
+    city: String,
+    state: String,
+    pincode: String
+  },
+  paymentMethod: String, // 'cod', 'online'
+  orderNotes: String,
+  trackingNumber: String,
+  items: [{
+    gemId: ObjectId,
+    quantity: Number,
+    price: Number
+  }],
+  createdAt: Date,
+  updatedAt: Date
+}
 ```
 
-### Order Items Table
-```sql
-CREATE TABLE order_items (
-  id UUID PRIMARY KEY,
-  order_id UUID REFERENCES orders(id),
-  gem_id UUID REFERENCES gems(id),
-  quantity INTEGER NOT NULL,
-  price DECIMAL(10,2) NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-);
+### OTP Sessions Collection
+```javascript
+{
+  _id: ObjectId,
+  phoneNumber: String,
+  otp: String,
+  sessionId: String,
+  expiresAt: Date,
+  verified: Boolean,
+  createdAt: Date
+}
+```
+
+### Indexes Recommendations
+```javascript
+// Users collection
+db.users.createIndex({ "email": 1 }, { unique: true })
+db.users.createIndex({ "phone": 1 })
+
+// Gems collection
+db.gems.createIndex({ "id": 1 }, { unique: true })
+db.gems.createIndex({ "planet": 1 })
+db.gems.createIndex({ "color": 1 })
+db.gems.createIndex({ "price": 1 })
+db.gems.createIndex({ "availability": 1 })
+db.gems.createIndex({ "suitableFor": 1 })
+db.gems.createIndex({ "benefits": 1 })
+db.gems.createIndex({ "name": "text", "description": "text", "hindiName": "text", "astrologicalSignificance": "text" })
+
+// Cart items collection
+db.cartItems.createIndex({ "userId": 1, "gemId": 1 }, { unique: true })
+db.cartItems.createIndex({ "userId": 1 })
+
+// Orders collection
+db.orders.createIndex({ "orderId": 1 }, { unique: true })
+db.orders.createIndex({ "userId": 1 })
+db.orders.createIndex({ "status": 1 })
+db.orders.createIndex({ "createdAt": -1 })
+
+// OTP sessions collection
+db.otpSessions.createIndex({ "phoneNumber": 1 })
+db.otpSessions.createIndex({ "sessionId": 1 })
+db.otpSessions.createIndex({ "expiresAt": 1 }, { expireAfterSeconds: 0 })
 ```
 
 This API documentation provides a complete reference for implementing the backend for your gem e-commerce application. The backend developer can use this to understand all the required endpoints, data structures, and business logic.

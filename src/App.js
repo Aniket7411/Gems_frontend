@@ -12,6 +12,7 @@ import GemDetail from './pages/GemDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Gemstones from './pages/Gemstones';
+import Shop from './pages/Shop';
 
 // Auth Components
 import Login from './components/auth/Login';
@@ -50,6 +51,11 @@ function App() {
               <Route path="/gemstones" element={
                 <MainLayout>
                   <Gemstones />
+                </MainLayout>
+              } />
+              <Route path="/shop" element={
+                <MainLayout>
+                  <Shop />
                 </MainLayout>
               } />
 

@@ -112,7 +112,7 @@ const Cart = () => {
                                     {/* Image */}
                                     <div className="w-full sm:w-32 h-32 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                                         <img
-                                            src={item.images && item.images[0] ? item.images[0] : '/placeholder-gem.jpg'}
+                                            src={item.image || '/placeholder-gem.jpg'}
                                             alt={item.name}
                                             className="w-full h-full object-cover"
                                         />
@@ -125,9 +125,11 @@ const Cart = () => {
                                                 <h3 className="text-lg font-semibold text-gray-900 mb-1">
                                                     {item.name}
                                                 </h3>
-                                                <p className="text-sm text-gray-600 mb-2">{item.category}</p>
+                                                <p className="text-sm text-emerald-600 font-medium mb-1">
+                                                    {item.category}
+                                                </p>
                                                 <p className="text-sm text-gray-500">
-                                                    {item.sizeWeight} {item.sizeUnit}
+                                                    {item.sizeWeight || 'N/A'} {item.sizeUnit || ''}
                                                 </p>
                                             </div>
 

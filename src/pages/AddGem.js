@@ -3,11 +3,33 @@ import { gemAPI } from '../services/api';
 
 const AddGem = () => {
     const [formData, setFormData] = useState({
+        id: '',
         name: '',
+        hindiName: '',
+        planet: '',
+        planetHindi: '',
+        color: '',
+        hardness: '',
+        metal: '',
+        finger: '',
+        day: '',
+        mantra: '',
+        emoji: '',
+        gradient: '',
+        bgColor: '',
+        borderColor: '',
+        textColor: '',
         description: '',
-        category: '',
-        whomToUse: [],
+        astrologicalSignificance: '',
         benefits: [],
+        features: {
+            color: '',
+            hardness: '',
+            cut: '',
+            bestMetal: ''
+        },
+        history: '',
+        suitableFor: [],
         price: '',
         sizeWeight: '',
         sizeUnit: 'carat',
@@ -25,30 +47,65 @@ const AddGem = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
 
-    // Zodiac signs options
-    const zodiacSigns = [
-        'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-        'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
+    // Astrological planets
+    const planets = [
+        'Sun (Surya)', 'Moon (Chandra)', 'Mars (Mangal)', 'Mercury (Budh)',
+        'Jupiter (Guru)', 'Venus (Shukra)', 'Saturn (Shani)', 'Rahu', 'Ketu'
     ];
 
     // Common gem categories
     const gemCategories = [
         'Sapphire', 'Ruby', 'Emerald', 'Diamond', 'Pearl', 'Coral',
-        'Hessonite', 'Opal', 'Topaz', 'Amethyst', 'Citrine', 'Garnet'
+        'Hessonite', 'Opal', 'Topaz', 'Amethyst', 'Citrine', 'Garnet',
+        'Moonstone', 'Turquoise', 'Peridot', 'Aquamarine', 'Tourmaline'
     ];
 
     // Common benefits
     const commonBenefits = [
-        'Financial Prosperity', 'Health & Healing', 'Mental Clarity', 'Spiritual Growth',
-        'Protection', 'Love & Relationships', 'Career Success', 'Peace & Harmony',
-        'Courage & Strength', 'Wisdom & Knowledge', 'Creativity', 'Communication'
+        'Enhances intelligence and communication skills',
+        'Improves business acumen and analytical ability',
+        'Brings mental clarity and focus',
+        'Strengthens interpersonal skills',
+        'Reduces anxiety and overthinking',
+        'Improves memory retention',
+        'Enhances negotiation skills',
+        'Financial Prosperity',
+        'Health & Healing',
+        'Spiritual Growth',
+        'Protection',
+        'Love & Relationships',
+        'Career Success',
+        'Peace & Harmony',
+        'Courage & Strength',
+        'Wisdom & Knowledge',
+        'Creativity',
+        'Communication'
+    ];
+
+    // Suitable for professions
+    const suitableProfessions = [
+        'Teachers', 'Lawyers', 'Writers', 'Media professionals', 'Finance experts',
+        'Communication specialists', 'Students', 'Businessmen', 'Doctors', 'Engineers',
+        'Scientists', 'Artists', 'Politicians', 'Consultants', 'Entrepreneurs'
+    ];
+
+    // Gradient options for styling
+    const gradientOptions = [
+        'from-blue-600 to-sapphire-700',
+        'from-red-600 to-ruby-700',
+        'from-green-600 to-emerald-700',
+        'from-white-600 to-diamond-700',
+        'from-yellow-600 to-topaz-700',
+        'from-purple-600 to-amethyst-700',
+        'from-pink-600 to-pearl-700',
+        'from-orange-600 to-coral-700'
     ];
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
 
         if (type === 'checkbox') {
-            if (name === 'whomToUse' || name === 'benefits') {
+            if (name === 'suitableFor' || name === 'benefits') {
                 setFormData(prev => ({
                     ...prev,
                     [name]: checked
@@ -61,6 +118,16 @@ const AddGem = () => {
                     [name]: checked
                 }));
             }
+        } else if (name.startsWith('features.')) {
+            // Handle nested features object
+            const featureKey = name.split('.')[1];
+            setFormData(prev => ({
+                ...prev,
+                features: {
+                    ...prev.features,
+                    [featureKey]: value
+                }
+            }));
         } else {
             setFormData(prev => ({
                 ...prev,
@@ -149,11 +216,15 @@ const AddGem = () => {
     const validateForm = () => {
         const newErrors = {};
 
+        if (!formData.id.trim()) newErrors.id = 'ID is required';
         if (!formData.name.trim()) newErrors.name = 'Name is required';
+        if (!formData.hindiName.trim()) newErrors.hindiName = 'Hindi name is required';
+        if (!formData.planet.trim()) newErrors.planet = 'Planet is required';
+        if (!formData.color.trim()) newErrors.color = 'Color is required';
         if (!formData.description.trim()) newErrors.description = 'Description is required';
-        if (!formData.category.trim()) newErrors.category = 'Category is required';
-        if (formData.whomToUse.length === 0) newErrors.whomToUse = 'At least one zodiac sign is required';
+        if (!formData.astrologicalSignificance.trim()) newErrors.astrologicalSignificance = 'Astrological significance is required';
         if (formData.benefits.length === 0) newErrors.benefits = 'At least one benefit is required';
+        if (formData.suitableFor.length === 0) newErrors.suitableFor = 'At least one suitable profession is required';
         if (!formData.price || formData.price <= 0) newErrors.price = 'Valid price is required';
         if (!formData.sizeWeight || formData.sizeWeight <= 0) newErrors.sizeWeight = 'Valid size/weight is required';
         if (!formData.certification.trim()) newErrors.certification = 'Certification is required';
@@ -190,11 +261,33 @@ const AddGem = () => {
                 setSuccessMessage('Gem added successfully!');
                 // Reset form
                 setFormData({
+                    id: '',
                     name: '',
+                    hindiName: '',
+                    planet: '',
+                    planetHindi: '',
+                    color: '',
+                    hardness: '',
+                    metal: '',
+                    finger: '',
+                    day: '',
+                    mantra: '',
+                    emoji: '',
+                    gradient: '',
+                    bgColor: '',
+                    borderColor: '',
+                    textColor: '',
                     description: '',
-                    category: '',
-                    whomToUse: [],
+                    astrologicalSignificance: '',
                     benefits: [],
+                    features: {
+                        color: '',
+                        hardness: '',
+                        cut: '',
+                        bestMetal: ''
+                    },
+                    history: '',
+                    suitableFor: [],
                     price: '',
                     sizeWeight: '',
                     sizeUnit: 'carat',
@@ -253,6 +346,23 @@ const AddGem = () => {
                             </h2>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* ID */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        ID *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="id"
+                                        value={formData.id}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.id ? 'border-red-500' : 'border-gray-300'
+                                            }`}
+                                        placeholder="e.g., emerald"
+                                    />
+                                    {errors.id && <p className="text-red-500 text-sm mt-1">{errors.id}</p>}
+                                </div>
+
                                 {/* Name */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -265,29 +375,231 @@ const AddGem = () => {
                                         onChange={handleInputChange}
                                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.name ? 'border-red-500' : 'border-gray-300'
                                             }`}
-                                        placeholder="e.g., Blue Sapphire"
+                                        placeholder="e.g., Emerald"
                                     />
                                     {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                                 </div>
 
-                                {/* Category */}
+                                {/* Hindi Name */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Category *
+                                        Hindi Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="hindiName"
+                                        value={formData.hindiName}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.hindiName ? 'border-red-500' : 'border-gray-300'
+                                            }`}
+                                        placeholder="e.g., Panna (पन्ना)"
+                                    />
+                                    {errors.hindiName && <p className="text-red-500 text-sm mt-1">{errors.hindiName}</p>}
+                                </div>
+
+                                {/* Planet */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Planet *
                                     </label>
                                     <select
-                                        name="category"
-                                        value={formData.category}
+                                        name="planet"
+                                        value={formData.planet}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.category ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.planet ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                     >
-                                        <option value="">Select Category</option>
-                                        {gemCategories.map(category => (
-                                            <option key={category} value={category}>{category}</option>
+                                        <option value="">Select Planet</option>
+                                        {planets.map(planet => (
+                                            <option key={planet} value={planet}>{planet}</option>
                                         ))}
                                     </select>
-                                    {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
+                                    {errors.planet && <p className="text-red-500 text-sm mt-1">{errors.planet}</p>}
+                                </div>
+
+                                {/* Planet Hindi */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Planet (Hindi)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="planetHindi"
+                                        value={formData.planetHindi}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="e.g., बुध ग्रह"
+                                    />
+                                </div>
+
+                                {/* Color */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Color *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="color"
+                                        value={formData.color}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.color ? 'border-red-500' : 'border-gray-300'
+                                            }`}
+                                        placeholder="e.g., Green"
+                                    />
+                                    {errors.color && <p className="text-red-500 text-sm mt-1">{errors.color}</p>}
+                                </div>
+
+                                {/* Hardness */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Hardness
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="hardness"
+                                        value={formData.hardness}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="e.g., 7.5-8"
+                                    />
+                                </div>
+
+                                {/* Metal */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Metal
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="metal"
+                                        value={formData.metal}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="e.g., Gold or Silver"
+                                    />
+                                </div>
+
+                                {/* Finger */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Finger
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="finger"
+                                        value={formData.finger}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="e.g., Little finger of right hand"
+                                    />
+                                </div>
+
+                                {/* Day */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Day
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="day"
+                                        value={formData.day}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="e.g., Wednesday morning"
+                                    />
+                                </div>
+
+                                {/* Mantra */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Mantra
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="mantra"
+                                        value={formData.mantra}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="e.g., Om Budhaya Namah"
+                                    />
+                                </div>
+
+                                {/* Emoji */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Emoji
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="emoji"
+                                        value={formData.emoji}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="e.g., 💚"
+                                    />
+                                </div>
+
+                                {/* Gradient */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Gradient
+                                    </label>
+                                    <select
+                                        name="gradient"
+                                        value={formData.gradient}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    >
+                                        <option value="">Select Gradient</option>
+                                        {gradientOptions.map(gradient => (
+                                            <option key={gradient} value={gradient}>{gradient}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Background Color */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Background Color
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="bgColor"
+                                        value={formData.bgColor}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="e.g., bg-green-50"
+                                    />
+                                </div>
+
+                                {/* Border Color */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Border Color
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="borderColor"
+                                        value={formData.borderColor}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="e.g., border-green-200"
+                                    />
+                                </div>
+
+                                {/* Text Color */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Text Color
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="textColor"
+                                        value={formData.textColor}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="e.g., text-green-800"
+                                    />
                                 </div>
                             </div>
 
@@ -307,36 +619,45 @@ const AddGem = () => {
                                 />
                                 {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
                             </div>
-                        </div>
 
-                        {/* Astrological Information */}
-                        <div className="space-y-6">
-                            <h2 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">
-                                Astrological Information
-                            </h2>
-
-                            {/* Whom to Use */}
+                            {/* Astrological Significance */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Whom to Use (Zodiac Signs) *
+                                    Astrological Significance *
                                 </label>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                                    {zodiacSigns.map(sign => (
-                                        <label key={sign} className="flex items-center space-x-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                name="whomToUse"
-                                                value={sign}
-                                                checked={formData.whomToUse.includes(sign)}
-                                                onChange={handleInputChange}
-                                                className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                                            />
-                                            <span className="text-sm text-gray-700">{sign}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                                {errors.whomToUse && <p className="text-red-500 text-sm mt-1">{errors.whomToUse}</p>}
+                                <textarea
+                                    name="astrologicalSignificance"
+                                    value={formData.astrologicalSignificance}
+                                    onChange={handleInputChange}
+                                    rows={4}
+                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.astrologicalSignificance ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                    placeholder="Describe the astrological significance and effects of this gemstone..."
+                                />
+                                {errors.astrologicalSignificance && <p className="text-red-500 text-sm mt-1">{errors.astrologicalSignificance}</p>}
                             </div>
+
+                            {/* History */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    History
+                                </label>
+                                <textarea
+                                    name="history"
+                                    value={formData.history}
+                                    onChange={handleInputChange}
+                                    rows={3}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    placeholder="Historical significance and cultural background..."
+                                />
+                            </div>
+                        </div>
+
+                        {/* Benefits & Suitable For */}
+                        <div className="space-y-6">
+                            <h2 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                                Benefits & Suitable For
+                            </h2>
 
                             {/* Benefits */}
                             <div>
@@ -359,6 +680,98 @@ const AddGem = () => {
                                     ))}
                                 </div>
                                 {errors.benefits && <p className="text-red-500 text-sm mt-1">{errors.benefits}</p>}
+                            </div>
+
+                            {/* Suitable For */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Suitable For (Professions) *
+                                </label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                    {suitableProfessions.map(profession => (
+                                        <label key={profession} className="flex items-center space-x-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                name="suitableFor"
+                                                value={profession}
+                                                checked={formData.suitableFor.includes(profession)}
+                                                onChange={handleInputChange}
+                                                className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                            />
+                                            <span className="text-sm text-gray-700">{profession}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                                {errors.suitableFor && <p className="text-red-500 text-sm mt-1">{errors.suitableFor}</p>}
+                            </div>
+                        </div>
+
+                        {/* Physical Features */}
+                        <div className="space-y-6">
+                            <h2 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                                Physical Features
+                            </h2>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Color Details */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Color Details
+                                    </label>
+                                    <textarea
+                                        name="features.color"
+                                        value={formData.features.color}
+                                        onChange={handleInputChange}
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="Describe the color variations and quality..."
+                                    />
+                                </div>
+
+                                {/* Hardness Details */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Hardness Details
+                                    </label>
+                                    <textarea
+                                        name="features.hardness"
+                                        value={formData.features.hardness}
+                                        onChange={handleInputChange}
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="Describe hardness and durability..."
+                                    />
+                                </div>
+
+                                {/* Cut Details */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Cut Details
+                                    </label>
+                                    <textarea
+                                        name="features.cut"
+                                        value={formData.features.cut}
+                                        onChange={handleInputChange}
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="Describe the cut and shape recommendations..."
+                                    />
+                                </div>
+
+                                {/* Best Metal */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Best Metal
+                                    </label>
+                                    <textarea
+                                        name="features.bestMetal"
+                                        value={formData.features.bestMetal}
+                                        onChange={handleInputChange}
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="Describe the best metal combinations..."
+                                    />
+                                </div>
                             </div>
                         </div>
 

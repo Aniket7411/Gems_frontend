@@ -1,56 +1,64 @@
-const API_BASE_URL = 'https://gems-backend-zfpw.onrender.com/api';
-// const API_BASE_URL = 'http://localhost:5000/api';
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:5000/api';
+
+// Create axios instance
+const apiClient = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+// Request interceptor to add auth token
+apiClient.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// Response interceptor for error handling
+apiClient.interceptors.response.use(
+    (response) => {
+        return response.data;
+    },
+    (error) => {
+        console.error('API Error:', error);
+        if (error.response) {
+            // Server responded with error status
+            throw new Error(error.response.data.message || 'Something went wrong');
+        } else if (error.request) {
+            // Request was made but no response received
+            throw new Error('Network error. Please check your connection.');
+        } else {
+            // Something else happened
+            throw new Error(error.message || 'Something went wrong');
+        }
+    }
+);
 
 // Helper function to get auth token
 const getAuthToken = () => {
     return localStorage.getItem('token');
 };
 
-// Helper function to make API requests
-const makeRequest = async (endpoint, options = {}) => {
-    const url = `${API_BASE_URL}${endpoint}`;
-    const token = getAuthToken();
-
-    const config = {
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token && { Authorization: `Bearer ${token}` }),
-            ...options.headers,
-        },
-        ...options,
-    };
-
-    try {
-        const response = await fetch(url, config);
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Something went wrong');
-        }
-
-        return data;
-    } catch (error) {
-        console.error('API Error:', error);
-        throw error;
-    }
-};
-
 // Authentication API functions
 export const authAPI = {
     // Register a new user
     register: async (userData) => {
-        return makeRequest('/auth/register', {
-            method: 'POST',
-            body: JSON.stringify(userData),
-        });
+        return apiClient.post('/auth/register', userData);
     },
 
     // Login user
     login: async (credentials) => {
-        const response = await makeRequest('/auth/login', {
-            method: 'POST',
-            body: JSON.stringify(credentials),
-        });
+        const response = await apiClient.post('/auth/login', credentials);
 
         // Store token in localStorage
         if (response.success && response.token) {
@@ -63,25 +71,17 @@ export const authAPI = {
 
     // Forgot password
     forgotPassword: async (email) => {
-        return makeRequest('/auth/forgot-password', {
-            method: 'POST',
-            body: JSON.stringify({ email }),
-        });
+        return apiClient.post('/auth/forgot-password', { email });
     },
 
     // Reset password
     resetPassword: async (token, password) => {
-        return makeRequest(`/auth/reset-password/${token}`, {
-            method: 'POST',
-            body: JSON.stringify({ password }),
-        });
+        return apiClient.post(`/auth/reset-password/${token}`, { password });
     },
 
     // Verify email
     verifyEmail: async (token) => {
-        return makeRequest(`/auth/verify-email/${token}`, {
-            method: 'GET',
-        });
+        return apiClient.get(`/auth/verify-email/${token}`);
     },
 
     // Logout user
@@ -106,70 +106,55 @@ export const authAPI = {
 export const gemAPI = {
     // Add a new gem
     addGem: async (gemData) => {
-        return makeRequest('/gems', {
-            method: 'POST',
-            body: JSON.stringify(gemData),
-        });
+        return apiClient.post('/gems', gemData);
     },
 
     // Get all gems
     getGems: async (params = {}) => {
-        const queryString = new URLSearchParams(params).toString();
-        const endpoint = queryString ? `/gems?${queryString}` : '/gems';
-        return makeRequest(endpoint, {
-            method: 'GET',
-        });
+        // Filter out empty values
+        const filteredParams = Object.keys(params).reduce((acc, key) => {
+            if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+                acc[key] = params[key];
+            }
+            return acc;
+        }, {});
+
+        return apiClient.get('/gems', { params: filteredParams });
     },
 
     // Get gem by ID
     getGemById: async (id) => {
-        return makeRequest(`/gems/${id}`, {
-            method: 'GET',
-        });
+        return apiClient.get(`/gems/${id}`);
     },
 
     // Update gem
     updateGem: async (id, gemData) => {
-        return makeRequest(`/gems/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(gemData),
-        });
+        return apiClient.put(`/gems/${id}`, gemData);
     },
 
     // Delete gem
     deleteGem: async (id) => {
-        return makeRequest(`/gems/${id}`, {
-            method: 'DELETE',
-        });
+        return apiClient.delete(`/gems/${id}`);
     },
 
     // Search gems
     searchGems: async (searchParams) => {
-        return makeRequest('/gems/search', {
-            method: 'POST',
-            body: JSON.stringify(searchParams),
-        });
+        return apiClient.post('/gems/search', searchParams);
     },
 
     // Get gem categories
     getGemCategories: async () => {
-        return makeRequest('/gems/categories', {
-            method: 'GET',
-        });
+        return apiClient.get('/gems/categories');
     },
 
     // Get gems by category
     getGemsByCategory: async (category) => {
-        return makeRequest(`/gems/category/${category}`, {
-            method: 'GET',
-        });
+        return apiClient.get(`/gems/category/${category}`);
     },
 
     // Get gems by zodiac sign
     getGemsByZodiac: async (zodiacSign) => {
-        return makeRequest(`/gems/zodiac/${zodiacSign}`, {
-            method: 'GET',
-        });
+        return apiClient.get(`/gems/zodiac/${zodiacSign}`);
     }
 };
 
@@ -177,39 +162,27 @@ export const gemAPI = {
 export const cartAPI = {
     // Add item to cart
     addToCart: async (gemId, quantity) => {
-        return makeRequest('/cart/add', {
-            method: 'POST',
-            body: JSON.stringify({ gemId, quantity }),
-        });
+        return apiClient.post('/cart/add', { gemId, quantity });
     },
 
     // Get cart items
     getCart: async () => {
-        return makeRequest('/cart', {
-            method: 'GET',
-        });
+        return apiClient.get('/cart');
     },
 
     // Update cart item quantity
     updateCartItem: async (gemId, quantity) => {
-        return makeRequest(`/cart/update/${gemId}`, {
-            method: 'PUT',
-            body: JSON.stringify({ quantity }),
-        });
+        return apiClient.put(`/cart/update/${gemId}`, { quantity });
     },
 
     // Remove item from cart
     removeFromCart: async (gemId) => {
-        return makeRequest(`/cart/remove/${gemId}`, {
-            method: 'DELETE',
-        });
+        return apiClient.delete(`/cart/remove/${gemId}`);
     },
 
     // Clear cart
     clearCart: async () => {
-        return makeRequest('/cart/clear', {
-            method: 'DELETE',
-        });
+        return apiClient.delete('/cart/clear');
     }
 };
 
@@ -217,31 +190,22 @@ export const cartAPI = {
 export const orderAPI = {
     // Create order
     createOrder: async (orderData) => {
-        return makeRequest('/orders', {
-            method: 'POST',
-            body: JSON.stringify(orderData),
-        });
+        return apiClient.post('/orders', orderData);
     },
 
     // Get user orders
     getOrders: async () => {
-        return makeRequest('/orders', {
-            method: 'GET',
-        });
+        return apiClient.get('/orders');
     },
 
     // Get order by ID
     getOrderById: async (orderId) => {
-        return makeRequest(`/orders/${orderId}`, {
-            method: 'GET',
-        });
+        return apiClient.get(`/orders/${orderId}`);
     },
 
     // Cancel order
     cancelOrder: async (orderId) => {
-        return makeRequest(`/orders/${orderId}/cancel`, {
-            method: 'PUT',
-        });
+        return apiClient.put(`/orders/${orderId}/cancel`);
     }
 };
 
@@ -249,26 +213,18 @@ export const orderAPI = {
 export const otpAPI = {
     // Send OTP
     sendOTP: async (phoneNumber) => {
-        return makeRequest('/otp/send', {
-            method: 'POST',
-            body: JSON.stringify({ phoneNumber }),
-        });
+        return apiClient.post('/otp/send', { phoneNumber });
     },
 
     // Verify OTP
     verifyOTP: async (phoneNumber, otp) => {
-        return makeRequest('/otp/verify', {
-            method: 'POST',
-            body: JSON.stringify({ phoneNumber, otp }),
-        });
+        return apiClient.post('/otp/verify', { phoneNumber, otp });
     }
 };
 
 // Health check
 export const healthCheck = async () => {
-    return makeRequest('/health', {
-        method: 'GET',
-    });
+    return apiClient.get('/health');
 };
 
 const api = { authAPI, gemAPI, cartAPI, orderAPI, otpAPI, healthCheck };

@@ -94,7 +94,7 @@ const GemCards = () => {
 
     return (
         <motion.section
-            className="py-20 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden"
+            className="py-16 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -116,7 +116,7 @@ const GemCards = () => {
                     viewport={{ once: true }}
                     transition={{ duration: 0.8 }}
                 >
-                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
                         Explore Our Precious Gems
                     </h1>
                     <p className="text-xl text-white/80 max-w-3xl mx-auto">
