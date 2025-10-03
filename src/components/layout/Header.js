@@ -57,12 +57,12 @@ const Header = () => {
 
   return (
     <header className="bg-white shadow-md border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-2 py-2 sm:px-6 lg:px-6">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
-              <div className="h-24 w-24  rounded-lg flex items-center justify-center">
+              <div className="h-28 w-28  rounded-lg flex items-center justify-center">
                 <img src="images/aurelane.png" alt="emrald" />
               </div>
             </Link>
@@ -70,12 +70,12 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-6">
-            <Link
+            {/* <Link
               to="/"
               className="text-gray-600 hover:text-emerald-600 font-medium transition"
             >
               Home
-            </Link>
+            </Link> */}
             <Link
               to="/shop"
               className="text-gray-600 hover:text-emerald-600 font-medium transition"
@@ -94,12 +94,12 @@ const Header = () => {
             >
               About
             </Link>
-            <Link
+            {/* <Link
               to="/contact"
               className="text-gray-600 hover:text-emerald-600 font-medium transition"
             >
               Contact
-            </Link>
+            </Link> */}
             {isAuthenticated && (
               <>
                 <Link

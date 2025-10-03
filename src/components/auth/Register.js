@@ -7,7 +7,6 @@ const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phoneNumber: '',
     password: '',
     confirmPassword: '',
   });
@@ -28,7 +27,7 @@ const Register = () => {
   };
 
   const validateForm = () => {
-    const { name, email, phoneNumber, password, confirmPassword } = formData;
+    const { name, email, password, confirmPassword } = formData;
 
     if (name.length < 2 || name.length > 50) {
       setError('Name must be between 2 and 50 characters');
@@ -37,11 +36,6 @@ const Register = () => {
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError('Please enter a valid email address');
-      return false;
-    }
-
-    if (!/^\d{10}$/.test(phoneNumber)) {
-      setError('Phone number must be exactly 10 digits');
       return false;
     }
 
@@ -70,14 +64,14 @@ const Register = () => {
 
     try {
       const { confirmPassword, ...userData } = formData;
-      const response = await authAPI.register(userData);
+      const response = await authAPI.signup(userData);
 
       if (response.success) {
         setSuccess(true);
-        // Optionally auto-login after registration
+        // Auto-redirect to dashboard after successful signup
         setTimeout(() => {
-          navigate('/login');
-        }, 3000);
+          navigate('/dashboard');
+        }, 2000);
       } else {
         setError(response.message || 'Registration failed');
       }
@@ -99,13 +93,13 @@ const Register = () => {
               </svg>
             </div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Registration Successful!
+              Account Created Successfully!
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Please check your email for verification instructions.
+              Welcome to our platform! You are now logged in.
             </p>
             <p className="mt-4 text-center text-sm text-gray-500">
-              Redirecting to login page...
+              Redirecting to dashboard...
             </p>
           </div>
         </div>
@@ -173,22 +167,6 @@ const Register = () => {
               />
             </div>
 
-            <div>
-              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
-                Phone Number
-              </label>
-              <input
-                id="phoneNumber"
-                name="phoneNumber"
-                type="tel"
-                autoComplete="tel"
-                required
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Enter your 10-digit phone number"
-              />
-            </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">

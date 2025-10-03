@@ -51,9 +51,22 @@ const getAuthToken = () => {
 
 // Authentication API functions
 export const authAPI = {
-    // Register a new user
+    // Signup a new user
+    signup: async (userData) => {
+        const response = await apiClient.post('/auth/signup', userData);
+
+        // Store token in localStorage
+        if (response.success && response.token) {
+            localStorage.setItem('token', response.token);
+            localStorage.setItem('user', JSON.stringify(response.user));
+        }
+
+        return response;
+    },
+
+    // Register a new user (alias for signup)
     register: async (userData) => {
-        return apiClient.post('/auth/register', userData);
+        return authAPI.signup(userData);
     },
 
     // Login user
