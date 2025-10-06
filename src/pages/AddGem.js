@@ -1,64 +1,77 @@
 import React, { useState } from 'react';
 import { gemAPI } from '../services/api';
+import { gemstonesData } from '../data/gemstonesData';
 
 const AddGem = () => {
     const [formData, setFormData] = useState({
-        id: '',
         name: '',
         hindiName: '',
         planet: '',
         planetHindi: '',
         color: '',
-        hardness: '',
-        metal: '',
-        finger: '',
-        day: '',
-        mantra: '',
-        emoji: '',
-        gradient: '',
-        bgColor: '',
-        borderColor: '',
-        textColor: '',
         description: '',
-        astrologicalSignificance: '',
         benefits: [],
-        features: {
-            color: '',
-            hardness: '',
-            cut: '',
-            bestMetal: ''
-        },
-        history: '',
         suitableFor: [],
         price: '',
         sizeWeight: '',
         sizeUnit: 'carat',
-        discount: '',
-        discountType: 'percentage',
-        images: [],
-        uploadedImages: [],
         stock: '',
         availability: true,
         certification: '',
-        origin: ''
+        origin: '',
+        deliveryDays: '',
+        heroImage: '',
+        additionalImages: []
     });
 
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
 
-    // Astrological planets
+    // Astrological planets with Hindi names
     const planets = [
-        'Sun (Surya)', 'Moon (Chandra)', 'Mars (Mangal)', 'Mercury (Budh)',
-        'Jupiter (Guru)', 'Venus (Shukra)', 'Saturn (Shani)', 'Rahu', 'Ketu'
+        { english: 'Sun (Surya)', hindi: 'सूर्य ग्रह' },
+        { english: 'Moon (Chandra)', hindi: 'चंद्र ग्रह' },
+        { english: 'Mars (Mangal)', hindi: 'मंगल ग्रह' },
+        { english: 'Mercury (Budh)', hindi: 'बुध ग्रह' },
+        { english: 'Jupiter (Guru)', hindi: 'गुरु ग्रह' },
+        { english: 'Venus (Shukra)', hindi: 'शुक्र ग्रह' },
+        { english: 'Saturn (Shani)', hindi: 'शनि ग्रह' },
+        { english: 'Rahu', hindi: 'राहु' },
+        { english: 'Ketu', hindi: 'केतु' }
     ];
 
     // Common gem categories
     const gemCategories = [
-        'Sapphire', 'Ruby', 'Emerald', 'Diamond', 'Pearl', 'Coral',
-        'Hessonite', 'Opal', 'Topaz', 'Amethyst', 'Citrine', 'Garnet',
-        'Moonstone', 'Turquoise', 'Peridot', 'Aquamarine', 'Tourmaline'
+        'Emerald', 'Yellow Sapphire', 'Blue Sapphire', 'Ruby', 'Pearl', 'Red Coral',
+        'Gomed (Hessonite)', 'Diamond', 'Cat\'s Eye', 'Moonstone', 'Turquoise', 'Opal'
     ];
+
+    // Function to get gem data by name
+    const getGemData = (name) => {
+        return gemstonesData.find(gem =>
+            gem.name.toLowerCase() === name.toLowerCase()
+        );
+    };
+
+    // Function to auto-populate data based on selection
+    const autoPopulateData = (selectedValue, fieldType) => {
+        if (fieldType === 'name') {
+            const gemData = getGemData(selectedValue);
+            if (gemData) {
+                setFormData(prev => ({
+                    ...prev,
+                    hindiName: gemData.hindiName || '',
+                    planet: gemData.planet || '',
+                    planetHindi: gemData.planetHindi || '',
+                    color: gemData.color || '',
+                    description: gemData.description || '',
+                    benefits: gemData.benefits || [],
+                    suitableFor: gemData.suitableFor || []
+                }));
+            }
+        }
+    };
 
     // Common benefits
     const commonBenefits = [
@@ -89,17 +102,6 @@ const AddGem = () => {
         'Scientists', 'Artists', 'Politicians', 'Consultants', 'Entrepreneurs'
     ];
 
-    // Gradient options for styling
-    const gradientOptions = [
-        'from-blue-600 to-sapphire-700',
-        'from-red-600 to-ruby-700',
-        'from-green-600 to-emerald-700',
-        'from-white-600 to-diamond-700',
-        'from-yellow-600 to-topaz-700',
-        'from-purple-600 to-amethyst-700',
-        'from-pink-600 to-pearl-700',
-        'from-orange-600 to-coral-700'
-    ];
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -118,21 +120,27 @@ const AddGem = () => {
                     [name]: checked
                 }));
             }
-        } else if (name.startsWith('features.')) {
-            // Handle nested features object
-            const featureKey = name.split('.')[1];
-            setFormData(prev => ({
-                ...prev,
-                features: {
-                    ...prev.features,
-                    [featureKey]: value
-                }
-            }));
         } else {
             setFormData(prev => ({
                 ...prev,
                 [name]: value
             }));
+
+            // Auto-populate data when name changes
+            if (name === 'name') {
+                autoPopulateData(value, name);
+            }
+
+            // Auto-populate Hindi planet when English planet is selected
+            if (name === 'planet') {
+                const selectedPlanet = planets.find(p => p.english === value);
+                if (selectedPlanet) {
+                    setFormData(prev => ({
+                        ...prev,
+                        planetHindi: selectedPlanet.hindi
+                    }));
+                }
+            }
         }
 
         // Clear error when user starts typing
@@ -144,32 +152,32 @@ const AddGem = () => {
         }
     };
 
-    const handleArrayInputChange = (field, value) => {
-        if (value.trim() && !formData[field].includes(value.trim())) {
-            setFormData(prev => ({
-                ...prev,
-                [field]: [...prev[field], value.trim()]
-            }));
+
+    // Cloudinary upload function
+    const uploadToCloudinary = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'gems_preset'); // Replace with your upload preset
+
+        try {
+            const response = await fetch('https://api.cloudinary.com/v1_1/your_cloud_name/image/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+
+            const data = await response.json();
+            return data.secure_url;
+        } catch (error) {
+            console.error('Cloudinary upload error:', error);
+            throw error;
         }
     };
 
-    const removeArrayItem = (field, item) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: prev[field].filter(i => i !== item)
-        }));
-    };
-
-    const handleImageUrlAdd = (e) => {
-        e.preventDefault();
-        const input = e.target.previousElementSibling;
-        if (input.value.trim()) {
-            handleArrayInputChange('images', input.value);
-            input.value = '';
-        }
-    };
-
-    const handleImageUpload = (e) => {
+    const handleImageUpload = async (e, imageType = 'additional') => {
         const files = Array.from(e.target.files);
         const validFiles = files.filter(file => {
             const isValidType = file.type.startsWith('image/');
@@ -184,51 +192,54 @@ const AddGem = () => {
             }));
         }
 
-        validFiles.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const imageData = {
-                    id: Date.now() + Math.random(),
-                    file: file,
-                    preview: e.target.result,
-                    name: file.name,
-                    size: file.size
-                };
-                setFormData(prev => ({
-                    ...prev,
-                    uploadedImages: [...prev.uploadedImages, imageData]
-                }));
-            };
-            reader.readAsDataURL(file);
-        });
+        setIsSubmitting(true);
+
+        try {
+            for (const file of validFiles) {
+                const imageUrl = await uploadToCloudinary(file);
+
+                if (imageType === 'hero') {
+                    setFormData(prev => ({
+                        ...prev,
+                        heroImage: imageUrl
+                    }));
+                } else {
+                    setFormData(prev => ({
+                        ...prev,
+                        additionalImages: [...prev.additionalImages, imageUrl]
+                    }));
+                }
+            }
+        } catch (error) {
+            setErrors(prev => ({
+                ...prev,
+                imageUpload: 'Failed to upload images. Please try again.'
+            }));
+        } finally {
+            setIsSubmitting(false);
+        }
 
         // Clear the input
         e.target.value = '';
     };
 
-    const removeUploadedImage = (imageId) => {
-        setFormData(prev => ({
-            ...prev,
-            uploadedImages: prev.uploadedImages.filter(img => img.id !== imageId)
-        }));
-    };
 
     const validateForm = () => {
         const newErrors = {};
 
-        if (!formData.id.trim()) newErrors.id = 'ID is required';
         if (!formData.name.trim()) newErrors.name = 'Name is required';
         if (!formData.hindiName.trim()) newErrors.hindiName = 'Hindi name is required';
         if (!formData.planet.trim()) newErrors.planet = 'Planet is required';
         if (!formData.color.trim()) newErrors.color = 'Color is required';
         if (!formData.description.trim()) newErrors.description = 'Description is required';
-        if (!formData.astrologicalSignificance.trim()) newErrors.astrologicalSignificance = 'Astrological significance is required';
         if (formData.benefits.length === 0) newErrors.benefits = 'At least one benefit is required';
         if (formData.suitableFor.length === 0) newErrors.suitableFor = 'At least one suitable profession is required';
         if (!formData.price || formData.price <= 0) newErrors.price = 'Valid price is required';
         if (!formData.sizeWeight || formData.sizeWeight <= 0) newErrors.sizeWeight = 'Valid size/weight is required';
         if (!formData.certification.trim()) newErrors.certification = 'Certification is required';
         if (!formData.origin.trim()) newErrors.origin = 'Origin is required';
+        if (!formData.deliveryDays || formData.deliveryDays <= 0) newErrors.deliveryDays = 'Valid delivery days is required';
+        if (!formData.heroImage.trim()) newErrors.heroImage = 'Hero image is required';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -246,13 +257,24 @@ const AddGem = () => {
 
         try {
             const gemData = {
-                ...formData,
+                name: formData.name,
+                hindiName: formData.hindiName,
+                planet: formData.planet,
+                planetHindi: formData.planetHindi,
+                color: formData.color,
+                description: formData.description,
+                benefits: formData.benefits,
+                suitableFor: formData.suitableFor,
                 price: parseFloat(formData.price),
                 sizeWeight: parseFloat(formData.sizeWeight),
-                discount: formData.discount ? parseFloat(formData.discount) : 0,
+                sizeUnit: formData.sizeUnit,
                 stock: formData.stock ? parseInt(formData.stock) : null,
-                // Combine URL images and uploaded images
-                allImages: [...formData.images, ...formData.uploadedImages.map(img => img.preview)]
+                availability: formData.availability,
+                certification: formData.certification,
+                origin: formData.origin,
+                deliveryDays: parseInt(formData.deliveryDays),
+                heroImage: formData.heroImage,
+                additionalImages: formData.additionalImages
             };
 
             const response = await gemAPI.addGem(gemData);
@@ -261,44 +283,24 @@ const AddGem = () => {
                 setSuccessMessage('Gem added successfully!');
                 // Reset form
                 setFormData({
-                    id: '',
                     name: '',
                     hindiName: '',
                     planet: '',
                     planetHindi: '',
                     color: '',
-                    hardness: '',
-                    metal: '',
-                    finger: '',
-                    day: '',
-                    mantra: '',
-                    emoji: '',
-                    gradient: '',
-                    bgColor: '',
-                    borderColor: '',
-                    textColor: '',
                     description: '',
-                    astrologicalSignificance: '',
                     benefits: [],
-                    features: {
-                        color: '',
-                        hardness: '',
-                        cut: '',
-                        bestMetal: ''
-                    },
-                    history: '',
                     suitableFor: [],
                     price: '',
                     sizeWeight: '',
                     sizeUnit: 'carat',
-                    discount: '',
-                    discountType: 'percentage',
-                    images: [],
-                    uploadedImages: [],
                     stock: '',
                     availability: true,
                     certification: '',
-                    origin: ''
+                    origin: '',
+                    deliveryDays: '',
+                    heroImage: '',
+                    additionalImages: []
                 });
             }
         } catch (error) {
@@ -310,21 +312,21 @@ const AddGem = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-            <div className=" mx-auto">
+        <div className="min-h-screen bg-gray-50 py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto">
                 <div className="bg-white shadow-xl rounded-lg overflow-hidden">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 px-6 py-4">
-                        <h1 className="text-3xl font-bold text-white text-center">
+                    <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 px-4 sm:px-6 py-4 sm:py-6">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-white text-center">
                             Add New Gem
                         </h1>
-                        <p className="text-emerald-100 text-center mt-2">
+                        <p className="text-emerald-100 text-center mt-2 text-sm sm:text-base">
                             Fill in the details to add a new gem to the collection
                         </p>
                     </div>
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="p-6 space-y-8">
+                    <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6 sm:space-y-8">
                         {/* Success Message */}
                         {successMessage && (
                             <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
@@ -345,54 +347,43 @@ const AddGem = () => {
                                 Basic Information
                             </h2>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* ID */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        ID *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="id"
-                                        value={formData.id}
-                                        onChange={handleInputChange}
-                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.id ? 'border-red-500' : 'border-gray-300'
-                                            }`}
-                                        placeholder="e.g., emerald"
-                                    />
-                                    {errors.id && <p className="text-red-500 text-sm mt-1">{errors.id}</p>}
-                                </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+
 
                                 {/* Name */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Name *
+                                        Gem Name *
                                     </label>
-                                    <input
-                                        type="text"
+                                    <select
                                         name="name"
                                         value={formData.name}
                                         onChange={handleInputChange}
                                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.name ? 'border-red-500' : 'border-gray-300'
                                             }`}
-                                        placeholder="e.g., Emerald"
-                                    />
+                                    >
+                                        <option value="">Select Gem Name</option>
+                                        {gemCategories.map(gem => (
+                                            <option key={gem} value={gem}>{gem}</option>
+                                        ))}
+                                    </select>
                                     {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                                 </div>
 
-                                {/* Hindi Name */}
+                                {/* Hindi Name - Auto-populated */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Hindi Name *
+                                        Hindi Name (Auto-filled) *
                                     </label>
                                     <input
                                         type="text"
                                         name="hindiName"
                                         value={formData.hindiName}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.hindiName ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50 ${errors.hindiName ? 'border-red-500' : 'border-gray-300'
                                             }`}
-                                        placeholder="e.g., Panna (पन्ना)"
+                                        placeholder="Will auto-fill based on selection"
+                                        readOnly
                                     />
                                     {errors.hindiName && <p className="text-red-500 text-sm mt-1">{errors.hindiName}</p>}
                                 </div>
@@ -411,24 +402,25 @@ const AddGem = () => {
                                     >
                                         <option value="">Select Planet</option>
                                         {planets.map(planet => (
-                                            <option key={planet} value={planet}>{planet}</option>
+                                            <option key={planet.english} value={planet.english}>{planet.english}</option>
                                         ))}
                                     </select>
                                     {errors.planet && <p className="text-red-500 text-sm mt-1">{errors.planet}</p>}
                                 </div>
 
-                                {/* Planet Hindi */}
+                                {/* Planet Hindi - Auto-populated */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Planet (Hindi)
+                                        Planet (Hindi - Auto-filled)
                                     </label>
                                     <input
                                         type="text"
                                         name="planetHindi"
                                         value={formData.planetHindi}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="e.g., बुध ग्रह"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50"
+                                        placeholder="Will auto-fill based on planet selection"
+                                        readOnly
                                     />
                                 </div>
 
@@ -449,158 +441,12 @@ const AddGem = () => {
                                     {errors.color && <p className="text-red-500 text-sm mt-1">{errors.color}</p>}
                                 </div>
 
-                                {/* Hardness */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Hardness
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="hardness"
-                                        value={formData.hardness}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="e.g., 7.5-8"
-                                    />
-                                </div>
 
-                                {/* Metal */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Metal
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="metal"
-                                        value={formData.metal}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="e.g., Gold or Silver"
-                                    />
-                                </div>
 
-                                {/* Finger */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Finger
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="finger"
-                                        value={formData.finger}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="e.g., Little finger of right hand"
-                                    />
-                                </div>
 
-                                {/* Day */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Day
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="day"
-                                        value={formData.day}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="e.g., Wednesday morning"
-                                    />
-                                </div>
 
-                                {/* Mantra */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Mantra
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="mantra"
-                                        value={formData.mantra}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="e.g., Om Budhaya Namah"
-                                    />
-                                </div>
 
-                                {/* Emoji */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Emoji
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="emoji"
-                                        value={formData.emoji}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="e.g., 💚"
-                                    />
-                                </div>
 
-                                {/* Gradient */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Gradient
-                                    </label>
-                                    <select
-                                        name="gradient"
-                                        value={formData.gradient}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                    >
-                                        <option value="">Select Gradient</option>
-                                        {gradientOptions.map(gradient => (
-                                            <option key={gradient} value={gradient}>{gradient}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                {/* Background Color */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Background Color
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="bgColor"
-                                        value={formData.bgColor}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="e.g., bg-green-50"
-                                    />
-                                </div>
-
-                                {/* Border Color */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Border Color
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="borderColor"
-                                        value={formData.borderColor}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="e.g., border-green-200"
-                                    />
-                                </div>
-
-                                {/* Text Color */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Text Color
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="textColor"
-                                        value={formData.textColor}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="e.g., text-green-800"
-                                    />
-                                </div>
                             </div>
 
                             {/* Description */}
@@ -620,37 +466,6 @@ const AddGem = () => {
                                 {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
                             </div>
 
-                            {/* Astrological Significance */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Astrological Significance *
-                                </label>
-                                <textarea
-                                    name="astrologicalSignificance"
-                                    value={formData.astrologicalSignificance}
-                                    onChange={handleInputChange}
-                                    rows={4}
-                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.astrologicalSignificance ? 'border-red-500' : 'border-gray-300'
-                                        }`}
-                                    placeholder="Describe the astrological significance and effects of this gemstone..."
-                                />
-                                {errors.astrologicalSignificance && <p className="text-red-500 text-sm mt-1">{errors.astrologicalSignificance}</p>}
-                            </div>
-
-                            {/* History */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    History
-                                </label>
-                                <textarea
-                                    name="history"
-                                    value={formData.history}
-                                    onChange={handleInputChange}
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                    placeholder="Historical significance and cultural background..."
-                                />
-                            </div>
                         </div>
 
                         {/* Benefits & Suitable For */}
@@ -664,7 +479,7 @@ const AddGem = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Benefits *
                                 </label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                                     {commonBenefits.map(benefit => (
                                         <label key={benefit} className="flex items-center space-x-2 cursor-pointer">
                                             <input
@@ -687,7 +502,7 @@ const AddGem = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Suitable For (Professions) *
                                 </label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                                     {suitableProfessions.map(profession => (
                                         <label key={profession} className="flex items-center space-x-2 cursor-pointer">
                                             <input
@@ -706,82 +521,13 @@ const AddGem = () => {
                             </div>
                         </div>
 
-                        {/* Physical Features */}
-                        <div className="space-y-6">
-                            <h2 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">
-                                Physical Features
-                            </h2>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Color Details */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Color Details
-                                    </label>
-                                    <textarea
-                                        name="features.color"
-                                        value={formData.features.color}
-                                        onChange={handleInputChange}
-                                        rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="Describe the color variations and quality..."
-                                    />
-                                </div>
-
-                                {/* Hardness Details */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Hardness Details
-                                    </label>
-                                    <textarea
-                                        name="features.hardness"
-                                        value={formData.features.hardness}
-                                        onChange={handleInputChange}
-                                        rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="Describe hardness and durability..."
-                                    />
-                                </div>
-
-                                {/* Cut Details */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Cut Details
-                                    </label>
-                                    <textarea
-                                        name="features.cut"
-                                        value={formData.features.cut}
-                                        onChange={handleInputChange}
-                                        rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="Describe the cut and shape recommendations..."
-                                    />
-                                </div>
-
-                                {/* Best Metal */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Best Metal
-                                    </label>
-                                    <textarea
-                                        name="features.bestMetal"
-                                        value={formData.features.bestMetal}
-                                        onChange={handleInputChange}
-                                        rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="Describe the best metal combinations..."
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Pricing & Physical Properties */}
+                        {/* Pricing & Properties */}
                         <div className="space-y-6">
                             <h2 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">
                                 Pricing & Physical Properties
                             </h2>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 {/* Price */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -833,36 +579,8 @@ const AddGem = () => {
                                 </div>
                             </div>
 
-                            {/* Discount */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Discount
-                                    </label>
-                                    <div className="flex">
-                                        <input
-                                            type="number"
-                                            name="discount"
-                                            value={formData.discount}
-                                            onChange={handleInputChange}
-                                            className="flex-1 px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-emerald-500 border-gray-300"
-                                            placeholder="e.g., 10"
-                                            min="0"
-                                            step="0.01"
-                                        />
-                                        <select
-                                            name="discountType"
-                                            value={formData.discountType}
-                                            onChange={handleInputChange}
-                                            className="px-3 py-2 border-t border-r border-b border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        >
-                                            <option value="percentage">%</option>
-                                            <option value="flat">₹</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                {/* Stock/Availability */}
+                            {/* Stock and Delivery Days */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Stock Quantity
@@ -876,6 +594,23 @@ const AddGem = () => {
                                         placeholder="e.g., 10"
                                         min="0"
                                     />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Delivery Days *
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="deliveryDays"
+                                        value={formData.deliveryDays}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.deliveryDays ? 'border-red-500' : 'border-gray-300'
+                                            }`}
+                                        placeholder="e.g., 7"
+                                        min="1"
+                                    />
+                                    {errors.deliveryDays && <p className="text-red-500 text-sm mt-1">{errors.deliveryDays}</p>}
                                 </div>
                             </div>
 
@@ -900,30 +635,81 @@ const AddGem = () => {
                                 Images
                             </h2>
 
-                            {/* Image Upload Section */}
+                            {/* Hero Image Upload */}
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Upload Images
+                                        Hero Image * (Main display image)
+                                    </label>
+                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => handleImageUpload(e, 'hero')}
+                                            className="hidden"
+                                            id="hero-image-upload"
+                                            disabled={isSubmitting}
+                                        />
+                                        <label
+                                            htmlFor="hero-image-upload"
+                                            className={`cursor-pointer flex flex-col items-center space-y-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        >
+                                            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                            </svg>
+                                            <span className="text-sm text-gray-600">
+                                                Click to upload hero image
+                                            </span>
+                                            <span className="text-xs text-gray-500">
+                                                PNG, JPG, GIF up to 5MB
+                                            </span>
+                                        </label>
+                                    </div>
+                                    {formData.heroImage && (
+                                        <div className="mt-4">
+                                            <img
+                                                src={formData.heroImage}
+                                                alt="Hero image preview"
+                                                className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, heroImage: '' }))}
+                                                className="mt-2 text-red-600 hover:text-red-800 text-sm"
+                                            >
+                                                Remove Hero Image
+                                            </button>
+                                        </div>
+                                    )}
+                                    {errors.heroImage && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.heroImage}</p>
+                                    )}
+                                </div>
+
+                                {/* Additional Images Upload */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Additional Images (Optional)
                                     </label>
                                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
                                         <input
                                             type="file"
                                             multiple
                                             accept="image/*"
-                                            onChange={handleImageUpload}
+                                            onChange={(e) => handleImageUpload(e, 'additional')}
                                             className="hidden"
-                                            id="image-upload"
+                                            id="additional-image-upload"
+                                            disabled={isSubmitting}
                                         />
                                         <label
-                                            htmlFor="image-upload"
-                                            className="cursor-pointer flex flex-col items-center space-y-2"
+                                            htmlFor="additional-image-upload"
+                                            className={`cursor-pointer flex flex-col items-center space-y-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
                                             <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                             </svg>
                                             <span className="text-sm text-gray-600">
-                                                Click to upload images or drag and drop
+                                                Click to upload additional images
                                             </span>
                                             <span className="text-xs text-gray-500">
                                                 PNG, JPG, GIF up to 5MB each
@@ -935,30 +721,30 @@ const AddGem = () => {
                                     )}
                                 </div>
 
-                                {/* Uploaded Images Preview */}
-                                {formData.uploadedImages.length > 0 && (
+                                {/* Additional Images Preview */}
+                                {formData.additionalImages.length > 0 && (
                                     <div>
                                         <h3 className="text-sm font-medium text-gray-700 mb-2">
-                                            Uploaded Images ({formData.uploadedImages.length})
+                                            Additional Images ({formData.additionalImages.length})
                                         </h3>
                                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                            {formData.uploadedImages.map((image) => (
-                                                <div key={image.id} className="relative group">
+                                            {formData.additionalImages.map((imageUrl, index) => (
+                                                <div key={index} className="relative group">
                                                     <img
-                                                        src={image.preview}
-                                                        alt={image.name}
+                                                        src={imageUrl}
+                                                        alt={`Additional image ${index + 1}`}
                                                         className="w-full h-24 object-cover rounded-lg border border-gray-200"
                                                     />
                                                     <button
                                                         type="button"
-                                                        onClick={() => removeUploadedImage(image.id)}
+                                                        onClick={() => setFormData(prev => ({
+                                                            ...prev,
+                                                            additionalImages: prev.additionalImages.filter((_, i) => i !== index)
+                                                        }))}
                                                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
                                                     >
                                                         ×
                                                     </button>
-                                                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        {image.name}
-                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -966,55 +752,13 @@ const AddGem = () => {
                                 )}
                             </div>
 
-                            {/* Image URLs Section */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Or Add Image URLs
-                                </label>
-                                <div className="flex space-x-2">
-                                    <input
-                                        type="url"
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        placeholder="Enter image URL"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={handleImageUrlAdd}
-                                        className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                    >
-                                        Add URL
-                                    </button>
-                                </div>
-
-                                {/* Display added URL images */}
-                                {formData.images.length > 0 && (
-                                    <div className="mt-4 space-y-2">
-                                        <h3 className="text-sm font-medium text-gray-700">
-                                            Image URLs ({formData.images.length})
-                                        </h3>
-                                        {formData.images.map((image, index) => (
-                                            <div key={index} className="flex items-center justify-between bg-gray-100 p-2 rounded">
-                                                <span className="text-sm text-gray-700 truncate">{image}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeArrayItem('images', image)}
-                                                    className="text-red-600 hover:text-red-800 text-sm"
-                                                >
-                                                    Remove
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Total Images Summary */}
-                            {(formData.images.length > 0 || formData.uploadedImages.length > 0) && (
+                            {/* Images Summary */}
+                            {(formData.heroImage || formData.additionalImages.length > 0) && (
                                 <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
                                     <p className="text-sm text-emerald-800">
-                                        Total Images: {formData.images.length + formData.uploadedImages.length}
-                                        {formData.images.length > 0 && ` (${formData.images.length} URLs)`}
-                                        {formData.uploadedImages.length > 0 && ` (${formData.uploadedImages.length} uploaded)`}
+                                        Total Images: {(formData.heroImage ? 1 : 0) + formData.additionalImages.length}
+                                        {formData.heroImage && ' (1 hero image)'}
+                                        {formData.additionalImages.length > 0 && ` (${formData.additionalImages.length} additional images)`}
                                     </p>
                                 </div>
                             )}
@@ -1026,7 +770,7 @@ const AddGem = () => {
                                 Certification & Origin
                             </h2>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 {/* Certification */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
