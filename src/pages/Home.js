@@ -134,7 +134,7 @@ const Home = () => {
                                     >
                                         <img src={slide.img} alt={slide.title} className="w-20 h-20" />
                                     </motion.div> */}
-                                    <motion.div
+                                    {/* <motion.div
                                         className="text-8xl mb-6"
                                         animate={{
                                             rotate: [0, 10, -10, 0],
@@ -147,7 +147,7 @@ const Home = () => {
                                         }}
                                     >
                                         {slide.gem}
-                                    </motion.div>
+                                    </motion.div> */}
                                     <motion.h1
                                         className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6"
                                         initial={{ opacity: 0, y: 30 }}
@@ -170,7 +170,7 @@ const Home = () => {
                                         transition={{ duration: 0.8, delay: 0.7 }}
                                     >
                                         <Link
-                                            to="/register"
+                                            to="/gemstones"
                                             className="inline-block px-8 py-4 bg-white text-gray-900 font-semibold rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg"
                                         >
                                             Explore Collection

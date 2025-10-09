@@ -9,6 +9,7 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    role: 'buyer', // Default to buyer
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -167,6 +168,27 @@ const Register = () => {
               />
             </div>
 
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                I want to register as
+              </label>
+              <select
+                id="role"
+                name="role"
+                required
+                value={formData.role}
+                onChange={handleChange}
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
+              >
+                <option value="buyer">Buyer (Customer)</option>
+                <option value="seller">Seller (Gem Provider)</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                {formData.role === 'buyer'
+                  ? 'Browse and purchase gems from our collection'
+                  : 'List and sell your gems on our platform'}
+              </p>
+            </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">

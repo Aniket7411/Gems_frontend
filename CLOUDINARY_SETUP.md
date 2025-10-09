@@ -6,7 +6,7 @@ To use the Cloudinary integration in your AddGem form, you need to:
 
 ### 1. Update Cloudinary Configuration
 
-In `src/pages/AddGem.js`, update these values in the `uploadToCloudinary` function:
+In `src/uploadfunction.js`, update these values in the `uploadImageOnCloudinary` function:
 
 ```javascript
 // Replace with your actual Cloudinary cloud name
@@ -73,3 +73,4 @@ REACT_APP_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
 ```
 
 That's it! Your AddGem form is now ready with Cloudinary integration.
+

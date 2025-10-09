@@ -5,22 +5,103 @@ import { useAuth } from '../contexts/AuthContext';
 
 const Cart = () => {
     const navigate = useNavigate();
-    const { cartItems, removeFromCart, updateQuantity, clearCart, getCartSummary } = useCart();
-    const { isAuthenticated } = useAuth();
+    // const { cartItems, removeFromCart, updateQuantity, clearCart, getCartSummary } = useCart();
+    // const { isAuthenticated } = useAuth();
+
+    // DUMMY DATA - Replace with real data later
+    const [cartItems, setCartItems] = useState([
+        {
+            id: '1',
+            name: 'Natural Emerald (Panna)',
+            category: 'Emerald',
+            image: '/gemimages/emrald.webp',
+            price: 55000,
+            quantity: 2,
+            sizeWeight: 5.5,
+            sizeUnit: 'carat',
+            stock: 10,
+            discount: 0
+        },
+        {
+            id: '2',
+            name: 'Blue Sapphire (Neelam)',
+            category: 'Blue Sapphire',
+            image: '/gemimages/bluesapphire.webp',
+            price: 75000,
+            quantity: 1,
+            sizeWeight: 6.2,
+            sizeUnit: 'carat',
+            stock: 5,
+            discount: 10
+        },
+        {
+            id: '3',
+            name: 'Yellow Sapphire (Pukhraj)',
+            category: 'Yellow Sapphire',
+            image: '/gemimages/yellowsapphire.webp',
+            price: 45000,
+            quantity: 1,
+            sizeWeight: 4.8,
+            sizeUnit: 'carat',
+            stock: 8,
+            discount: 0
+        },
+        {
+            id: '4',
+            name: 'Natural Ruby (Manik)',
+            category: 'Ruby',
+            image: '/gemimages/ruby.webp',
+            price: 85000,
+            quantity: 1,
+            sizeWeight: 7.0,
+            sizeUnit: 'carat',
+            stock: 3,
+            discount: 0
+        }
+    ]);
 
     const [showOTPModal, setShowOTPModal] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState('');
     const [otp, setOtp] = useState('');
     const [otpSent, setOtpSent] = useState(false);
     const [otpLoading, setOtpLoading] = useState(false);
+    const isAuthenticated = false; // Dummy value
+
+    // Dummy cart summary calculation
+    const getCartSummary = () => {
+        const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const freeShippingThreshold = 100000;
+        const shipping = subtotal >= freeShippingThreshold ? 0 : 500;
+        return {
+            itemCount: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+            subtotal,
+            shipping,
+            total: subtotal + shipping,
+            freeShippingThreshold,
+            isEligibleForFreeShipping: subtotal >= freeShippingThreshold
+        };
+    };
 
     const cartSummary = getCartSummary();
+
+    // Dummy functions
+    const removeFromCart = (id) => {
+        setCartItems(cartItems.filter(item => item.id !== id));
+    };
+
+    const clearCart = () => {
+        if (window.confirm('Are you sure you want to clear your cart?')) {
+            setCartItems([]);
+        }
+    };
 
     const handleQuantityChange = (gemId, newQuantity) => {
         if (newQuantity <= 0) {
             removeFromCart(gemId);
         } else {
-            updateQuantity(gemId, newQuantity);
+            setCartItems(cartItems.map(item =>
+                item.id === gemId ? { ...item, quantity: newQuantity } : item
+            ));
         }
     };
 

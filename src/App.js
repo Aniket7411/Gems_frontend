@@ -13,6 +13,8 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Gemstones from './pages/Gemstones';
 import Shop from './pages/Shop';
+import MyOrders from './pages/MyOrders';
+import AmanBirthday from './pages/AmanBirthday';
 
 // Auth Components
 import Login from './components/auth/Login';
@@ -24,6 +26,10 @@ import VerifyEmail from './components/auth/VerifyEmail';
 // Layout Components
 import AuthLayout from './components/layout/AuthLayout';
 import MainLayout from './components/layout/MainLayout';
+import AdminLogin from './components/auth/admin';
+import SellerDetails from './components/admin/sellerdetail';
+import AdminSellers from './components/admin/allsellers';
+import SellerProfileSetup from './components/seller/seller';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -68,6 +74,46 @@ function App() {
                       <Login />
                     </AuthLayout>
                   </PublicRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <PublicRoute>
+                    <AuthLayout>
+                      <AdminLogin />
+                    </AuthLayout>
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/admin/sellers"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <AdminSellers />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/sellers/:sellerId"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <SellerDetails />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/seller-detail"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <SellerProfileSetup />
+                    </MainLayout>
+                  </ProtectedRoute>
                 }
               />
               <Route
@@ -151,10 +197,26 @@ function App() {
               <Route
                 path="/checkout"
                 element={
-                  <MainLayout>
-                    <Checkout />
-                  </MainLayout>
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Checkout />
+                    </MainLayout>
+                  </ProtectedRoute>
                 }
+              />
+              <Route
+                path="/my-orders"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <MyOrders />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/aman_birthday"
+                element={<AmanBirthday />}
               />
 
               {/* Catch all route */}

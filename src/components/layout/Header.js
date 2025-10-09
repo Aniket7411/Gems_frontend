@@ -5,6 +5,7 @@ import { FaBars, FaTimes } from "react-icons/fa";
 import { FaShoppingCart } from "react-icons/fa";
 import { authAPI } from "../../services/api";
 import { useCart } from "../../contexts/CartContext";
+import { CgProfile } from "react-icons/cg";
 
 const dummyGems = [
   "Ruby",
@@ -160,9 +161,13 @@ const Header = () => {
                 </span>
               )}
             </Link>
+            <Link to="/seller-detail" className="block text-gray-600 hover:text-emerald-600">
+              <CgProfile size={24} />
+            </Link>
 
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
+
                 <span className="text-sm text-gray-700">
                   Welcome, {user?.name || "User"}
                 </span>
@@ -206,12 +211,16 @@ const Header = () => {
       {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t shadow-lg p-4 space-y-3">
+          <Link to="/Profile" className="block text-gray-600 hover:text-emerald-600">
+            Profile
+          </Link>
           <Link to="/" className="block text-gray-600 hover:text-emerald-600">
             Home
           </Link>
           <Link to="/shop" className="block text-gray-600 hover:text-emerald-600">
             Shop
           </Link>
+
           <Link
             to="/gemstones"
             className="block text-gray-600 hover:text-emerald-600"
