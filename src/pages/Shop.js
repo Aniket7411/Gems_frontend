@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { gemAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 import GemCard from '../components/gems/GemCard';
@@ -8,6 +9,7 @@ import Pagination from '../components/gems/Pagination';
 import { FaSpinner, FaExclamationTriangle, FaSearch } from 'react-icons/fa';
 
 const Shop = () => {
+    const navigate = useNavigate();
     const { addToCart } = useCart();
     const [gems, setGems] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -20,12 +22,10 @@ const Shop = () => {
     const [filters, setFilters] = useState({
         page: 1,
         limit: 12,
+        search: '',
         category: '',
-        minPrice: '',
-        maxPrice: '',
         zodiac: '',
-        availability: '',
-        q: ''
+        sortBy: 'newest'
     });
 
     // Fetch gems
@@ -34,13 +34,22 @@ const Shop = () => {
             setLoading(true);
             setError(null);
 
-            const response = await gemAPI.getGems(filters);
+            // Build query params
+            const params = {};
+            if (filters.page) params.page = filters.page;
+            if (filters.limit) params.limit = filters.limit;
+            if (filters.search) params.search = filters.search;
+            if (filters.category) params.category = filters.category;
+            if (filters.zodiac) params.zodiac = filters.zodiac;
+            if (filters.sortBy) params.sortBy = filters.sortBy;
+
+            const response = await gemAPI.getGems(params);
 
             console.log("response", response);
 
             if (response.success) {
-                setGems(response.data.gems);
-                setPagination(response.data.pagination);
+                setGems(response.data?.gems || response.gems || []);
+                setPagination(response.data?.pagination || response.pagination || {});
             } else {
                 setError('Failed to fetch gems');
             }
@@ -83,7 +92,7 @@ const Shop = () => {
     const handleSearch = (query) => {
         setFilters(prev => ({
             ...prev,
-            q: query,
+            search: query,
             page: 1
         }));
     };
@@ -102,12 +111,10 @@ const Shop = () => {
         setFilters({
             page: 1,
             limit: 12,
+            search: '',
             category: '',
-            minPrice: '',
-            maxPrice: '',
             zodiac: '',
-            availability: '',
-            q: ''
+            sortBy: 'newest'
         });
     };
 
@@ -160,9 +167,12 @@ const Shop = () => {
                         transition={{ duration: 0.8 }}
                         className="text-center"
                     >
-                        <h1 className="text-4xl md:text-6xl font-bold mb-6">
+                        <h1 className="text-4xl md:text-6xl font-bold mb-4">
                             Premium Gemstones
                         </h1>
+                        <p className="text-xl text-emerald-100">
+                            Discover our collection of authentic gemstones
+                        </p>
                         {/* <p className="text-xl text-emerald-100 max-w-3xl mx-auto mb-8">
                             Discover our exquisite collection of authentic, astrologically certified gemstones.
                             Each piece is carefully selected and energized for maximum spiritual and material benefits.
@@ -204,31 +214,28 @@ const Shop = () => {
                     <div className="lg:col-span-3">
                         {/* Results Header */}
                         <div className="flex flex-col sm:flex-row items-center justify-between mb-6">
-                            <div className="flex items-center space-x-4 mb-4 sm:mb-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-4 sm:mb-0">
                                 <h2 className="text-2xl font-bold text-gray-900">
                                     {pagination.totalItems || 0} Gems Found
                                 </h2>
-                                {filters.q && (
-                                    <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm">
-                                        Search: "{filters.q}"
+                                {filters.search && (
+                                    <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                                        Search: "{filters.search}"
+                                        <button onClick={() => setFilters(prev => ({ ...prev, search: '' }))} className="hover:bg-emerald-200 rounded-full p-0.5">✕</button>
                                     </span>
                                 )}
-                            </div>
-
-                            {/* Sort Options */}
-                            <div className="flex items-center space-x-2">
-                                <span className="text-sm text-gray-600">Sort by:</span>
-                                <select
-                                    value={filters.sortBy || 'newest'}
-                                    onChange={(e) => handleFilterChange({ sortBy: e.target.value })}
-                                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                >
-                                    <option value="newest">Newest First</option>
-                                    <option value="oldest">Oldest First</option>
-                                    <option value="price-low">Price: Low to High</option>
-                                    <option value="price-high">Price: High to Low</option>
-                                    <option value="name">Name A-Z</option>
-                                </select>
+                                {filters.category && (
+                                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                                        Category: {filters.category}
+                                        <button onClick={() => setFilters(prev => ({ ...prev, category: '' }))} className="hover:bg-blue-200 rounded-full p-0.5">✕</button>
+                                    </span>
+                                )}
+                                {filters.zodiac && (
+                                    <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                                        Zodiac: {filters.zodiac}
+                                        <button onClick={() => setFilters(prev => ({ ...prev, zodiac: '' }))} className="hover:bg-purple-200 rounded-full p-0.5">✕</button>
+                                    </span>
+                                )}
                             </div>
                         </div>
 

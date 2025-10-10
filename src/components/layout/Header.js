@@ -86,14 +86,9 @@ const Header = () => {
             >
               Shop
             </Link>
+           
             <Link
-              to="/gemstones"
-              className="text-gray-600 hover:text-emerald-600 font-medium transition"
-            >
-              Gemstones
-            </Link>
-            <Link
-              to="/about"
+              to="/aboutus"
               className="text-gray-600 hover:text-emerald-600 font-medium transition"
             >
               About
@@ -104,6 +99,12 @@ const Header = () => {
             >
               Contact
             </Link> */}
+             <Link
+              to="/gemstones"
+              className="text-gray-600 hover:text-emerald-600 font-medium transition"
+            >
+              Gallery
+            </Link>
             {isAuthenticated && (
               <>
                 <Link
@@ -233,9 +234,18 @@ const Header = () => {
       {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t shadow-lg p-4 space-y-3">
-          <Link to="/Profile" className="block text-gray-600 hover:text-emerald-600">
+          <Link to={
+            JSON.parse(localStorage.getItem('user'))?.role === "admin"
+              ? "/admin/sellers"
+              : user?.role === "seller"
+                ? "/seller-detail"
+                : "/user-detail"
+          } className="block text-gray-600 hover:text-emerald-600">
             Profile
           </Link>
+
+
+
           <Link to="/" className="block text-gray-600 hover:text-emerald-600">
             Home
           </Link>
@@ -247,10 +257,10 @@ const Header = () => {
             to="/gemstones"
             className="block text-gray-600 hover:text-emerald-600"
           >
-            Gemstones
+            Gallery
           </Link>
           <Link
-            to="/about"
+            to="/aboutus"
             className="block text-gray-600 hover:text-emerald-600"
           >
             About

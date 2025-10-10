@@ -31,6 +31,7 @@ import SellerDetails from './components/admin/sellerdetail';
 import AdminSellers from './components/admin/allsellers';
 import SellerProfileSetup from './components/seller/seller';
 import BuyerProfile from './pages/buyerprofile';
+import AurelaneAbout from './pages/aboutus';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -218,6 +219,12 @@ function App() {
               <Route
                 path="/aman_birthday"
                 element={<AmanBirthday />}
+              />
+              <Route
+                path="/aboutus"
+                element={<MainLayout>
+                  <AurelaneAbout />
+                </MainLayout>}
               />
 
               {/* Catch all route */}

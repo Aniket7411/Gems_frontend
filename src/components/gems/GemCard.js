@@ -105,7 +105,7 @@ const GemCard = ({ gem, onAddToCart, onToggleWishlist, isWishlisted = false }) =
                         <FaHeart className="w-4 h-4" />
                     </button>
                     <Link
-                        to={`/gem/${gem.id}`}
+                        to={`/gems/${gem._id || gem.id}`}
                         className="w-10 h-10 bg-white text-gray-600 rounded-full flex items-center justify-center hover:bg-blue-500 hover:text-white transition-colors duration-200"
                     >
                         <FaEye className="w-4 h-4" />

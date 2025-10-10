@@ -11,7 +11,7 @@ const GemFilters = ({
     totalResults = 0
 }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState(filters.q || '');
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
 
     const zodiacSigns = [
         'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
@@ -51,9 +51,8 @@ const GemFilters = ({
     const getActiveFiltersCount = () => {
         let count = 0;
         if (filters.category) count++;
-        if (filters.minPrice || filters.maxPrice) count++;
         if (filters.zodiac) count++;
-        if (filters.q) count++;
+        if (filters.search) count++;
         return count;
     };
 
@@ -131,26 +130,19 @@ const GemFilters = ({
                             </div>
                         </div>
 
-                        {/* Price Range Filter */}
+                        {/* Sort by Price */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Price Range</h3>
-                            <div className="space-y-2">
-                                {priceRanges.map((range, index) => (
-                                    <label key={index} className="flex items-center space-x-3 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="priceRange"
-                                            checked={
-                                                filters.minPrice == range.value.min &&
-                                                filters.maxPrice == range.value.max
-                                            }
-                                            onChange={() => handlePriceRangeChange(range.value)}
-                                            className="text-emerald-600 focus:ring-emerald-500"
-                                        />
-                                        <span className="text-gray-700">{range.label}</span>
-                                    </label>
-                                ))}
-                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Sort by Price</h3>
+                            <select
+                                value={filters.sortBy || 'newest'}
+                                onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            >
+                                <option value="newest">Newest First</option>
+                                <option value="price-low">Price: Low to High</option>
+                                <option value="price-high">Price: High to Low</option>
+                                <option value="name">Name A-Z</option>
+                            </select>
                         </div>
 
                         {/* Zodiac Sign Filter */}
@@ -170,21 +162,6 @@ const GemFilters = ({
                             </select>
                         </div>
 
-                        {/* Availability Filter */}
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Availability</h3>
-                            <div className="space-y-2">
-                                <label className="flex items-center space-x-3 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={filters.availability === 'true'}
-                                        onChange={(e) => handleFilterChange('availability', e.target.checked ? 'true' : '')}
-                                        className="text-emerald-600 focus:ring-emerald-500"
-                                    />
-                                    <span className="text-gray-700">In Stock Only</span>
-                                </label>
-                            </div>
-                        </div>
 
                         {/* Clear Filters Button */}
                         {getActiveFiltersCount() > 0 && (

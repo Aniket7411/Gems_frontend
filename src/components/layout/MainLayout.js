@@ -11,12 +11,12 @@ const MainLayout = ({ children }) => {
             </header>
 
             {/* Main Content Area */}
-            <main className="flex-1  pt-16 pb-20">
+            <main className="flex-1  pt-16 ">
                 {children}
             </main>
 
             {/* Fixed Footer */}
-            <footer className=" bottom-0 left-0 right-0 z-40 bg-gray-800 text-white">
+            <footer className=" bottom-0 left-0 right-0 z-40  text-white">
                 <Footer />
             </footer>
         </div>

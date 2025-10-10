@@ -354,7 +354,7 @@ const Home = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.8 }}
-                    >
+                    >   
                         <h2 className="text-4xl md:text-5xl font-bold mb-6">
                             Ready to Find Your Perfect Gem?
                         </h2>
@@ -364,10 +364,10 @@ const Home = () => {
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             {isAuthenticated ? (
                                 <Link
-                                    to="/dashboard"
+                                    to="/shop"
                                     className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105"
                                 >
-                                    Go to Dashboard
+                                    Shop Now
                                 </Link>
                             ) : (
                                 <Link
