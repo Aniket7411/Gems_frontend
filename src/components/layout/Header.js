@@ -7,6 +7,9 @@ import { authAPI } from "../../services/api";
 import { useCart } from "../../contexts/CartContext";
 import { CgProfile } from "react-icons/cg";
 
+
+console.log("dsbhbdshb", JSON.parse(localStorage.getItem('user'))?.role);
+
 const dummyGems = [
   "Ruby",
   "Emerald",
@@ -64,7 +67,7 @@ const Header = () => {
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
               <div className="h-28 w-28  rounded-lg flex items-center justify-center">
-                <img src="images/aurelane.png" alt="emrald" />
+                <img src="/images/aurelane.png" alt="Aurelane Logo" />
               </div>
             </Link>
           </div>
@@ -109,12 +112,16 @@ const Header = () => {
                 >
                   Dashboard
                 </Link>
-                <Link
-                  to="/add-gem"
-                  className="text-gray-600 hover:text-emerald-600 font-medium transition"
-                >
-                  Add Gem
-                </Link>
+
+                {
+                  JSON.parse(localStorage.getItem('user'))?.role === "seller" && <Link
+                    to="/add-gem"
+                    className="text-gray-600 hover:text-emerald-600 font-medium transition"
+                  >
+                    Add Gem
+                  </Link>
+                }
+
               </>
             )}
           </nav>
@@ -161,9 +168,24 @@ const Header = () => {
                 </span>
               )}
             </Link>
-            <Link to="/seller-detail" className="block text-gray-600 hover:text-emerald-600">
+
+
+
+
+            <Link
+              to={
+                JSON.parse(localStorage.getItem('user'))?.role === "admin"
+                  ? "/admin/sellers"
+                  : user?.role === "seller"
+                    ? "/seller-detail"
+                    : "/user-detail"
+              }
+              className="text-gray-600 hover:text-emerald-600 font-medium transition"
+            >
               <CgProfile size={24} />
             </Link>
+
+
 
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
@@ -247,12 +269,16 @@ const Header = () => {
               >
                 Dashboard
               </Link>
-              <Link
-                to="/add-gem"
-                className="block text-gray-600 hover:text-emerald-600"
-              >
-                Add Gem
-              </Link>
+
+              {
+                JSON.parse(localStorage.getItem('user'))?.role === "seller" && <Link
+                  to="/add-gem"
+                  className="block text-gray-600 hover:text-emerald-600"
+                >
+                  Add Gem
+                </Link>
+              }
+
             </>
           )}
 

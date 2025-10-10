@@ -32,7 +32,7 @@ const Login = () => {
 
             if (response.success) {
                 // Redirect to dashboard or home page
-                navigate('/dashboard');
+                navigate('/');
             } else {
                 setError(response.message || 'Login failed');
             }

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // const API_BASE_URL = 'http://localhost:5000/api';
-const API_BASE_URL = 'https://gems-selling-backend.onrender.com/api';
+const API_BASE_URL = 'https://gems-backend-u.onrender.com/';
 
 
 // Create axios instance
@@ -114,6 +114,36 @@ export const authAPI = {
     // Check if user is authenticated
     isAuthenticated: () => {
         return !!getAuthToken();
+    },
+
+    // Get seller profile
+    getSellerProfile: async () => {
+        return await apiClient.get('/seller/profile');
+    },
+
+    // Update user profile (for sellers)
+    updateProfile: async (profileData) => {
+        const response = await apiClient.put('/seller/profile', profileData);
+
+        // Update user in localStorage if seller data is returned
+        if (response.success && response.seller) {
+            // Store seller data
+            localStorage.setItem('sellerProfile', JSON.stringify(response.seller));
+
+            // Also update user object if present
+            const currentUser = authAPI.getCurrentUser();
+            if (currentUser) {
+                const updatedUser = {
+                    ...currentUser,
+                    name: response.seller.fullName,
+                    email: response.seller.email,
+                    role: 'seller'
+                };
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+            }
+        }
+
+        return response;
     },
 };
 
@@ -237,12 +267,43 @@ export const otpAPI = {
     }
 };
 
+// Admin API functions
+export const adminAPI = {
+    // Get all sellers with filters
+    getSellers: async (params = {}) => {
+        // Filter out empty values
+        const filteredParams = Object.keys(params).reduce((acc, key) => {
+            if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+                acc[key] = params[key];
+            }
+            return acc;
+        }, {});
+
+        return apiClient.get('/admin/sellers', { params: filteredParams });
+    },
+
+    // Get seller by ID
+    getSellerById: async (sellerId) => {
+        return apiClient.get(`/admin/sellers/${sellerId}`);
+    },
+
+    // Update seller status (approve/reject)
+    updateSellerStatus: async (sellerId, status) => {
+        return apiClient.put(`/admin/sellers/${sellerId}/status`, { status });
+    },
+
+    // Delete seller
+    deleteSeller: async (sellerId) => {
+        return apiClient.delete(`/admin/sellers/${sellerId}`);
+    }
+};
+
 // Health check
 export const healthCheck = async () => {
     return apiClient.get('/health');
 };
 
-const api = { authAPI, gemAPI, cartAPI, orderAPI, otpAPI, healthCheck };
+const api = { authAPI, gemAPI, cartAPI, orderAPI, otpAPI, adminAPI, healthCheck };
 export default api;
 
 

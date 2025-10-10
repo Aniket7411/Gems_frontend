@@ -1,63 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { adminAPI } from '../../services/api';
 
 const SellerDetails = () => {
-    //   const { sellerId } = useParams();
-    const sellerId = 1;
+    const { sellerId } = useParams();
     const navigate = useNavigate();
     const [seller, setSeller] = useState(null);
     const [gems, setGems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchSellerDetails = async () => {
-            try {
-                // Simulate API calls
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                // Mock seller data
-                const mockSeller = {
-                    _id: sellerId,
-                    name: 'Diamond Dreams',
-                    email: 'contact@diamonddreams.com',
-                    phone: '+1-555-0101',
-                    registrationDate: '2023-01-15',
-                    status: 'active',
-                    shopName: 'Diamond Dreams Jewelry',
-                    address: '123 Gem Street, New York, NY 10001',
-                    rating: 4.8,
-                    totalSales: 124,
-                    joinDate: '2023-01-15'
-                };
-
-                // Mock gems data
-                const mockGems = [
-                    {
-                        id: 1,
-                        name: 'Blue Sapphire',
-                        category: 'Sapphire',
-                        price: 2500,
-                        status: 'available',
-                        listedDate: '2023-10-15',
-                        images: ['/api/placeholder/80/80']
-                    },
-                    {
-                        id: 2,
-                        name: 'Emerald Cut',
-                        category: 'Emerald',
-                        price: 1800,
-                        status: 'sold',
-                        listedDate: '2023-09-20',
-                        images: ['/api/placeholder/80/80']
-                    },
-                    // Add more mock gems as needed
-                ];
-
-                setSeller(mockSeller);
-                setGems(mockGems);
+            if (!sellerId) {
+                setError('No seller ID provided');
                 setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+            setError('');
+
+            try {
+                // Call API to get seller details
+                const response = await adminAPI.getSellerById(sellerId);
+
+                if (response.success && response.seller) {
+                    setSeller(response.seller);
+
+                    // If gems are included in response
+                    if (response.gems) {
+                        setGems(response.gems);
+                    } else {
+                        setGems([]);
+                    }
+                } else {
+                    setError(response.message || 'Failed to fetch seller details');
+                    setSeller(null);
+                    setGems([]);
+                }
             } catch (error) {
                 console.error('Error fetching seller details:', error);
+                setError(error.message || 'Error loading seller details');
+                setSeller(null);
+                setGems([]);
+            } finally {
                 setLoading(false);
             }
         };
@@ -76,14 +63,20 @@ const SellerDetails = () => {
         );
     }
 
-    if (!seller) {
+    if (error || !seller) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900">Seller not found</h2>
+                    <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                        {error || 'Seller not found'}
+                    </h2>
+                    <p className="text-gray-600 mb-4">Unable to load seller details</p>
                     <button
                         onClick={() => navigate('/admin/sellers')}
-                        className="mt-4 text-indigo-600 hover:text-indigo-900"
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
                     >
                         Back to Sellers
                     </button>
@@ -108,12 +101,15 @@ const SellerDetails = () => {
                     </button>
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">{seller.name}</h1>
-                            <p className="text-gray-600 mt-2">{seller.shopName}</p>
+                            <h1 className="text-3xl font-bold text-gray-900">{seller.name || seller.fullName || 'N/A'}</h1>
+                            <p className="text-gray-600 mt-2">{seller.shopName || 'N/A'}</p>
                         </div>
                         <div className="mt-4 md:mt-0">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                {seller.status.charAt(0).toUpperCase() + seller.status.slice(1)}
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${(seller.status || seller.isVerified) ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                {seller.status
+                                    ? seller.status.charAt(0).toUpperCase() + seller.status.slice(1)
+                                    : seller.isVerified ? 'Verified' : 'Pending'}
                             </span>
                         </div>
                     </div>
@@ -128,15 +124,22 @@ const SellerDetails = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">Email</label>
-                                    <p className="mt-1 text-sm text-gray-900">{seller.email}</p>
+                                    <p className="mt-1 text-sm text-gray-900">{seller.email || 'N/A'}</p>
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">Phone</label>
-                                    <p className="mt-1 text-sm text-gray-900">{seller.phone}</p>
+                                    <p className="mt-1 text-sm text-gray-900">{seller.phone || 'N/A'}</p>
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="text-sm font-medium text-gray-500">Address</label>
-                                    <p className="mt-1 text-sm text-gray-900">{seller.address}</p>
+                                    <p className="mt-1 text-sm text-gray-900">
+                                        {seller.address
+                                            ? (typeof seller.address === 'string'
+                                                ? seller.address
+                                                : `${seller.address.street || ''}, ${seller.address.city || ''}, ${seller.address.state || ''} ${seller.address.pincode || ''}`.trim()
+                                            )
+                                            : 'N/A'}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -149,21 +152,25 @@ const SellerDetails = () => {
                                     <div key={gem.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                                         <div className="flex items-center">
                                             <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-indigo-500 rounded-lg flex items-center justify-center text-white font-medium">
-                                                {gem.name.split(' ').map(n => n[0]).join('')}
+                                                {(gem.name || 'NA').split(' ').map(n => n[0]).join('')}
                                             </div>
                                             <div className="ml-4">
-                                                <h4 className="text-sm font-medium text-gray-900">{gem.name}</h4>
-                                                <p className="text-sm text-gray-500">{gem.category}</p>
-                                                <p className="text-sm text-gray-500">Listed: {gem.listedDate}</p>
+                                                <h4 className="text-sm font-medium text-gray-900">{gem.name || 'N/A'}</h4>
+                                                <p className="text-sm text-gray-500">{gem.category || 'N/A'}</p>
+                                                <p className="text-sm text-gray-500">Listed: {gem.listedDate || gem.createdAt || 'N/A'}</p>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-lg font-semibold text-gray-900">${gem.price}</p>
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${gem.status === 'available'
+                                            <p className="text-lg font-semibold text-gray-900">${gem.price || 0}</p>
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${(gem.status === 'available' || gem.availability === 'available')
                                                     ? 'bg-green-100 text-green-800'
                                                     : 'bg-gray-100 text-gray-800'
                                                 }`}>
-                                                {gem.status.charAt(0).toUpperCase() + gem.status.slice(1)}
+                                                {gem.status
+                                                    ? gem.status.charAt(0).toUpperCase() + gem.status.slice(1)
+                                                    : gem.availability
+                                                        ? gem.availability.charAt(0).toUpperCase() + gem.availability.slice(1)
+                                                        : 'N/A'}
                                             </span>
                                         </div>
                                     </div>
@@ -180,21 +187,23 @@ const SellerDetails = () => {
                             <div className="space-y-4">
                                 <div className="flex justify-between">
                                     <span className="text-sm text-gray-500">Rating</span>
-                                    <span className="text-sm font-medium text-gray-900">{seller.rating}/5.0</span>
+                                    <span className="text-sm font-medium text-gray-900">{seller.rating || 'N/A'}/5.0</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-sm text-gray-500">Total Sales</span>
-                                    <span className="text-sm font-medium text-gray-900">{seller.totalSales}</span>
+                                    <span className="text-sm font-medium text-gray-900">{seller.totalSales || seller.totalOrders || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-sm text-gray-500">Member Since</span>
                                     <span className="text-sm font-medium text-gray-900">
-                                        {new Date(seller.joinDate).toLocaleDateString()}
+                                        {seller.joinDate || seller.createdAt
+                                            ? new Date(seller.joinDate || seller.createdAt).toLocaleDateString()
+                                            : 'N/A'}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-sm text-gray-500">Gems Listed</span>
-                                    <span className="text-sm font-medium text-gray-900">{gems.length}</span>
+                                    <span className="text-sm font-medium text-gray-900">{seller.totalGems || gems.length || 0}</span>
                                 </div>
                             </div>
                         </div>

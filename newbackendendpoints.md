@@ -957,14 +957,16 @@ updateOrderStatus: async (orderId, status) => {
 **Endpoint**: `GET /api/seller/profile`  
 **Access**: Protected (Seller only)  
 **Headers**: `Authorization: Bearer <token>`  
-**Frontend File**: `src/components/seller/seller.jsx`
+**Frontend File**: `src/components/seller/seller.jsx`  
+**Backend Route**: `router.get('/seller/profile', protect, checkRole('seller'), ...)`
 
 **Response Success (200)**:
 ```json
 {
   "success": true,
   "seller": {
-    "_id": "507f1f77bcf86cd799439012",
+    "_id": "68e8c51d0950e54163501599",
+    "user": "68e791aa25e29867788dda0c",
     "fullName": "Raj Kumar Gems",
     "email": "raj@gemstore.com",
     "phone": "9876543210",
@@ -995,8 +997,9 @@ updateOrderStatus: async (orderId, status) => {
     "facebook": "RajKumarGems",
     "isVerified": true,
     "documentsUploaded": true,
-    "createdAt": "2024-01-15T10:30:00.000Z",
-    "updatedAt": "2024-10-09T10:30:00.000Z"
+    "createdAt": "2025-10-10T08:34:37.282Z",
+    "updatedAt": "2025-10-10T08:34:37.282Z",
+    "__v": 0
   }
 }
 ```
@@ -1008,13 +1011,46 @@ getSellerProfile: async () => {
 }
 ```
 
+**Usage in Component**:
+```javascript
+// On component mount, fetch profile from backend
+useEffect(() => {
+    const fetchSellerProfile = async () => {
+        setIsFetchingProfile(true);
+        try {
+            const response = await authAPI.getSellerProfile();
+            
+            if (response.success && response.seller) {
+                setFormData({
+                    fullName: response.seller.fullName || '',
+                    email: response.seller.email || '',
+                    phone: response.seller.phone || '',
+                    // ... map all other fields
+                });
+                
+                // Backup to localStorage
+                localStorage.setItem('sellerProfile', JSON.stringify(response.seller));
+            }
+        } catch (error) {
+            console.error('Error fetching seller profile:', error);
+            // Fallback to localStorage if API fails
+        } finally {
+            setIsFetchingProfile(false);
+        }
+    };
+
+    fetchSellerProfile();
+}, []);
+```
+
 ---
 
 ### 5.2 Update Seller Profile
 **Endpoint**: `PUT /api/seller/profile`  
 **Access**: Protected (Seller only)  
 **Headers**: `Authorization: Bearer <token>`  
-**Frontend File**: `src/components/seller/seller.jsx`
+**Frontend File**: `src/components/seller/seller.jsx`  
+**Backend Route**: `router.put('/seller/profile', protect, checkRole('seller'), ...)`
 
 **Request Body** (All fields optional):
 ```json
@@ -1053,22 +1089,130 @@ getSellerProfile: async () => {
 ```json
 {
   "success": true,
-  "message": "Profile updated successfully",
+  "message": "Seller profile created successfully",
   "seller": {
-    "_id": "507f1f77bcf86cd799439012",
-    "fullName": "Raj Kumar Gems Updated",
+    "_id": "68e8c51d0950e54163501599",
+    "user": "68e791aa25e29867788dda0c",
+    "fullName": "Raj Kumar Gems",
     "email": "raj@gemstore.com",
-    "phone": "9999999999",
-    "updatedAt": "2024-10-09T12:00:00.000Z"
+    "phone": "9876543210",
+    "alternatePhone": "9123456789",
+    "shopName": "Raj Kumar Gems & Jewels",
+    "shopType": "Retail Store",
+    "businessType": "Individual Proprietorship",
+    "yearEstablished": "2015",
+    "address": {
+      "street": "123 Gem Market, Chandni Chowk",
+      "city": "Delhi",
+      "state": "Delhi",
+      "pincode": "110006",
+      "country": "India"
+    },
+    "gstNumber": "07AABCU9603R1ZM",
+    "panNumber": "ABCDE1234F",
+    "aadharNumber": "123456789012",
+    "bankName": "State Bank of India",
+    "accountNumber": "12345678901234",
+    "ifscCode": "SBIN0001234",
+    "accountHolderName": "Raj Kumar",
+    "businessDescription": "Established gem dealer with over 8 years of experience...",
+    "specialization": ["Loose Gemstones", "Certified Gems", "Custom Designs"],
+    "gemTypes": ["Emeralds", "Rubies", "Sapphires", "Diamonds"],
+    "website": "https://rajkumargems.com",
+    "instagram": "@rajkumargems",
+    "facebook": "RajKumarGems",
+    "isVerified": true,
+    "documentsUploaded": true,
+    "createdAt": "2025-10-10T08:34:37.282Z",
+    "updatedAt": "2025-10-10T08:34:37.282Z",
+    "__v": 0
   }
 }
 ```
 
 **Axios Implementation**:
 ```javascript
-updateSellerProfile: async (profileData) => {
-    return await apiClient.put('/seller/profile', profileData);
+updateProfile: async (profileData) => {
+    const response = await apiClient.put('/seller/profile', profileData);
+    
+    // Update localStorage with seller data from response
+    if (response.success && response.seller) {
+        // Store seller profile
+        localStorage.setItem('sellerProfile', JSON.stringify(response.seller));
+        
+        // Update user object
+        const currentUser = authAPI.getCurrentUser();
+        if (currentUser) {
+            const updatedUser = {
+                ...currentUser,
+                name: response.seller.fullName,
+                email: response.seller.email,
+                role: 'seller'
+            };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+    }
+    
+    return response;
 }
+```
+
+**Backend Implementation Example**:
+```javascript
+// routes/profile.js
+const express = require('express');
+const router = express.Router();
+const { protect, checkRole } = require('../middleware/auth');
+
+router.put('/profile', protect, checkRole('seller'), async (req, res) => {
+    try {
+        const sellerId = req.user._id; // from protect middleware
+        
+        // Extract fields from request body
+        const {
+            fullName, phone, alternatePhone, shopName, shopType,
+            businessType, yearEstablished, address, gstNumber,
+            panNumber, aadharNumber, bankName, accountNumber,
+            ifscCode, accountHolderName, businessDescription,
+            specialization, gemTypes, website, instagram, facebook
+        } = req.body;
+        
+        // Update seller profile
+        const updatedSeller = await Seller.findByIdAndUpdate(
+            sellerId,
+            {
+                $set: {
+                    fullName, phone, alternatePhone, shopName, shopType,
+                    businessType, yearEstablished, address, gstNumber,
+                    panNumber, aadharNumber, bankName, accountNumber,
+                    ifscCode, accountHolderName, businessDescription,
+                    specialization, gemTypes, website, instagram, facebook,
+                    updatedAt: Date.now()
+                }
+            },
+            { new: true, runValidators: true }
+        );
+        
+        res.status(200).json({
+            success: true,
+            message: 'Profile updated successfully',
+            user: {
+                id: updatedSeller._id,
+                name: updatedSeller.fullName,
+                email: updatedSeller.email,
+                role: 'seller'
+            },
+            seller: updatedSeller
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Error updating profile'
+        });
+    }
+});
+
+module.exports = router;
 ```
 
 ---
@@ -1200,9 +1344,53 @@ updateUserProfile: async (profileData) => {
 
 **Axios Implementation**:
 ```javascript
-getAllSellers: async (params = {}) => {
-    return await apiClient.get('/admin/sellers', { params });
+// In src/services/api.js - adminAPI
+getSellers: async (params = {}) => {
+    // Filter out empty values
+    const filteredParams = Object.keys(params).reduce((acc, key) => {
+        if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+            acc[key] = params[key];
+        }
+        return acc;
+    }, {});
+
+    return apiClient.get('/admin/sellers', { params: filteredParams });
 }
+```
+
+**Usage in Component**:
+```javascript
+// In allsellers.jsx
+const fetchSellers = async () => {
+    setLoading(true);
+    try {
+        const params = {
+            page: pagination.page,
+            limit: pagination.limit
+        };
+
+        if (searchTerm) params.search = searchTerm;
+        if (filterStatus && filterStatus !== 'all') params.status = filterStatus;
+
+        const response = await adminAPI.getSellers(params);
+        
+        if (response.success) {
+            setSellers(response.sellers || []);
+            if (response.pagination) {
+                setPagination({
+                    page: response.pagination.currentPage,
+                    limit: response.pagination.limit,
+                    total: response.pagination.total,
+                    totalPages: response.pagination.totalPages
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching sellers:', error);
+    } finally {
+        setLoading(false);
+    }
+};
 ```
 
 ---
@@ -1256,9 +1444,44 @@ getAllSellers: async (params = {}) => {
 
 **Axios Implementation**:
 ```javascript
-getSellerDetails: async (sellerId) => {
-    return await apiClient.get(`/admin/sellers/${sellerId}`);
+// In src/services/api.js - adminAPI
+getSellerById: async (sellerId) => {
+    return apiClient.get(`/admin/sellers/${sellerId}`);
 }
+```
+
+**Usage in Component**:
+```javascript
+// In sellerdetail.jsx
+const fetchSellerDetails = async () => {
+    if (!sellerId) {
+        setError('No seller ID provided');
+        setLoading(false);
+        return;
+    }
+
+    setLoading(true);
+    setError('');
+    
+    try {
+        const response = await adminAPI.getSellerById(sellerId);
+
+        if (response.success && response.seller) {
+            setSeller(response.seller);
+            
+            if (response.gems) {
+                setGems(response.gems);
+            }
+        } else {
+            setError(response.message || 'Failed to fetch seller details');
+        }
+    } catch (error) {
+        console.error('Error fetching seller details:', error);
+        setError(error.message || 'Error loading seller details');
+    } finally {
+        setLoading(false);
+    }
+};
 ```
 
 ---

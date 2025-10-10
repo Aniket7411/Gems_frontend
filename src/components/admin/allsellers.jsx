@@ -1,98 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { adminAPI } from '../../services/api';
 
 const AdminSellers = () => {
   const [sellers, setSellers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0
+  });
   const navigate = useNavigate();
 
-  // Mock data - Replace with actual API call
+  // Fetch sellers from API
   useEffect(() => {
     const fetchSellers = async () => {
+      setLoading(true);
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const mockSellers = [
-          {
-            _id: '1',
-            name: 'Diamond Dreams',
-            email: 'contact@diamonddreams.com',
-            phone: '+1-555-0101',
-            registrationDate: '2023-01-15',
-            status: 'active',
-            totalGems: 24,
-            shopName: 'Diamond Dreams Jewelry',
-            address: '123 Gem Street, New York, NY 10001',
-            rating: 4.8
-          },
-          {
-            _id: '2',
-            name: 'Ruby Royal',
-            email: 'info@rubyroyal.com',
-            phone: '+1-555-0102',
-            registrationDate: '2023-02-20',
-            status: 'active',
-            totalGems: 18,
-            shopName: 'Ruby Royal Gems',
-            address: '456 Precious Ave, Los Angeles, CA 90210',
-            rating: 4.6
-          },
-          {
-            _id: '3',
-            name: 'Emerald Elegance',
-            email: 'sales@emeraldelegance.com',
-            phone: '+1-555-0103',
-            registrationDate: '2023-03-10',
-            status: 'pending',
-            totalGems: 12,
-            shopName: 'Emerald Elegance',
-            address: '789 Crystal Road, Miami, FL 33101',
-            rating: 4.9
-          },
-          {
-            _id: '4',
-            name: 'Sapphire Sparkle',
-            email: 'hello@sapphiresparkle.com',
-            phone: '+1-555-0104',
-            registrationDate: '2023-01-28',
-            status: 'suspended',
-            totalGems: 8,
-            shopName: 'Sapphire Sparkle Co.',
-            address: '321 Jewel Lane, Chicago, IL 60601',
-            rating: 4.2
-          },
-          {
-            _id: '5',
-            name: 'Pearl Perfection',
-            email: 'support@pearlperfection.com',
-            phone: '+1-555-0105',
-            registrationDate: '2023-04-05',
-            status: 'active',
-            totalGems: 31,
-            shopName: 'Pearl Perfection',
-            address: '654 Ocean Drive, San Diego, CA 92101',
-            rating: 4.7
+        // Build query params
+        const params = {
+          page: pagination.page,
+          limit: pagination.limit
+        };
+
+        // Add search if present
+        if (searchTerm) {
+          params.search = searchTerm;
+        }
+
+        // Add status filter if not 'all'
+        if (filterStatus && filterStatus !== 'all') {
+          params.status = filterStatus;
+        }
+
+        // Call API
+        const response = await adminAPI.getSellers(params);
+
+        if (response.success) {
+          setSellers(response.sellers || []);
+
+          // Update pagination if provided
+          if (response.pagination) {
+            setPagination({
+              page: response.pagination.currentPage || pagination.page,
+              limit: response.pagination.limit || pagination.limit,
+              total: response.pagination.total || 0,
+              totalPages: response.pagination.totalPages || 0
+            });
           }
-        ];
-        
-        setSellers(mockSellers);
-        setLoading(false);
+        } else {
+          console.error('Failed to fetch sellers:', response.message);
+          setSellers([]);
+        }
       } catch (error) {
         console.error('Error fetching sellers:', error);
+        setSellers([]);
+      } finally {
         setLoading(false);
       }
     };
 
     fetchSellers();
-  }, []);
+  }, [pagination.page, searchTerm, filterStatus]);
 
   const handleViewSeller = (sellerId) => {
-    // navigate(`/admin/sellers/${sellerId}`);
-    navigate(`/admin/sellers/1`);
+    navigate(`/admin/sellers/${sellerId}`);
+  };
 
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, page: newPage }));
   };
 
   const getStatusBadge = (status) => {
@@ -102,7 +81,7 @@ const AdminSellers = () => {
       suspended: 'bg-red-100 text-red-800',
       inactive: 'bg-gray-100 text-gray-800'
     };
-    
+
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusStyles[status] || statusStyles.inactive}`}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -111,11 +90,11 @@ const AdminSellers = () => {
   };
 
   const filteredSellers = sellers.filter(seller => {
-    const matchesSearch = seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         seller.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         seller.shopName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (seller.name || seller.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (seller.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (seller.shopName || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || seller.status === filterStatus;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -223,7 +202,7 @@ const AdminSellers = () => {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <select
                 value={filterStatus}
@@ -272,37 +251,39 @@ const AdminSellers = () => {
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-r from-purple-400 to-indigo-500 rounded-full flex items-center justify-center">
                           <span className="text-white font-medium text-sm">
-                            {seller.name.split(' ').map(n => n[0]).join('')}
+                            {(seller.name || seller.fullName || 'NA').split(' ').map(n => n[0]).join('')}
                           </span>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{seller.name}</div>
+                          <div className="text-sm font-medium text-gray-900">{seller.name || seller.fullName || 'N/A'}</div>
                           <div className="text-sm text-gray-500">
-                            Joined {new Date(seller.registrationDate).toLocaleDateString()}
+                            Joined {seller.registrationDate || seller.createdAt ? new Date(seller.registrationDate || seller.createdAt).toLocaleDateString() : 'N/A'}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{seller.email}</div>
-                      <div className="text-sm text-gray-500">{seller.phone}</div>
+                      <div className="text-sm text-gray-900">{seller.email || 'N/A'}</div>
+                      <div className="text-sm text-gray-500">{seller.phone || 'N/A'}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{seller.shopName}</div>
-                      <div className="text-sm text-gray-500 truncate max-w-xs">{seller.address}</div>
+                      <div className="text-sm font-medium text-gray-900">{seller.shopName || 'N/A'}</div>
+                      <div className="text-sm text-gray-500 truncate max-w-xs">
+                        {seller.address ? (typeof seller.address === 'string' ? seller.address : `${seller.address.city || ''}, ${seller.address.state || ''}`.trim()) : 'N/A'}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <svg className="w-4 h-4 text-yellow-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
-                        <span className="text-sm font-medium text-gray-900">{seller.rating}</span>
+                        <span className="text-sm font-medium text-gray-900">{seller.rating || 'N/A'}</span>
                         <span className="mx-2 text-gray-300">•</span>
-                        <span className="text-sm text-gray-600">{seller.totalGems} gems</span>
+                        <span className="text-sm text-gray-600">{seller.totalGems || 0} gems</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(seller.status)}
+                      {getStatusBadge(seller.status || seller.isVerified ? 'active' : 'pending')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button

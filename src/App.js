@@ -13,7 +13,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Gemstones from './pages/Gemstones';
 import Shop from './pages/Shop';
-import MyOrders from './pages/MyOrders';
+import MyOrders from './pages/buyerprofile';
 import AmanBirthday from './pages/AmanBirthday';
 
 // Auth Components
@@ -30,6 +30,7 @@ import AdminLogin from './components/auth/admin';
 import SellerDetails from './components/admin/sellerdetail';
 import AdminSellers from './components/admin/allsellers';
 import SellerProfileSetup from './components/seller/seller';
+import BuyerProfile from './pages/buyerprofile';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -205,11 +206,11 @@ function App() {
                 }
               />
               <Route
-                path="/my-orders"
+                path="/user-detail"
                 element={
                   <ProtectedRoute>
                     <MainLayout>
-                      <MyOrders />
+                      <BuyerProfile />
                     </MainLayout>
                   </ProtectedRoute>
                 }

@@ -65,6 +65,7 @@ const Register = () => {
 
     try {
       const { confirmPassword, ...userData } = formData;
+      console.log(userData);
       const response = await authAPI.signup(userData);
 
       if (response.success) {

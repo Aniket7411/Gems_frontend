@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEdit, FaSave, FaTimes, FaBox, FaTruck, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
-const MyOrders = () => {
+const BuyerProfile = () => {
     const navigate = useNavigate();
 
     // User Profile State (with edit functionality)
@@ -575,7 +575,7 @@ const MyOrders = () => {
     );
 };
 
-export default MyOrders;
+export default BuyerProfile;
 
 
 

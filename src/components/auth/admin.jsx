@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
+import { authAPI } from '../../services/api';
+import { useNavigate } from 'react-router-dom';
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: ''
   });
-  const [rememberMe, setRememberMe] = useState(false);
+  // const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -16,56 +19,59 @@ const AdminLogin = () => {
       [name]: value
     }));
     // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+    if (error) {
+      setError('');
     }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
-    }
-    
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
+
+    // Simple validation
+    if (!formData.username.trim()) {
+      setError('Username is required');
       return;
     }
-    
+
+    if (!formData.password || formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setIsLoading(true);
-    
-    // Simulate API call
+    setError('');
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Login attempt with:', formData);
-      alert('Login successful! (This is a demo)');
-      // Here you would typically redirect or handle successful login
-    } catch (error) {
-      console.error('Login error:', error);
-      alert('Login failed. Please try again.');
+      // Convert username to email format for login
+      const loginData = {
+        email: formData.username.includes('@') ? formData.username : `${formData.username}@admin.com`,
+        password: formData.password
+      };
+
+      const response = await authAPI.login(loginData);
+
+      if (response.success) {
+        // Check if user is admin
+        if (response.user && response.user.name === 'Admin') {
+          // Redirect to admin sellers page
+          navigate('/admin/sellers');
+        } else {
+          setError('Access denied. Admin credentials required.');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+      } else {
+        setError(response.message || 'Login failed');
+      }
+    } catch (err) {
+      setError(err.message || 'An error occurred during login');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4"
       style={{
         backgroundImage: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
@@ -73,7 +79,7 @@ const AdminLogin = () => {
     >
       <div className="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden">
         {/* Left Side - Branding/Info */}
-        <div 
+        <div
           className="hidden md:flex flex-col justify-center items-center text-white p-8 md:w-1/2"
           style={{
             background: 'linear-gradient(135deg,rgb(51, 187, 117) 0%,rgb(188, 162, 213) 100%)'
@@ -125,8 +131,15 @@ const AdminLogin = () => {
               <h1 className="text-2xl font-bold text-gray-800">Admin Login</h1>
               <p className="text-gray-600 mt-2">Access your admin dashboard</p>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
               <div>
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
                   Username
@@ -143,13 +156,11 @@ const AdminLogin = () => {
                     type="text"
                     value={formData.username}
                     onChange={handleChange}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.username ? 'border-red-500' : 'border-gray-300'}`}
-                    placeholder="Enter your username"
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Enter your username or email"
+                    required
                   />
                 </div>
-                {errors.username && (
-                  <p className="mt-1 text-sm text-red-600">{errors.username}</p>
-                )}
               </div>
 
               <div>
@@ -168,13 +179,11 @@ const AdminLogin = () => {
                     type="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter your password"
+                    required
                   />
                 </div>
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-                )}
               </div>
 
               {/* <div className="flex items-center justify-between">
