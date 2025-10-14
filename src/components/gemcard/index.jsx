@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
-// Data for gems
 const gems = [
     {
         name: "Emerald Stone",
@@ -31,7 +30,7 @@ const gems = [
         name: "Blue Sapphire (Neelam Stone)",
         image: "gemimages/bluesapphire.webp",
         description:
-            "Blue Sapphire (Neelam Stone) is a precious, blue-coloured gemstone of the Corundum mineral family. Recognized as the most powerful and fastest-acting gemstone in Vedic astrology, Neelam Ratna brings instant wealth, fame, and success to the wearer’s life.",
+            "Blue Sapphire (Neelam Stone) is a precious, blue-coloured gemstone of the Corundum mineral family. Recognized as the most powerful and fastest-acting gemstone in Vedic astrology, Neelam Ratna brings instant wealth, fame, and success to the wearer's life.",
         benefits: [
             "Alleviates Misfortune",
             "Supports Mental Health",
@@ -67,7 +66,7 @@ const gems = [
         name: "Red Coral (Moonga Stone)",
         image: "gemimages/redcoral.webp",
         description:
-            "Red Coral (Moonga), also called “OX blood” in the trade, is a precious gemstone formed in the deep sea by marine creatures called coral polyps (Corallium rubrum). It is a popular astrological gemstone worn to ensure success in leadership roles, sports, business, and health.",
+            "Red Coral (Moonga), also called 'OX blood' in the trade, is a precious gemstone formed in the deep sea by marine creatures called coral polyps (Corallium rubrum). It is a popular astrological gemstone worn to ensure success in leadership roles, sports, business, and health.",
         benefits: [
             "Gives Courage",
             "Cures Blood Disorders",
@@ -92,40 +91,55 @@ const gems = [
 const GemCards = () => {
     const [currentMobileSlide, setCurrentMobileSlide] = useState(0);
 
+    const nextSlide = () => {
+        setCurrentMobileSlide((prev) =>
+            prev === gems.length - 1 ? 0 : prev + 1
+        );
+    };
+
+    const prevSlide = () => {
+        setCurrentMobileSlide((prev) =>
+            prev === 0 ? gems.length - 1 : prev - 1
+        );
+    };
+
+    const goToSlide = (index) => {
+        setCurrentMobileSlide(index);
+    };
+
     return (
         <motion.section
-            className="py-16 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden"
+            className="py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 relative overflow-hidden"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
         >
-            {/* Background decoration */}
-            <div className="absolute inset-0 opacity-20">
-                <div className="absolute inset-0" style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'repeat'
-                }}></div>
+            {/* Background Decoration */}
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl"></div>
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                {/* Header */}
                 <motion.div
-                    className="text-center mb-16"
+                    className="text-center mb-8 sm:mb-12 lg:mb-16"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.8 }}
                 >
-                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 px-2">
                         Explore Our Precious Gems
                     </h1>
-                    <p className="text-xl text-white/80 max-w-3xl mx-auto">
+                    <p className="text-base sm:text-lg lg:text-xl text-white/80 max-w-3xl mx-auto px-4">
                         Discover the mystical power and timeless beauty of authentic gemstones, each carefully selected for their spiritual significance and exceptional quality.
                     </p>
                 </motion.div>
 
-                {/* Desktop Grid View */}
-                <div className="hidden lg:grid lg:grid-cols-3 gap-8">
+                {/* Desktop Grid - 3 columns */}
+                <div className="hidden lg:grid lg:grid-cols-3 gap-6 xl:gap-8">
                     {gems.map((gem, index) => (
                         <motion.div
                             key={index}
@@ -136,25 +150,88 @@ const GemCards = () => {
                             transition={{ duration: 0.8, delay: index * 0.1 }}
                             whileHover={{ y: -10 }}
                         >
-                            <div className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 hover:border-white/40 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-purple-500/25">
-                                <div className="relative p-8">
-                                    <motion.div
-                                        className="flex justify-center items-center mb-6"
-                                        whileHover={{ scale: 1.1, rotate: 5 }}
-                                        transition={{ duration: 0.3 }}
-                                    >
-                                        <img
-                                            src={gem.image}
-                                            alt={gem.name}
-                                            className="h-40 w-auto object-contain drop-shadow-lg"
-                                        />
-                                    </motion.div>
+                            <div className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 hover:border-white/40 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-purple-500/25 flex flex-col h-full">
+                                <motion.div
+                                    className="flex justify-center items-center p-6 xl:p-8 flex-shrink-0 h-44 xl:h-48"
+                                    whileHover={{ scale: 1.1, rotate: 5 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <img
+                                        src={gem.image}
+                                        alt={gem.name}
+                                        className="max-h-full w-auto object-contain drop-shadow-lg"
+                                    />
+                                </motion.div>
 
-                                    <h2 className="text-2xl font-bold text-white mb-4 text-center group-hover:text-purple-300 transition-colors">
+                                <div className="p-6 xl:p-8 flex flex-col flex-grow">
+                                    <h2 className="text-xl xl:text-2xl font-bold text-white mb-3 text-center group-hover:text-purple-300 transition-colors">
                                         {gem.name}
                                     </h2>
 
-                                    <p className="text-white/80 text-sm mb-6 leading-relaxed">
+                                    <p className="text-white/80 text-sm xl:text-base mb-4 leading-relaxed flex-grow line-clamp-4">
+                                        {gem.description}
+                                    </p>
+
+                                    <div className="space-y-2 mb-6">
+                                        {gem.benefits.map((benefit, i) => (
+                                            <motion.div
+                                                key={i}
+                                                className="flex items-center text-white/90 text-sm xl:text-base"
+                                                initial={{ opacity: 0, x: -20 }}
+                                                whileInView={{ opacity: 1, x: 0 }}
+                                                viewport={{ once: true }}
+                                                transition={{ duration: 0.5, delay: i * 0.1 }}
+                                            >
+                                                <span className="text-purple-400 mr-2">✨</span>
+                                                {benefit}
+                                            </motion.div>
+                                        ))}
+                                    </div>
+
+                                    <motion.button
+                                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/50"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                    >
+                                        Discover Power
+                                    </motion.button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* Tablet Grid - 2 columns */}
+                <div className="hidden md:grid lg:hidden md:grid-cols-2 gap-6">
+                    {gems.map((gem, index) => (
+                        <motion.div
+                            key={index}
+                            className="group"
+                            initial={{ opacity: 0, y: 50 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, delay: index * 0.1 }}
+                            whileHover={{ y: -10 }}
+                        >
+                            <div className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 hover:border-white/40 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-purple-500/25 flex flex-col h-full">
+                                <motion.div
+                                    className="flex justify-center items-center p-6 flex-shrink-0 h-40"
+                                    whileHover={{ scale: 1.1, rotate: 5 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <img
+                                        src={gem.image}
+                                        alt={gem.name}
+                                        className="max-h-full w-auto object-contain drop-shadow-lg"
+                                    />
+                                </motion.div>
+
+                                <div className="p-6 flex flex-col flex-grow">
+                                    <h2 className="text-xl font-bold text-white mb-3 text-center group-hover:text-purple-300 transition-colors">
+                                        {gem.name}
+                                    </h2>
+
+                                    <p className="text-white/80 text-sm mb-4 leading-relaxed flex-grow line-clamp-3">
                                         {gem.description}
                                     </p>
 
@@ -187,109 +264,109 @@ const GemCards = () => {
                     ))}
                 </div>
 
-                {/* Mobile/Tablet Carousel View */}
-                <div className="lg:hidden">
-                    <div className="relative overflow-hidden">
-                        <div
-                            className="flex transition-transform duration-500 ease-in-out"
-                            style={{ transform: `translateX(-${currentMobileSlide * 100}%)` }}
-                        >
-                            {gems.map((gem, index) => (
-                                <div key={index} className="w-full flex-shrink-0 px-4">
-                                    <motion.div
-                                        className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 p-6"
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        whileInView={{ opacity: 1, scale: 1 }}
-                                        viewport={{ once: true }}
-                                        transition={{ duration: 0.5 }}
-                                    >
-                                        <div className="flex justify-center items-center mb-4">
-                                            <img
-                                                src={gem.image}
-                                                alt={gem.name}
-                                                className="h-32 w-auto object-contain drop-shadow-lg"
-                                            />
-                                        </div>
+                {/* Mobile Carousel */}
+                <div className="md:hidden">
+                    <div className="relative">
+                        <div className="overflow-hidden px-2 sm:px-4">
+                            <div
+                                className="flex transition-transform duration-500 ease-in-out"
+                                style={{ transform: `translateX(-${currentMobileSlide * 100}%)` }}
+                            >
+                                {gems.map((gem, index) => (
+                                    <div key={index} className="w-full flex-shrink-0 px-2 sm:px-3">
+                                        <motion.div
+                                            className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 p-5 sm:p-6 min-h-[520px] sm:min-h-[540px] flex flex-col"
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            whileInView={{ opacity: 1, scale: 1 }}
+                                            viewport={{ once: true }}
+                                            transition={{ duration: 0.5 }}
+                                        >
+                                            <div className="flex justify-center items-center mb-4 sm:mb-6 flex-shrink-0 h-32 sm:h-36">
+                                                <motion.img
+                                                    src={gem.image}
+                                                    alt={gem.name}
+                                                    className="max-h-full w-auto object-contain drop-shadow-lg"
+                                                    whileHover={{ scale: 1.1 }}
+                                                    transition={{ duration: 0.3 }}
+                                                />
+                                            </div>
 
-                                        <h2 className="text-xl font-bold text-white mb-3 text-center">
-                                            {gem.name}
-                                        </h2>
+                                            <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 text-center">
+                                                {gem.name}
+                                            </h2>
 
-                                        <p className="text-white/80 text-sm mb-4 leading-relaxed">
-                                            {gem.description}
-                                        </p>
+                                            <p className="text-white/80 text-sm sm:text-base mb-4 sm:mb-6 leading-relaxed flex-grow">
+                                                {gem.description}
+                                            </p>
 
-                                        <div className="space-y-1 mb-4">
-                                            {gem.benefits.slice(0, 3).map((benefit, i) => (
-                                                <div key={i} className="flex items-center text-white/90 text-xs">
-                                                    <span className="text-purple-400 mr-2">✨</span>
-                                                    {benefit}
-                                                </div>
-                                            ))}
-                                        </div>
+                                            <div className="space-y-2 sm:space-y-3 mb-5 sm:mb-6">
+                                                {gem.benefits.map((benefit, i) => (
+                                                    <motion.div
+                                                        key={i}
+                                                        className="flex items-center text-white/90 text-sm sm:text-base"
+                                                        initial={{ opacity: 0, x: -20 }}
+                                                        whileInView={{ opacity: 1, x: 0 }}
+                                                        viewport={{ once: true }}
+                                                        transition={{ duration: 0.5, delay: i * 0.1 }}
+                                                    >
+                                                        <span className="text-purple-400 mr-2 sm:mr-3">✨</span>
+                                                        {benefit}
+                                                    </motion.div>
+                                                ))}
+                                            </div>
 
-                                        <button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300">
-                                            Discover Power
-                                        </button>
-                                    </motion.div>
-                                </div>
-                            ))}
+                                            <motion.button
+                                                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 sm:py-3.5 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg"
+                                                whileHover={{ scale: 1.02 }}
+                                                whileTap={{ scale: 0.98 }}
+                                            >
+                                                Discover Power
+                                            </motion.button>
+                                        </motion.div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
-                        {/* Mobile Navigation Dots */}
-                        <div className="flex justify-center mt-6 space-x-2">
-                            {gems.map((_, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => setCurrentMobileSlide(index)}
-                                    className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentMobileSlide
-                                            ? 'bg-white scale-125'
-                                            : 'bg-white/50'
-                                        }`}
-                                />
-                            ))}
-                        </div>
-
-                        {/* Mobile Navigation Arrows */}
+                        {/* Navigation Arrows */}
                         <button
-                            onClick={() => setCurrentMobileSlide((prev) => Math.max(0, prev - 1))}
-                            disabled={currentMobileSlide === 0}
-                            className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors disabled:opacity-50"
+                            onClick={prevSlide}
+                            className="absolute left-1 sm:left-2 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-lg rounded-full p-2 sm:p-3 hover:bg-white/30 transition-all duration-300 z-20 shadow-lg"
+                            aria-label="Previous gem"
                         >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
+
                         <button
-                            onClick={() => setCurrentMobileSlide((prev) => Math.min(gems.length - 1, prev + 1))}
-                            disabled={currentMobileSlide === gems.length - 1}
-                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors disabled:opacity-50"
+                            onClick={nextSlide}
+                            className="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-lg rounded-full p-2 sm:p-3 hover:bg-white/30 transition-all duration-300 z-20 shadow-lg"
+                            aria-label="Next gem"
                         >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                         </button>
+
+                        {/* Dots Indicator */}
+                        <div className="flex justify-center mt-6 sm:mt-8 space-x-2 sm:space-x-3">
+                            {gems.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => goToSlide(index)}
+                                    className={`h-2 sm:h-2.5 rounded-full transition-all duration-300 ${index === currentMobileSlide
+                                        ? 'w-6 sm:w-8 bg-purple-500'
+                                        : 'w-2 sm:w-2.5 bg-white/40 hover:bg-white/60'
+                                        }`}
+                                    aria-label={`Go to gem ${index + 1}`}
+                                />
+                            ))}
+                        </div>
                     </div>
                 </div>
-
-                {/* Call to Action */}
-                <motion.div
-                    className="text-center mt-16"
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.8, delay: 0.5 }}
-                >
-                    <motion.button
-                        className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-full hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-yellow-500/50"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                    >
-                        View All Gems Collection
-                    </motion.button>
-                </motion.div>
             </div>
-        </motion.section >
+        </motion.section>
     );
 };
 

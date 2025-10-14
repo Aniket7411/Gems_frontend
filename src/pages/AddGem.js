@@ -30,7 +30,7 @@ const AddGem = () => {
     const [successMessage, setSuccessMessage] = useState('');
 
 
-    console.log("formDataformData",formData)
+    console.log("formDataformData", formData)
 
 
     // Astrological planets with Hindi names
@@ -140,10 +140,10 @@ const AddGem = () => {
             if (name === 'planet') {
                 const selectedPlanet = planets.find(p => p.english === value);
                 if (selectedPlanet) {
-            setFormData(prev => ({
-                ...prev,
+                    setFormData(prev => ({
+                        ...prev,
                         planetHindi: selectedPlanet.hindi
-            }));
+                    }));
                 }
             }
         }
@@ -174,13 +174,13 @@ const AddGem = () => {
 
                 if (imageUrl) {
                     if (imageType === 'hero') {
-            setFormData(prev => ({
-                ...prev,
+                        setFormData(prev => ({
+                            ...prev,
                             heroImage: imageUrl
-            }));
+                        }));
                     } else {
-        setFormData(prev => ({
-            ...prev,
+                        setFormData(prev => ({
+                            ...prev,
                             additionalImages: [...prev.additionalImages, imageUrl]
                         }));
                     }
@@ -563,14 +563,14 @@ const AddGem = () => {
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Stock Quantity
                                     </label>
-                                        <input
-                                            type="number"
+                                    <input
+                                        type="number"
                                         name="stock"
                                         value={formData.stock}
-                                            onChange={handleInputChange}
+                                        onChange={handleInputChange}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                            placeholder="e.g., 10"
-                                            min="0"
+                                        placeholder="e.g., 10"
+                                        min="0"
                                     />
                                 </div>
 
@@ -649,28 +649,28 @@ const AddGem = () => {
                                                 src={formData.heroImage}
                                                 alt="Hero image preview"
                                                 className="w-32 h-32 object-cover rounded-lg border border-gray-200"
-                                                    />
-                                                    <button
-                                                        type="button"
+                                            />
+                                            <button
+                                                type="button"
                                                 onClick={() => setFormData(prev => ({ ...prev, heroImage: '' }))}
                                                 className="mt-2 text-red-600 hover:text-red-800 text-sm"
-                                                    >
+                                            >
                                                 Remove Hero Image
-                                                    </button>
-                                    </div>
-                                )}
+                                            </button>
+                                        </div>
+                                    )}
                                     {errors.heroImage && (
                                         <p className="text-red-500 text-sm mt-1">{errors.heroImage}</p>
                                     )}
-                            </div>
+                                </div>
 
                                 {/* Additional Images Upload */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Additional Images (Optional)
-                                </label>
+                                    </label>
                                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-                                    <input
+                                        <input
                                             type="file"
                                             multiple
                                             accept="image/*"
@@ -713,8 +713,8 @@ const AddGem = () => {
                                                         alt={`Additional image ${index + 1}`}
                                                         className="w-full h-24 object-cover rounded-lg border border-gray-200"
                                                     />
-                                                <button
-                                                    type="button"
+                                                    <button
+                                                        type="button"
                                                         onClick={() => setFormData(prev => ({
                                                             ...prev,
                                                             additionalImages: prev.additionalImages.filter((_, i) => i !== index)
@@ -722,9 +722,9 @@ const AddGem = () => {
                                                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
                                                     >
                                                         ×
-                                                </button>
-                                            </div>
-                                        ))}
+                                                    </button>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
                                 )}

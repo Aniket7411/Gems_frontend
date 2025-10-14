@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { authAPI } from '../services/api';
 import GemCards from '../components/gemcard';
+import TopSection from './homepage/topsection';
+import GemsCarousel from './homepage/gemscarausel';
+import RingSection from './homepage/ringsection';
+import GemInquirySection from './homepage/topcarausel';
 
 const Home = () => {
     const isAuthenticated = authAPI.isAuthenticated();
@@ -92,135 +96,18 @@ const Home = () => {
 
     return (
         <div className="overflow-hidden">
+            <TopSection />
 
-            {/* Hero Carousel Section */}
-            <section className="relative h-screen overflow-hidden">
-                <div className="relative h-full">
-                    {heroSlides.map((slide, index) => (
-                        <motion.div
-                            key={slide.id}
-                            className={`absolute inset-0 ${index === currentSlide ? 'z-10' : 'z-0'}`}
-                            initial={{ opacity: 0 }}
-                            animate={{
-                                opacity: index === currentSlide ? 1 : 0,
-                                scale: index === currentSlide ? 1 : 1.1
-                            }}
-                            transition={{ duration: 1, ease: "easeInOut" }}
-                        >
-                            <div
-                                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                                style={{ backgroundImage: `url('${slide.image}')` }}
-                            />
-                            <div className={`absolute inset-0 bg-gradient-to-r ${slide.color} opacity-80`} />
+            <GemsCarousel />
+            <GemInquirySection />
 
-                            <motion.div
-                                className="relative z-10 h-full flex items-center justify-center text-center px-4"
-                                initial={{ opacity: 0, y: 50 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.8, delay: 0.2 }}
-                            >
-                                <div className="max-w-4xl mx-auto">
-                                    {/* <motion.div
-                                        className="text-8xl mb-6"
-                                        animate={{
-                                            rotate: [0, 10, -10, 0],
-                                            scale: [1, 1.1, 1]
-                                        }}
-                                        transition={{
-                                            duration: 2,
-                                            repeat: Infinity,
-                                            repeatDelay: 3
-                                        }}
-                                    >
-                                        <img src={slide.img} alt={slide.title} className="w-20 h-20" />
-                                    </motion.div> */}
-                                    {/* <motion.div
-                                        className="text-8xl mb-6"
-                                        animate={{
-                                            rotate: [0, 10, -10, 0],
-                                            scale: [1, 1.1, 1]
-                                        }}
-                                        transition={{
-                                            duration: 2,
-                                            repeat: Infinity,
-                                            repeatDelay: 3
-                                        }}
-                                    >
-                                        {slide.gem}
-                                    </motion.div> */}
-                                    <motion.h1
-                                        className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6"
-                                        initial={{ opacity: 0, y: 30 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.8, delay: 0.3 }}
-                                    >
-                                        {slide.title}
-                                    </motion.h1>
-                                    <motion.p
-                                        className="text-lg md:text-xl lg:text-2xl text-white/90 mb-8 max-w-2xl mx-auto"
-                                        initial={{ opacity: 0, y: 30 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.8, delay: 0.5 }}
-                                    >
-                                        {slide.subtitle}
-                                    </motion.p>
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 30 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.8, delay: 0.7 }}
-                                    >
-                                        <Link
-                                            to="/gemstones"
-                                            className="inline-block px-8 py-4 bg-white text-gray-900 font-semibold rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                                        >
-                                            Explore Collection
-                                        </Link>
-                                    </motion.div>
-                                </div>
-                            </motion.div>
-                        </motion.div>
-                    ))}
-                </div>
-
-                {/* Navigation Dots */}
-                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
-                    {heroSlides.map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => setCurrentSlide(index)}
-                            className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentSlide
-                                ? 'bg-white scale-125'
-                                : 'bg-white/50 hover:bg-white/75'
-                                }`}
-                        />
-                    ))}
-                </div>
-
-                {/* Navigation Arrows */}
-                <button
-                    onClick={() => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)}
-                    className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 text-white hover:text-gray-300 transition-colors"
-                >
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                </button>
-                <button
-                    onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 text-white hover:text-gray-300 transition-colors"
-                >
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
-            </section>
-
-            {/* Gem Cards Section */}
+            <RingSection />
             <GemCards />
-
             {/* Features Section */}
+
+            <div className='min-h-screen bg-green-200'>
             <motion.section
-                className="py-20 bg-gradient-to-br from-gray-50 to-white"
+                className="py-16 bg-gradient-to-br "
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
@@ -282,7 +169,7 @@ const Home = () => {
                     </div>
                 </div>
             </motion.section>
-
+            </div>
             {/* Testimonials Section */}
             <motion.section
                 className="py-20 bg-gradient-to-r from-emerald-600 to-teal-700"
@@ -354,7 +241,7 @@ const Home = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.8 }}
-                    >   
+                    >
                         <h2 className="text-4xl md:text-5xl font-bold mb-6">
                             Ready to Find Your Perfect Gem?
                         </h2>

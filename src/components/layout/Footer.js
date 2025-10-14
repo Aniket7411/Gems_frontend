@@ -7,7 +7,7 @@ const Footer = () => {
                 {/* Company Info */}
                 <div className="col-span-1 md:col-span-2">
                     <div className="flex items-center mb-4">
-                        <div className="h-8 w-8 rounded-lg flex items-center justify-center">
+                        <div className="h-20 w-20 rounded-lg flex items-center justify-center">
                                 <img src="/images/aurelane.png" alt="Aurelane Logo" />
 
                         </div>

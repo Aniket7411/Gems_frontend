@@ -20,7 +20,7 @@ const Gemstones = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
       {/* Header Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 to-blue-600/20"></div>
@@ -74,7 +74,8 @@ const Gemstones = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <span className="text-xl">{gem.emoji}</span>
+                {/* <span className="text-xl">{gem.emoji}</span> */}
+                <img src={gem.image} alt={gem.name} className="w-6 h-6" />
                 <span className="hidden sm:block">{gem.name}</span>
                 <span className="sm:hidden text-xs">{gem.hindiName.split(' ')[0]}</span>
               </motion.button>
@@ -99,7 +100,9 @@ const Gemstones = () => {
             <div className={`bg-gradient-to-r ${activeGemstone.gradient} p-8 text-white`}>
               <div className="flex flex-col lg:flex-row items-center justify-between">
                 <div className="flex items-center space-x-6 mb-6 lg:mb-0">
-                  <div className="text-6xl">{activeGemstone.emoji}</div>
+                  <div className="text-6xl">
+                    <img src={activeGemstone.image} alt={activeGemstone.name} className="w-24 h-24" />
+                  </div>
                   <div>
                     <h2 className="text-3xl md:text-4xl font-bold mb-2">
                       {activeGemstone.name}

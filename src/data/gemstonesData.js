@@ -13,6 +13,8 @@ export const gemstonesData = [
     mantra: 'Om Budhaya Namah',
     emoji: '💚',
     gradient: 'from-green-600 to-emerald-700',
+    image: 'gemimages/greenstone.jpeg',
+
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
     textColor: 'text-green-800',
@@ -49,6 +51,7 @@ export const gemstonesData = [
     day: 'Thursday morning',
     mantra: 'Om Gurave Namah',
     emoji: '💛',
+    image: 'gemimages/yellowsapphire.jpeg',
     gradient: 'from-yellow-500 to-amber-600',
     bgColor: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
@@ -86,6 +89,8 @@ export const gemstonesData = [
     day: 'Saturday morning',
     mantra: 'Om Shanaye Namah',
     emoji: '💙',
+    image: 'gemimages/bluestone.jpeg',
+
     gradient: 'from-blue-600 to-indigo-700',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
@@ -121,6 +126,8 @@ export const gemstonesData = [
     metal: 'Gold or Copper',
     finger: 'Ring finger of right hand',
     day: 'Sunday morning',
+    image: 'gemimages/ruby.webp',
+
     mantra: 'Om Hram Hreem Hraum Sah Suryaya Namah',
     emoji: '🔴',
     gradient: 'from-red-600 to-pink-700',
@@ -160,6 +167,8 @@ export const gemstonesData = [
     day: 'Monday morning',
     mantra: 'Om Som Somaya Namah',
     emoji: '🤍',
+    image: 'gemimages/pearl.webp',
+
     gradient: 'from-gray-100 to-gray-300',
     bgColor: 'bg-gray-50',
     borderColor: 'border-gray-200',
@@ -197,6 +206,8 @@ export const gemstonesData = [
     day: 'Tuesday morning',
     mantra: 'Om Angarakaya Namah',
     emoji: '🟥',
+    image: 'gemimages/redcoral.webp',
+
     gradient: 'from-red-500 to-red-700',
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
@@ -234,6 +245,8 @@ export const gemstonesData = [
     day: 'Saturday evening',
     mantra: 'Om Raam Rahave Namah',
     emoji: '🤎',
+    image: 'gemimages/gomed.jpeg',
+
     gradient: 'from-amber-600 to-orange-700',
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-200',
@@ -271,6 +284,8 @@ export const gemstonesData = [
     day: 'Friday morning',
     mantra: 'Om Shukraya Namah',
     emoji: '💎',
+    image: 'gemimages/diamond.jpeg',
+
     gradient: 'from-gray-200 to-gray-400',
     bgColor: 'bg-gray-50',
     borderColor: 'border-gray-200',
@@ -308,6 +323,8 @@ export const gemstonesData = [
     day: 'Tuesday or Thursday',
     mantra: 'Om Ketave Namah',
     emoji: '👁️',
+    image: 'gemimages/catseye.jpeg',
+
     gradient: 'from-yellow-400 to-gray-500',
     bgColor: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
@@ -345,6 +362,8 @@ export const gemstonesData = [
     day: 'Monday',
     mantra: 'Om Somaya Namah',
     emoji: '🌙',
+    image: 'gemimages/moonstone.jpeg',
+
     gradient: 'from-blue-100 to-purple-200',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
@@ -382,6 +401,8 @@ export const gemstonesData = [
     day: 'Thursday or Friday',
     mantra: 'Om Gurave Namah / Om Shukraya Namah',
     emoji: '🩵',
+    image: 'gemimages/turquoisestone.jpeg',
+
     gradient: 'from-cyan-400 to-teal-600',
     bgColor: 'bg-cyan-50',
     borderColor: 'border-cyan-200',
@@ -419,6 +440,7 @@ export const gemstonesData = [
     day: 'Friday morning',
     mantra: 'Om Shukraya Namah',
     emoji: '🌈',
+    image: 'gemimages/opal.webp',
     gradient: 'from-pink-200 to-purple-300',
     bgColor: 'bg-pink-50',
     borderColor: 'border-pink-200',

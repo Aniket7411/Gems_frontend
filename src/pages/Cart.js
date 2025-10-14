@@ -179,9 +179,17 @@ const Cart = () => {
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
-                    <p className="text-gray-600 mt-2">{cartSummary.itemCount} item(s) in your cart</p>
+                <div className="mb-8 flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
+                        <p className="text-gray-600 mt-2">{cartSummary.itemCount} item(s) in your cart</p>
+                    </div>
+                    <button
+                        onClick={() => navigate('/my-orders')}
+                        className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                        View Orders
+                    </button>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

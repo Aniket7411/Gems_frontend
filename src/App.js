@@ -13,7 +13,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Gemstones from './pages/Gemstones';
 import Shop from './pages/Shop';
-import MyOrders from './pages/buyerprofile';
+import MyOrders from './pages/MyOrders';
 import AmanBirthday from './pages/AmanBirthday';
 
 // Auth Components
@@ -193,6 +193,14 @@ function App() {
                 element={
                   <MainLayout>
                     <Cart />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/my-orders"
+                element={
+                  <MainLayout>
+                    <MyOrders />
                   </MainLayout>
                 }
               />
