@@ -1,123 +1,126 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaEdit, FaSave, FaTimes, FaBox, FaTruck, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaEdit, FaSave, FaTimes, FaBox, FaTruck, FaCheckCircle, FaTimesCircle, FaArrowLeft } from 'react-icons/fa';
+import { authAPI, orderAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const BuyerProfile = () => {
     const navigate = useNavigate();
+    const { user: authUser, isAuthenticated } = useAuth();
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [loadingOrders, setLoadingOrders] = useState(false);
 
     // User Profile State (with edit functionality)
     const [userProfile, setUserProfile] = useState({
-        name: 'John Doe',
-        email: 'john@example.com',
-        phone: '+91 9876543210',
+        name: '',
+        email: '',
+        phone: '',
+        phoneNumber: '',
         address: {
-            addressLine1: '123 Main Street',
-            addressLine2: 'Apartment 4B',
-            city: 'Mumbai',
-            state: 'Maharashtra',
-            pincode: '400001',
+            addressLine1: '',
+            addressLine2: '',
+            city: '',
+            state: '',
+            pincode: '',
             country: 'India'
         }
     });
 
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [editedProfile, setEditedProfile] = useState({ ...userProfile });
-
-    // Dummy Orders Data
-    const [orders] = useState([
-        {
-            id: 'ORD-2024-001',
-            orderDate: '2024-10-05',
-            status: 'delivered',
-            totalAmount: 110000,
-            deliveryDays: 7,
-            expectedDelivery: '2024-10-12',
-            items: [
-                {
-                    id: '1',
-                    name: 'Natural Emerald (Panna)',
-                    image: '/gemimages/emrald.webp',
-                    price: 55000,
-                    quantity: 2,
-                    sizeWeight: 5.5,
-                    sizeUnit: 'carat'
-                }
-            ],
-            shippingAddress: {
-                name: 'John Doe',
-                phone: '+91 9876543210',
-                addressLine1: '123 Main Street',
-                city: 'Mumbai',
-                state: 'Maharashtra',
-                pincode: '400001'
-            }
-        },
-        {
-            id: 'ORD-2024-002',
-            orderDate: '2024-10-06',
-            status: 'shipped',
-            totalAmount: 75000,
-            deliveryDays: 5,
-            expectedDelivery: '2024-10-11',
-            items: [
-                {
-                    id: '2',
-                    name: 'Blue Sapphire (Neelam)',
-                    image: '/gemimages/bluesapphire.webp',
-                    price: 75000,
-                    quantity: 1,
-                    sizeWeight: 6.2,
-                    sizeUnit: 'carat'
-                }
-            ],
-            shippingAddress: {
-                name: 'John Doe',
-                phone: '+91 9876543210',
-                addressLine1: '123 Main Street',
-                city: 'Mumbai',
-                state: 'Maharashtra',
-                pincode: '400001'
-            }
-        },
-        {
-            id: 'ORD-2024-003',
-            orderDate: '2024-10-07',
-            status: 'processing',
-            totalAmount: 130000,
-            deliveryDays: 7,
-            expectedDelivery: '2024-10-14',
-            items: [
-                {
-                    id: '3',
-                    name: 'Yellow Sapphire (Pukhraj)',
-                    image: '/gemimages/yellowsapphire.webp',
-                    price: 45000,
-                    quantity: 1,
-                    sizeWeight: 4.8,
-                    sizeUnit: 'carat'
-                },
-                {
-                    id: '4',
-                    name: 'Natural Ruby (Manik)',
-                    image: '/gemimages/ruby.webp',
-                    price: 85000,
-                    quantity: 1,
-                    sizeWeight: 7.0,
-                    sizeUnit: 'carat'
-                }
-            ],
-            shippingAddress: {
-                name: 'John Doe',
-                phone: '+91 9876543210',
-                addressLine1: '123 Main Street',
-                city: 'Mumbai',
-                state: 'Maharashtra',
-                pincode: '400001'
-            }
-        }
-    ]);
-
+    const [orders, setOrders] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+        loadUserProfile();
+        loadUserOrders();
+    }, [isAuthenticated]);
+
+    const loadUserProfile = async () => {
+        setLoading(true);
+        try {
+            // Try to get from API first
+            try {
+                const response = await authAPI.getBuyerProfile();
+                if (response.success && response.user) {
+                    const userData = response.user;
+                    setUserProfile({
+                        name: userData.name || '',
+                        email: userData.email || '',
+                        phone: userData.phoneNumber || userData.phone || '',
+                        phoneNumber: userData.phoneNumber || userData.phone || '',
+                        address: {
+                            addressLine1: userData.address?.addressLine1 || userData.address?.street || '',
+                            addressLine2: userData.address?.addressLine2 || '',
+                            city: userData.address?.city || '',
+                            state: userData.address?.state || '',
+                            pincode: userData.address?.pincode || '',
+                            country: userData.address?.country || 'India'
+                        }
+                    });
+                    setEditedProfile({
+                        name: userData.name || '',
+                        email: userData.email || '',
+                        phone: userData.phoneNumber || userData.phone || '',
+                        phoneNumber: userData.phoneNumber || userData.phone || '',
+                        address: {
+                            addressLine1: userData.address?.addressLine1 || userData.address?.street || '',
+                            addressLine2: userData.address?.addressLine2 || '',
+                            city: userData.address?.city || '',
+                            state: userData.address?.state || '',
+                            pincode: userData.address?.pincode || '',
+                            country: userData.address?.country || 'India'
+                        }
+                    });
+                }
+            } catch (apiError) {
+                // Fallback to localStorage
+                console.log('Using localStorage data:', apiError);
+                const currentUser = authAPI.getCurrentUser();
+                if (currentUser) {
+                    setUserProfile({
+                        name: currentUser.name || '',
+                        email: currentUser.email || '',
+                        phone: currentUser.phoneNumber || currentUser.phone || '',
+                        phoneNumber: currentUser.phoneNumber || currentUser.phone || '',
+                        address: {
+                            addressLine1: currentUser.address?.addressLine1 || currentUser.address?.street || '',
+                            addressLine2: currentUser.address?.addressLine2 || '',
+                            city: currentUser.address?.city || '',
+                            state: currentUser.address?.state || '',
+                            pincode: currentUser.address?.pincode || '',
+                            country: currentUser.address?.country || 'India'
+                        }
+                    });
+                    setEditedProfile({ ...userProfile });
+                }
+            }
+        } catch (error) {
+            console.error('Error loading profile:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loadUserOrders = async () => {
+        setLoadingOrders(true);
+        try {
+            const response = await orderAPI.getOrders();
+            if (response.success) {
+                setOrders(response.orders || response.data || []);
+            }
+        } catch (error) {
+            console.error('Error loading orders:', error);
+            setOrders([]);
+        } finally {
+            setLoadingOrders(false);
+        }
+    };
 
     // Get status badge styling
     const getStatusBadge = (status) => {
@@ -169,11 +172,38 @@ const BuyerProfile = () => {
         }
     };
 
-    const handleSaveProfile = () => {
-        setUserProfile(editedProfile);
-        setIsEditingProfile(false);
-        // TODO: Add API call to save profile
-        alert('Profile updated successfully!');
+    const handleSaveProfile = async () => {
+        setSaving(true);
+        try {
+            const updateData = {
+                name: editedProfile.name,
+                phoneNumber: editedProfile.phone,
+                address: {
+                    street: editedProfile.address.addressLine1,
+                    addressLine1: editedProfile.address.addressLine1,
+                    addressLine2: editedProfile.address.addressLine2,
+                    city: editedProfile.address.city,
+                    state: editedProfile.address.state,
+                    pincode: editedProfile.address.pincode,
+                    country: editedProfile.address.country
+                }
+            };
+
+            const response = await authAPI.updateBuyerProfile(updateData);
+
+            if (response.success) {
+                setUserProfile(editedProfile);
+                setIsEditingProfile(false);
+                alert('✅ Profile updated successfully!');
+            } else {
+                alert(response.message || 'Failed to update profile');
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            alert(error.message || 'Failed to update profile');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleCancelEdit = () => {
@@ -181,9 +211,29 @@ const BuyerProfile = () => {
         setIsEditingProfile(false);
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-emerald-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600 text-lg">Loading your profile...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Back Button */}
+                <button
+                    onClick={() => navigate(-1)}
+                    className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 mb-4 transition-colors"
+                >
+                    <FaArrowLeft />
+                    <span>Back</span>
+                </button>
+
                 {/* Header */}
                 <div className="mb-6 sm:mb-8">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Account</h1>
@@ -198,7 +248,10 @@ const BuyerProfile = () => {
                                 <h2 className="text-lg sm:text-xl font-semibold text-gray-900">My Profile</h2>
                                 {!isEditingProfile ? (
                                     <button
-                                        onClick={() => setIsEditingProfile(true)}
+                                        onClick={() => {
+                                            setEditedProfile({ ...userProfile });
+                                            setIsEditingProfile(true);
+                                        }}
                                         className="text-emerald-600 hover:text-emerald-700 flex items-center text-sm sm:text-base"
                                     >
                                         <FaEdit className="mr-1" /> Edit
@@ -207,13 +260,15 @@ const BuyerProfile = () => {
                                     <div className="flex space-x-2">
                                         <button
                                             onClick={handleSaveProfile}
-                                            className="text-green-600 hover:text-green-700 flex items-center text-sm"
+                                            disabled={saving}
+                                            className="text-green-600 hover:text-green-700 flex items-center text-sm disabled:opacity-50"
                                         >
-                                            <FaSave className="mr-1" /> Save
+                                            <FaSave className="mr-1" /> {saving ? 'Saving...' : 'Save'}
                                         </button>
                                         <button
                                             onClick={handleCancelEdit}
-                                            className="text-red-600 hover:text-red-700 flex items-center text-sm"
+                                            disabled={saving}
+                                            className="text-red-600 hover:text-red-700 flex items-center text-sm disabled:opacity-50"
                                         >
                                             <FaTimes className="mr-1" /> Cancel
                                         </button>
@@ -352,9 +407,22 @@ const BuyerProfile = () => {
                     {/* Right Column - Orders */}
                     <div className="lg:col-span-2">
                         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6">My Orders</h2>
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">My Orders</h2>
+                                <button
+                                    onClick={() => navigate('/my-orders')}
+                                    className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                                >
+                                    View All →
+                                </button>
+                            </div>
 
-                            {orders.length === 0 ? (
+                            {loadingOrders ? (
+                                <div className="text-center py-12">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+                                    <p className="text-gray-600">Loading orders...</p>
+                                </div>
+                            ) : orders.length === 0 ? (
                                 <div className="text-center py-12">
                                     <div className="text-4xl sm:text-6xl mb-4">📦</div>
                                     <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No orders yet</h3>
@@ -368,7 +436,7 @@ const BuyerProfile = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-4 sm:space-y-6">
-                                    {orders.map((order) => (
+                                    {orders.slice(0, 3).map((order) => (
                                         <div
                                             key={order.id}
                                             className="border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow"
@@ -377,10 +445,10 @@ const BuyerProfile = () => {
                                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 space-y-2 sm:space-y-0">
                                                 <div>
                                                     <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                                                        Order #{order.id}
+                                                        Order #{order.orderId || order.id}
                                                     </h3>
                                                     <p className="text-xs sm:text-sm text-gray-600">
-                                                        Placed on {new Date(order.orderDate).toLocaleDateString('en-IN', {
+                                                        Placed on {new Date(order.createdAt || order.orderDate).toLocaleDateString('en-IN', {
                                                             day: 'numeric',
                                                             month: 'long',
                                                             year: 'numeric'

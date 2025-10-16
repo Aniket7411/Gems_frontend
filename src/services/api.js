@@ -150,6 +150,28 @@ export const authAPI = {
     getSellerDashboardStats: async () => {
         return await apiClient.get('/seller/dashboard/stats');
     },
+
+    // Update buyer profile
+    updateBuyerProfile: async (profileData) => {
+        const response = await apiClient.put('/user/profile', profileData);
+
+        // Update user in localStorage
+        if (response.success && response.user) {
+            const currentUser = authAPI.getCurrentUser();
+            const updatedUser = {
+                ...currentUser,
+                ...response.user
+            };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+
+        return response;
+    },
+
+    // Get buyer profile
+    getBuyerProfile: async () => {
+        return await apiClient.get('/user/profile');
+    },
 };
 
 // Gem API functions
