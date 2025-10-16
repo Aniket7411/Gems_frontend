@@ -7,7 +7,9 @@ import { AuthProvider } from './contexts/AuthContext';
 // Pages
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
+import SellerDashboard from './pages/SellerDashboard';
 import AddGem from './pages/AddGem';
+import EditGem from './pages/EditGem';
 import GemDetail from './pages/GemDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
@@ -175,11 +177,31 @@ function App() {
                 }
               />
               <Route
+                path="/seller-dashboard"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <SellerDashboard />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/add-gem"
                 element={
                   <ProtectedRoute>
                     <MainLayout>
                       <AddGem />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/edit-gem/:id"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <EditGem />
                     </MainLayout>
                   </ProtectedRoute>
                 }

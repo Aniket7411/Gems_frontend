@@ -29,8 +29,10 @@ const SellerDetails = () => {
                     setSeller(response.seller);
 
                     // If gems are included in response
-                    if (response.gems) {
+                    if (response.gems && Array.isArray(response.gems)) {
                         setGems(response.gems);
+                    } else if (response.data?.gems && Array.isArray(response.data.gems)) {
+                        setGems(response.data.gems);
                     } else {
                         setGems([]);
                     }
@@ -51,6 +53,62 @@ const SellerDetails = () => {
 
         fetchSellerDetails();
     }, [sellerId]);
+
+    const handleApprove = async () => {
+        if (!window.confirm('Are you sure you want to approve this seller?')) return;
+
+        try {
+            const response = await adminAPI.updateSellerStatus(sellerId, 'approved');
+            if (response.success) {
+                alert('Seller approved successfully!');
+                setSeller({ ...seller, status: 'approved', isVerified: true });
+            }
+        } catch (error) {
+            alert(error.message || 'Failed to approve seller');
+        }
+    };
+
+    const handleSuspend = async () => {
+        if (!window.confirm('Are you sure you want to suspend this seller?')) return;
+
+        try {
+            const response = await adminAPI.updateSellerStatus(sellerId, 'suspended');
+            if (response.success) {
+                alert('Seller suspended successfully!');
+                setSeller({ ...seller, status: 'suspended' });
+            }
+        } catch (error) {
+            alert(error.message || 'Failed to suspend seller');
+        }
+    };
+
+    const handleReject = async () => {
+        if (!window.confirm('Are you sure you want to reject this seller?')) return;
+
+        try {
+            const response = await adminAPI.updateSellerStatus(sellerId, 'rejected');
+            if (response.success) {
+                alert('Seller rejected successfully!');
+                setSeller({ ...seller, status: 'rejected' });
+            }
+        } catch (error) {
+            alert(error.message || 'Failed to reject seller');
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm('Are you sure you want to DELETE this seller? This action cannot be undone!')) return;
+
+        try {
+            const response = await adminAPI.deleteSeller(sellerId);
+            if (response.success) {
+                alert('Seller deleted successfully!');
+                navigate('/admin/sellers');
+            }
+        } catch (error) {
+            alert(error.message || 'Failed to delete seller');
+        }
+    };
 
     if (loading) {
         return (
@@ -146,36 +204,48 @@ const SellerDetails = () => {
 
                         {/* Gems List */}
                         <div className="bg-white rounded-lg shadow p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Listed Gems</h3>
-                            <div className="space-y-4">
-                                {gems.map((gem) => (
-                                    <div key={gem.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                                        <div className="flex items-center">
-                                            <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-indigo-500 rounded-lg flex items-center justify-center text-white font-medium">
-                                                {(gem.name || 'NA').split(' ').map(n => n[0]).join('')}
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">
+                                Listed Gems ({gems.length})
+                            </h3>
+                            {gems.length === 0 ? (
+                                <div className="text-center py-8 text-gray-500">
+                                    <p>No gems listed yet</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {gems.map((gem) => (
+                                        <div key={gem._id || gem.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                            <div className="flex items-center flex-1">
+                                                {gem.images && gem.images[0] ? (
+                                                    <img
+                                                        src={gem.images[0]}
+                                                        alt={gem.name}
+                                                        className="w-16 h-16 rounded-lg object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-indigo-500 rounded-lg flex items-center justify-center text-white font-medium">
+                                                        {(gem.name || 'NA').split(' ').map(n => n[0]).join('')}
+                                                    </div>
+                                                )}
+                                                <div className="ml-4">
+                                                    <h4 className="text-sm font-medium text-gray-900">{gem.name || 'N/A'}</h4>
+                                                    <p className="text-sm text-gray-500">{gem.category || 'N/A'}</p>
+                                                    <p className="text-xs text-gray-400">
+                                                        Stock: {gem.stock || 0} | {gem.sizeWeight} {gem.sizeUnit}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="ml-4">
-                                                <h4 className="text-sm font-medium text-gray-900">{gem.name || 'N/A'}</h4>
-                                                <p className="text-sm text-gray-500">{gem.category || 'N/A'}</p>
-                                                <p className="text-sm text-gray-500">Listed: {gem.listedDate || gem.createdAt || 'N/A'}</p>
+                                            <div className="text-right">
+                                                <p className="text-lg font-semibold text-gray-900">₹{(gem.price || 0).toLocaleString()}</p>
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${gem.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                                    }`}>
+                                                    {gem.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                                                </span>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-lg font-semibold text-gray-900">${gem.price || 0}</p>
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${(gem.status === 'available' || gem.availability === 'available')
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-gray-100 text-gray-800'
-                                                }`}>
-                                                {gem.status
-                                                    ? gem.status.charAt(0).toUpperCase() + gem.status.slice(1)
-                                                    : gem.availability
-                                                        ? gem.availability.charAt(0).toUpperCase() + gem.availability.slice(1)
-                                                        : 'N/A'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -212,14 +282,29 @@ const SellerDetails = () => {
                         <div className="bg-white rounded-lg shadow p-6">
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Actions</h3>
                             <div className="space-y-3">
-                                <button className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors duration-150">
-                                    Send Message
+                                <button
+                                    onClick={() => handleApprove()}
+                                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-150"
+                                >
+                                    Approve Seller
                                 </button>
-                                <button className="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors duration-150">
-                                    Edit Seller
-                                </button>
-                                <button className="w-full border border-red-300 text-red-700 py-2 px-4 rounded-lg hover:bg-red-50 transition-colors duration-150">
+                                <button
+                                    onClick={() => handleSuspend()}
+                                    className="w-full bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition-colors duration-150"
+                                >
                                     Suspend Account
+                                </button>
+                                <button
+                                    onClick={() => handleReject()}
+                                    className="w-full border border-red-300 text-red-700 py-2 px-4 rounded-lg hover:bg-red-50 transition-colors duration-150"
+                                >
+                                    Reject Seller
+                                </button>
+                                <button
+                                    onClick={() => handleDelete()}
+                                    className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors duration-150"
+                                >
+                                    Delete Seller
                                 </button>
                             </div>
                         </div>
