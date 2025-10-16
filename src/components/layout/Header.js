@@ -86,7 +86,7 @@ const Header = () => {
             >
               Shop
             </Link>
-           
+
             <Link
               to="/aboutus"
               className="text-gray-600 hover:text-emerald-600 font-medium transition"
@@ -99,7 +99,7 @@ const Header = () => {
             >
               Contact
             </Link> */}
-             <Link
+            <Link
               to="/gemstones"
               className="text-gray-600 hover:text-emerald-600 font-medium transition"
             >
@@ -220,12 +220,38 @@ const Header = () => {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center space-x-3">
+            {/* Cart Icon for Mobile */}
+            <Link to="/cart" className="relative text-gray-600 hover:text-emerald-600">
+              <FaShoppingCart size={22} />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                  {cartItemCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Profile Icon for Mobile */}
+            {isAuthenticated && (
+              <Link
+                to={
+                  user?.role === "admin" ? "/admin/sellers" :
+                    user?.role === "seller" ? "/seller-dashboard" :
+                      "/my-orders"
+                }
+                className="text-gray-600 hover:text-emerald-600"
+                title="My Account"
+              >
+                <CgProfile size={26} />
+              </Link>
+            )}
+
+            {/* Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-gray-600 hover:text-emerald-600"
+              className="text-gray-600 hover:text-emerald-600 p-1"
             >
-              {mobileMenuOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
+              {mobileMenuOpen ? <FaTimes size={26} /> : <FaBars size={26} />}
             </button>
           </div>
         </div>
@@ -233,131 +259,213 @@ const Header = () => {
 
       {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t shadow-lg p-4 space-y-3">
-          <Link to={
-            JSON.parse(localStorage.getItem('user'))?.role === "admin"
-              ? "/admin/sellers"
-              : user?.role === "seller"
-                ? "/seller-detail"
-                : "/user-detail"
-          } className="block text-gray-600 hover:text-emerald-600">
-            Profile
-          </Link>
-
-
-
-          <Link to="/" className="block text-gray-600 hover:text-emerald-600">
-            Home
-          </Link>
-          <Link to="/shop" className="block text-gray-600 hover:text-emerald-600">
-            Shop
-          </Link>
-
-          <Link
-            to="/gemstones"
-            className="block text-gray-600 hover:text-emerald-600"
-          >
-            Gallery
-          </Link>
-          <Link
-            to="/aboutus"
-            className="block text-gray-600 hover:text-emerald-600"
-          >
-            About
-          </Link>
-          <Link
-            to="/contact"
-            className="block text-gray-600 hover:text-emerald-600"
-          >
-            Contact
-          </Link>
-          {isAuthenticated && (
-            <>
-              <Link
-                to="/dashboard"
-                className="block text-gray-600 hover:text-emerald-600"
-              >
-                Dashboard
-              </Link>
-
-              {
-                JSON.parse(localStorage.getItem('user'))?.role === "seller" && <Link
-                  to="/add-gem"
-                  className="block text-gray-600 hover:text-emerald-600"
-                >
-                  Add Gem
-                </Link>
-              }
-
-            </>
-          )}
-
-          {/* Mobile search */}
-          <div className="relative">
-            <div className="flex items-center border rounded-full px-3 py-1 bg-gray-50 mt-3">
-              <CiSearch className="text-gray-500 text-lg" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={handleSearchChange}
-                placeholder="Search gems..."
-                className="ml-2 bg-transparent outline-none w-full"
-              />
-            </div>
-            {suggestions.length > 0 && (
-              <ul className="absolute mt-1 w-full bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
-                {suggestions.map((gem, idx) => (
-                  <li
-                    key={idx}
-                    className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSearchSelect(gem)}
-                  >
-                    {gem}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* Cart and Auth links */}
-          <div className="mt-4 space-y-3">
-            {/* Cart Link */}
-            <Link
-              to="/cart"
-              className="flex items-center justify-center space-x-2 text-gray-600 hover:text-emerald-600 p-2"
-            >
-              <FaShoppingCart className="w-5 h-5" />
-              <span>Cart</span>
-              {cartItemCount > 0 && (
-                <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {cartItemCount}
+        <div className="md:hidden bg-white border-t shadow-lg">
+          <div className="p-4 space-y-3">
+            {/* User Info Section - Only if authenticated */}
+            {isAuthenticated && (
+              <div className="pb-3 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-blue-50 -mx-4 px-4 py-3 mb-3">
+                <p className="font-semibold text-gray-900 text-sm">👋 {user?.name || "User"}</p>
+                <p className="text-xs text-gray-500 mt-1">{user?.email}</p>
+                <span className="inline-block mt-2 px-2 py-1 bg-emerald-600 text-white text-xs rounded-full font-medium capitalize">
+                  {user?.role || "Buyer"}
                 </span>
-              )}
-            </Link>
-
-            {isAuthenticated ? (
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md w-full text-sm font-medium transition-colors duration-200"
-              >
-                Logout
-              </button>
-            ) : (
-              <div className="space-y-2">
-                <Link
-                  to="/login"
-                  className="block text-center text-gray-600 hover:text-emerald-600"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="block text-center bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-                >
-                  Register
-                </Link>
               </div>
             )}
+
+            {/* Navigation Links */}
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-gray-400 uppercase px-2 mb-3">📍 Navigate</p>
+
+              <Link
+                to="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors font-medium"
+              >
+                <span className="text-lg">🏠</span>
+                <span>Home</span>
+              </Link>
+
+              <Link
+                to="/shop"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors font-medium"
+              >
+                <span className="text-lg">💎</span>
+                <span>Shop Gems</span>
+              </Link>
+
+              <Link
+                to="/gemstones"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors font-medium"
+              >
+                <span className="text-lg">🖼️</span>
+                <span>Gallery</span>
+              </Link>
+
+              <Link
+                to="/aboutus"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors font-medium"
+              >
+                <span className="text-lg">ℹ️</span>
+                <span>About Us</span>
+              </Link>
+            </div>
+
+            {/* Role-Specific Quick Actions */}
+            {isAuthenticated && (
+              <div className="pt-3 border-t border-gray-200">
+                <p className="text-xs font-bold text-gray-400 uppercase px-2 mb-3">
+                  {user?.role === "admin" ? "⚙️ Admin Tools" :
+                    user?.role === "seller" ? "🏪 My Business" :
+                      "👤 My Account"}
+                </p>
+
+                {user?.role === "admin" ? (
+                  <>
+                    <Link
+                      to="/admin/sellers"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                    >
+                      <span className="text-lg">🏪</span>
+                      <span>Manage Sellers</span>
+                    </Link>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                    >
+                      <span className="text-lg">📊</span>
+                      <span>Dashboard</span>
+                    </Link>
+                  </>
+                ) : user?.role === "seller" ? (
+                  <>
+                    <Link
+                      to="/seller-dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors"
+                    >
+                      <span className="text-lg">📊</span>
+                      <span>My Dashboard</span>
+                    </Link>
+                    <Link
+                      to="/add-gem"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors"
+                    >
+                      <span className="text-lg">➕</span>
+                      <span>Add New Gem</span>
+                    </Link>
+                    <Link
+                      to="/seller-detail"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors"
+                    >
+                      <span className="text-lg">✏️</span>
+                      <span>Edit Profile</span>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/my-orders"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors"
+                    >
+                      <span className="text-lg">📦</span>
+                      <span>My Orders</span>
+                    </Link>
+                    <Link
+                      to="/wishlist"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors"
+                    >
+                      <span className="text-lg">❤️</span>
+                      <span>Wishlist</span>
+                    </Link>
+                    <Link
+                      to="/user-detail"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors"
+                    >
+                      <span className="text-lg">👤</span>
+                      <span>My Profile</span>
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Mobile Search */}
+            <div className="relative mb-3">
+              <div className="flex items-center border rounded-full px-4 py-2 bg-gray-50">
+                <CiSearch className="text-gray-500 text-xl" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  placeholder="Search gems..."
+                  className="ml-2 bg-transparent outline-none w-full text-sm"
+                />
+              </div>
+              {suggestions.length > 0 && (
+                <ul className="absolute mt-1 w-full bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
+                  {suggestions.map((gem, idx) => (
+                    <li
+                      key={idx}
+                      className="px-4 py-2 cursor-pointer hover:bg-gray-100 text-sm"
+                      onClick={() => {
+                        handleSearchSelect(gem);
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      {gem}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Auth Section */}
+            <div className="pt-3 border-t border-gray-200">
+              {isAuthenticated ? (
+                <div className="space-y-2">
+                  <div className="text-center text-sm text-gray-500 mb-3">
+                    Logged in as <span className="font-semibold text-emerald-600">{user?.name}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg w-full text-sm font-medium transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <span>🚪</span>
+                    <span>Logout</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block text-center border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-3 rounded-lg font-medium transition-colors"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block text-center bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    Register Now
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
