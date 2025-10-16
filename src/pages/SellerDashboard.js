@@ -30,8 +30,9 @@ const SellerDashboard = () => {
         setLoading(true);
         setError(null);
         try {
-            // Get gems for this seller
-            const response = await gemAPI.getGems({ seller: user.id });
+            // Get gems for this seller - using user.id or user._id
+            const userId = user._id || user.id;
+            const response = await gemAPI.getGems({ seller: userId });
 
             if (response.success) {
                 const sellerGems = response.gems || response.data?.gems || [];
@@ -58,7 +59,7 @@ const SellerDashboard = () => {
     };
 
     const handleDeleteGem = async (gemId) => {
-        if (!window.confirm('Are you sure you want to delete this gem?')) {
+        if (!window.confirm('⚠️ Are you sure you want to delete this gem?\n\nThis action cannot be undone!')) {
             return;
         }
 
@@ -66,7 +67,9 @@ const SellerDashboard = () => {
             const response = await gemAPI.deleteGem(gemId);
             if (response.success) {
                 alert('Gem deleted successfully!');
-                fetchSellerGems();
+                fetchSellerGems(); // Refresh the list
+            } else {
+                alert(response.message || 'Failed to delete gem');
             }
         } catch (error) {
             console.error('Error deleting gem:', error);

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// const API_BASE_URL = 'http://localhost:5000/api';
-const API_BASE_URL = 'https://gems-backend-u.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
+// const API_BASE_URL = 'https://gems-backend-u.onrender.com/api';
 
 
 // Create axios instance
@@ -144,6 +144,11 @@ export const authAPI = {
         }
 
         return response;
+    },
+
+    // Get seller dashboard stats
+    getSellerDashboardStats: async () => {
+        return await apiClient.get('/seller/dashboard/stats');
     },
 };
 
