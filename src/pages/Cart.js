@@ -2,107 +2,23 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { otpAPI } from '../services/api';
 
 const Cart = () => {
     const navigate = useNavigate();
-    // const { cartItems, removeFromCart, updateQuantity, clearCart, getCartSummary } = useCart();
-    // const { isAuthenticated } = useAuth();
-
-    // DUMMY DATA - Replace with real data later
-    const [cartItems, setCartItems] = useState([
-        {
-            id: '1',
-            name: 'Natural Emerald (Panna)',
-            category: 'Emerald',
-            image: '/gemimages/emrald.webp',
-            price: 55000,
-            quantity: 2,
-            sizeWeight: 5.5,
-            sizeUnit: 'carat',
-            stock: 10,
-            discount: 0
-        },
-        {
-            id: '2',
-            name: 'Blue Sapphire (Neelam)',
-            category: 'Blue Sapphire',
-            image: '/gemimages/bluesapphire.webp',
-            price: 75000,
-            quantity: 1,
-            sizeWeight: 6.2,
-            sizeUnit: 'carat',
-            stock: 5,
-            discount: 10
-        },
-        {
-            id: '3',
-            name: 'Yellow Sapphire (Pukhraj)',
-            category: 'Yellow Sapphire',
-            image: '/gemimages/yellowsapphire.webp',
-            price: 45000,
-            quantity: 1,
-            sizeWeight: 4.8,
-            sizeUnit: 'carat',
-            stock: 8,
-            discount: 0
-        },
-        {
-            id: '4',
-            name: 'Natural Ruby (Manik)',
-            category: 'Ruby',
-            image: '/gemimages/ruby.webp',
-            price: 85000,
-            quantity: 1,
-            sizeWeight: 7.0,
-            sizeUnit: 'carat',
-            stock: 3,
-            discount: 0
-        }
-    ]);
+    const { cartItems, removeFromCart, updateQuantity, clearCart, getCartSummary } = useCart();
+    const { isAuthenticated } = useAuth();
 
     const [showOTPModal, setShowOTPModal] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState('');
     const [otp, setOtp] = useState('');
     const [otpSent, setOtpSent] = useState(false);
     const [otpLoading, setOtpLoading] = useState(false);
-    const isAuthenticated = false; // Dummy value
-
-    // Dummy cart summary calculation
-    const getCartSummary = () => {
-        const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const freeShippingThreshold = 100000;
-        const shipping = subtotal >= freeShippingThreshold ? 0 : 500;
-        return {
-            itemCount: cartItems.reduce((sum, item) => sum + item.quantity, 0),
-            subtotal,
-            shipping,
-            total: subtotal + shipping,
-            freeShippingThreshold,
-            isEligibleForFreeShipping: subtotal >= freeShippingThreshold
-        };
-    };
 
     const cartSummary = getCartSummary();
 
-    // Dummy functions
-    const removeFromCart = (id) => {
-        setCartItems(cartItems.filter(item => item.id !== id));
-    };
-
-    const clearCart = () => {
-        if (window.confirm('Are you sure you want to clear your cart?')) {
-            setCartItems([]);
-        }
-    };
-
     const handleQuantityChange = (gemId, newQuantity) => {
-        if (newQuantity <= 0) {
-            removeFromCart(gemId);
-        } else {
-            setCartItems(cartItems.map(item =>
-                item.id === gemId ? { ...item, quantity: newQuantity } : item
-            ));
-        }
+        updateQuantity(gemId, newQuantity);
     };
 
     const handleCheckout = () => {
@@ -114,42 +30,51 @@ const Cart = () => {
     };
 
     const handleSendOTP = async () => {
-        if (!phoneNumber.trim()) {
-            alert('Please enter a valid phone number');
+        if (!phoneNumber.trim() || phoneNumber.length < 10) {
+            alert('Please enter a valid 10-digit phone number');
             return;
         }
 
         setOtpLoading(true);
         try {
-            // Simulate OTP sending - replace with actual API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            setOtpSent(true);
-            alert('OTP sent to your phone number');
+            const response = await otpAPI.sendOTP(phoneNumber);
+            if (response.success) {
+                setOtpSent(true);
+                alert('OTP sent to your phone number');
+            } else {
+                alert(response.message || 'Failed to send OTP. Please try again.');
+            }
         } catch (error) {
-            alert('Failed to send OTP. Please try again.');
+            console.error('Error sending OTP:', error);
+            alert(error.message || 'Failed to send OTP. Please try again.');
         } finally {
             setOtpLoading(false);
         }
     };
 
     const handleVerifyOTP = async () => {
-        if (!otp.trim()) {
-            alert('Please enter the OTP');
+        if (!otp.trim() || otp.length !== 6) {
+            alert('Please enter the 6-digit OTP');
             return;
         }
 
         setOtpLoading(true);
         try {
-            // Simulate OTP verification - replace with actual API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            setShowOTPModal(false);
-            setPhoneNumber('');
-            setOtp('');
-            setOtpSent(false);
-            navigate('/checkout');
+            const response = await otpAPI.verifyOTP(phoneNumber, otp);
+            if (response.success) {
+                // Store temporary guest session
+                localStorage.setItem('guestPhone', phoneNumber);
+                setShowOTPModal(false);
+                setPhoneNumber('');
+                setOtp('');
+                setOtpSent(false);
+                navigate('/checkout');
+            } else {
+                alert(response.message || 'Invalid OTP. Please try again.');
+            }
         } catch (error) {
-            alert('Invalid OTP. Please try again.');
+            console.error('Error verifying OTP:', error);
+            alert(error.message || 'Invalid OTP. Please try again.');
         } finally {
             setOtpLoading(false);
         }
@@ -358,8 +283,9 @@ const Cart = () => {
                                     <input
                                         type="tel"
                                         value={phoneNumber}
-                                        onChange={(e) => setPhoneNumber(e.target.value)}
-                                        placeholder="Enter your phone number"
+                                        onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                        placeholder="Enter 10-digit phone number"
+                                        maxLength="10"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                     />
                                 </div>

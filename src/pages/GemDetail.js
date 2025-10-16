@@ -1,24 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { gemAPI } from '../services/api';
+import { gemAPI, wishlistAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 import { FaHeart, FaShoppingCart, FaStar, FaArrowLeft, FaShare, FaCheck, FaTruck, FaCertificate } from 'react-icons/fa';
 
 const GemDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { addToCart, isInCart } = useCart();
+    const { isAuthenticated } = useAuth();
     const [gem, setGem] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [isWishlisted, setIsWishlisted] = useState(false);
+    const [addingToCart, setAddingToCart] = useState(false);
 
     useEffect(() => {
         fetchGemDetails();
-    }, [id]);
+        if (isAuthenticated) {
+            checkWishlistStatus();
+        }
+    }, [id, isAuthenticated]);
 
     const fetchGemDetails = async () => {
         try {
@@ -27,7 +33,7 @@ const GemDetail = () => {
             const response = await gemAPI.getGemById(id);
 
             if (response.success) {
-                setGem(response.data);
+                setGem(response.data || response.gem);
             } else {
                 setError('Gem not found');
             }
@@ -36,6 +42,17 @@ const GemDetail = () => {
             setError(err.message || 'Failed to fetch gem details');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const checkWishlistStatus = async () => {
+        try {
+            const response = await wishlistAPI.isInWishlist(id);
+            if (response.success) {
+                setIsWishlisted(response.isInWishlist || false);
+            }
+        } catch (err) {
+            console.error('Error checking wishlist:', err);
         }
     };
 
@@ -94,18 +111,68 @@ const GemDetail = () => {
         return gradientMap[category] || 'from-gray-400 to-gray-600';
     };
 
-    const handleAddToCart = () => {
-        if (gem) {
+    const handleAddToCart = async () => {
+        if (!gem) return;
+
+        setAddingToCart(true);
+        try {
+            // Add to local cart context with the specified quantity
             addToCart({
-                id: gem.id,
+                id: gem._id || gem.id, // Use _id from MongoDB or id
                 name: gem.name,
                 price: gem.price,
                 discount: gem.discount,
                 discountType: gem.discountType,
-                image: gem.allImages?.[0] || null,
-                category: gem.category
+                image: gem.allImages?.[0] || gem.images?.[0] || null,
+                category: gem.category,
+                sizeWeight: gem.sizeWeight,
+                sizeUnit: gem.sizeUnit,
+                quantity: quantity // Pass the quantity directly
             });
+
+            // Show success feedback
+            alert(`Added ${quantity} ${gem.name} to cart!`);
+
+            // Reset quantity to 1
+            setQuantity(1);
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            alert('Failed to add to cart. Please try again.');
+        } finally {
+            setAddingToCart(false);
         }
+    };
+
+    const handleToggleWishlist = async () => {
+        if (!isAuthenticated) {
+            alert('Please login to add items to wishlist');
+            navigate('/login');
+            return;
+        }
+
+        try {
+            if (isWishlisted) {
+                const response = await wishlistAPI.removeFromWishlist(id);
+                if (response.success) {
+                    setIsWishlisted(false);
+                }
+            } else {
+                const response = await wishlistAPI.addToWishlist(id);
+                if (response.success) {
+                    setIsWishlisted(true);
+                }
+            }
+        } catch (error) {
+            console.error('Error toggling wishlist:', error);
+            alert(error.message || 'Failed to update wishlist');
+        }
+    };
+
+    const handleBuyNow = () => {
+        handleAddToCart();
+        setTimeout(() => {
+            navigate('/checkout');
+        }, 500);
     };
 
     const handleQuantityChange = (newQuantity) => {
@@ -165,11 +232,12 @@ const GemDetail = () => {
                                 <FaShare className="w-5 h-5" />
                             </button>
                             <button
-                                onClick={() => setIsWishlisted(!isWishlisted)}
+                                onClick={handleToggleWishlist}
                                 className={`p-2 transition-colors ${isWishlisted ? 'text-red-500' : 'text-gray-600 hover:text-red-500'
                                     }`}
+                                title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
                             >
-                                <FaHeart className="w-5 h-5" />
+                                <FaHeart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
                             </button>
                         </div>
                     </div>
@@ -347,19 +415,21 @@ const GemDetail = () => {
                             <div className="flex space-x-4">
                                 <button
                                     onClick={handleAddToCart}
-                                    disabled={!gem.availability}
-                                    className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${gem.availability
+                                    disabled={!gem.availability || addingToCart}
+                                    className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${gem.availability && !addingToCart
                                         ? 'bg-emerald-600 text-white hover:bg-emerald-700 transform hover:scale-105'
                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         }`}
                                 >
                                     <FaShoppingCart className="w-5 h-5" />
-                                    <span>{gem.availability ? 'Add to Cart' : 'Out of Stock'}</span>
+                                    <span>
+                                        {addingToCart ? 'Adding...' : gem.availability ? 'Add to Cart' : 'Out of Stock'}
+                                    </span>
                                 </button>
                                 <button
-                                    onClick={() => navigate('/checkout')}
-                                    disabled={!gem.availability}
-                                    className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${gem.availability
+                                    onClick={handleBuyNow}
+                                    disabled={!gem.availability || addingToCart}
+                                    className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${gem.availability && !addingToCart
                                         ? 'bg-gray-900 text-white hover:bg-gray-800'
                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         }`}

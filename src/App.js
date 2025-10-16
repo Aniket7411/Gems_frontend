@@ -15,6 +15,10 @@ import Gemstones from './pages/Gemstones';
 import Shop from './pages/Shop';
 import MyOrders from './pages/MyOrders';
 import AmanBirthday from './pages/AmanBirthday';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentFailure from './pages/PaymentFailure';
+import OrderTracking from './pages/OrderTracking';
+import Wishlist from './pages/Wishlist';
 
 // Auth Components
 import Login from './components/auth/Login';
@@ -197,10 +201,44 @@ function App() {
                 }
               />
               <Route
+                path="/wishlist"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Wishlist />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/my-orders"
                 element={
                   <MainLayout>
                     <MyOrders />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/order-tracking/:orderId"
+                element={
+                  <MainLayout>
+                    <OrderTracking />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/payment-success"
+                element={
+                  <MainLayout>
+                    <PaymentSuccess />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/payment-failure"
+                element={
+                  <MainLayout>
+                    <PaymentFailure />
                   </MainLayout>
                 }
               />

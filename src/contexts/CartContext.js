@@ -34,18 +34,21 @@ export const CartProvider = ({ children }) => {
     // Add item to cart
     const addToCart = (item) => {
         setCartItems(prevItems => {
-            const existingItem = prevItems.find(cartItem => cartItem.id === item.id);
+            // Check if this exact item (with same id) already exists
+            const existingItemIndex = prevItems.findIndex(cartItem => cartItem.id === item.id);
 
-            if (existingItem) {
-                // Update quantity if item already exists
-                return prevItems.map(cartItem =>
-                    cartItem.id === item.id
-                        ? { ...cartItem, quantity: cartItem.quantity + 1 }
-                        : cartItem
-                );
+            if (existingItemIndex !== -1) {
+                // Item exists, increase quantity by the amount being added
+                const updatedItems = [...prevItems];
+                const quantityToAdd = item.quantity || 1;
+                updatedItems[existingItemIndex] = {
+                    ...updatedItems[existingItemIndex],
+                    quantity: updatedItems[existingItemIndex].quantity + quantityToAdd
+                };
+                return updatedItems;
             } else {
-                // Add new item to cart
-                return [...prevItems, { ...item, quantity: 1 }];
+                // New item, add to cart with specified quantity
+                return [...prevItems, { ...item, quantity: item.quantity || 1 }];
             }
         });
     };

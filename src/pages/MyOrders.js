@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { orderAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import { generateInvoiceHTML } from '../utils/invoiceGenerator';
 
 const MyOrders = () => {
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [cancelReason, setCancelReason] = useState('');
@@ -21,116 +25,28 @@ const MyOrders = () => {
         'Other'
     ];
 
-    // Dummy orders data
     useEffect(() => {
-        loadOrders();
-    }, []);
+        if (isAuthenticated) {
+            loadOrders();
+        }
+    }, [isAuthenticated]);
 
-    const loadOrders = () => {
-        // Simulate API call - Replace with actual API later
+    const loadOrders = async () => {
         setLoading(true);
-        setTimeout(() => {
-            const dummyOrders = [
-                {
-                    id: 'ORD001',
-                    orderDate: '2024-10-10',
-                    status: 'Delivered',
-                    totalAmount: 110000,
-                    items: [
-                        {
-                            id: '1',
-                            name: 'Natural Emerald (Panna)',
-                            category: 'Emerald',
-                            image: '/gemimages/emrald.webp',
-                            price: 55000,
-                            quantity: 2,
-                            sizeWeight: 5.5,
-                            sizeUnit: 'carat'
-                        }
-                    ],
-                    shippingAddress: {
-                        name: 'John Doe',
-                        address: '123 Main St, Apartment 4B',
-                        city: 'Mumbai',
-                        state: 'Maharashtra',
-                        pincode: '400001',
-                        phone: '+91 9876543210'
-                    }
-                },
-                {
-                    id: 'ORD002',
-                    orderDate: '2024-10-12',
-                    status: 'Processing',
-                    totalAmount: 75000,
-                    items: [
-                        {
-                            id: '2',
-                            name: 'Blue Sapphire (Neelam)',
-                            category: 'Blue Sapphire',
-                            image: '/gemimages/bluesapphire.webp',
-                            price: 75000,
-                            quantity: 1,
-                            sizeWeight: 6.2,
-                            sizeUnit: 'carat'
-                        }
-                    ],
-                    shippingAddress: {
-                        name: 'John Doe',
-                        address: '123 Main St, Apartment 4B',
-                        city: 'Mumbai',
-                        state: 'Maharashtra',
-                        pincode: '400001',
-                        phone: '+91 9876543210'
-                    }
-                },
-                {
-                    id: 'ORD003',
-                    orderDate: '2024-10-08',
-                    status: 'Shipped',
-                    totalAmount: 130000,
-                    items: [
-                        {
-                            id: '3',
-                            name: 'Yellow Sapphire (Pukhraj)',
-                            category: 'Yellow Sapphire',
-                            image: '/gemimages/yellowsapphire.webp',
-                            price: 45000,
-                            quantity: 1,
-                            sizeWeight: 4.8,
-                            sizeUnit: 'carat'
-                        },
-                        {
-                            id: '4',
-                            name: 'Natural Ruby (Manik)',
-                            category: 'Ruby',
-                            image: '/gemimages/ruby.webp',
-                            price: 85000,
-                            quantity: 1,
-                            sizeWeight: 7.0,
-                            sizeUnit: 'carat'
-                        }
-                    ],
-                    shippingAddress: {
-                        name: 'John Doe',
-                        address: '123 Main St, Apartment 4B',
-                        city: 'Mumbai',
-                        state: 'Maharashtra',
-                        pincode: '400001',
-                        phone: '+91 9876543210'
-                    }
-                }
-            ];
-            setOrders(dummyOrders);
+        setError(null);
+        try {
+            const response = await orderAPI.getOrders();
+            if (response.success) {
+                setOrders(response.data || response.orders || []);
+            } else {
+                setError('Failed to load orders');
+            }
+        } catch (error) {
+            console.error('Error loading orders:', error);
+            setError(error.message || 'Failed to load orders');
+        } finally {
             setLoading(false);
-        }, 500);
-
-        // Future API integration:
-        // axios.get('/api/orders', {
-        //     headers: { Authorization: `Bearer ${token}` }
-        // })
-        // .then(response => setOrders(response.data))
-        // .catch(error => console.error('Error loading orders:', error))
-        // .finally(() => setLoading(false));
+        }
     };
 
     const handleCancelOrder = (order) => {
@@ -154,30 +70,28 @@ const MyOrders = () => {
         setCancelLoading(true);
 
         try {
-            // Simulate API call - Replace with actual API later
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
             const finalReason = cancelReason === 'Other' ? otherReason : cancelReason;
 
-            // Update order status locally
-            setOrders(orders.map(order =>
-                order.id === selectedOrder.id
-                    ? { ...order, status: 'Cancelled', cancelReason: finalReason }
-                    : order
-            ));
+            const response = await orderAPI.cancelOrder(selectedOrder.id, finalReason);
 
-            alert('Order cancelled successfully');
-            setShowCancelModal(false);
-            setSelectedOrder(null);
+            if (response.success) {
+                // Update order status locally
+                setOrders(orders.map(order =>
+                    order.id === selectedOrder.id
+                        ? { ...order, status: 'Cancelled', cancelReason: finalReason }
+                        : order
+                ));
 
-            // Future API integration:
-            // await axios.post(`/api/orders/${selectedOrder.id}/cancel`, {
-            //     reason: finalReason
-            // }, {
-            //     headers: { Authorization: `Bearer ${token}` }
-            // });
+                alert('Order cancelled successfully');
+                setShowCancelModal(false);
+                setSelectedOrder(null);
+                setCancelReason('');
+                setOtherReason('');
+            } else {
+                alert(response.message || 'Failed to cancel order. Please try again.');
+            }
         } catch (error) {
-            alert('Failed to cancel order. Please try again.');
+            alert(error.message || 'Failed to cancel order. Please try again.');
             console.error('Error cancelling order:', error);
         } finally {
             setCancelLoading(false);
@@ -201,6 +115,39 @@ const MyOrders = () => {
 
     const canCancelOrder = (status) => {
         return status === 'Processing' || status === 'Shipped';
+    };
+
+    const handleDownloadInvoice = async (order) => {
+        try {
+            // Method 1: Try to get PDF from backend
+            try {
+                const response = await orderAPI.getOrderInvoice(order.id);
+                const url = window.URL.createObjectURL(new Blob([response]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `Invoice_${order.id}.pdf`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                return;
+            } catch (backendError) {
+                console.log('Backend PDF not available, generating client-side...');
+            }
+
+            // Method 2: Generate HTML and print/save
+            const invoiceHTML = generateInvoiceHTML(order);
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(invoiceHTML);
+            printWindow.document.close();
+
+            // Wait for content to load then trigger print
+            printWindow.onload = () => {
+                printWindow.print();
+            };
+        } catch (error) {
+            console.error('Error downloading invoice:', error);
+            alert('Failed to generate invoice. Please try again.');
+        }
     };
 
     if (loading) {
@@ -280,10 +227,22 @@ const MyOrders = () => {
                                             <p className="font-semibold text-gray-900">₹{order.totalAmount.toLocaleString()}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 flex-wrap">
                                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
                                             {order.status}
                                         </span>
+                                        <button
+                                            onClick={() => handleDownloadInvoice(order)}
+                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                        >
+                                            Download Invoice
+                                        </button>
+                                        <button
+                                            onClick={() => navigate(`/order-tracking/${order.id}`)}
+                                            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+                                        >
+                                            Track Order
+                                        </button>
                                         {canCancelOrder(order.status) && (
                                             <button
                                                 onClick={() => handleCancelOrder(order)}

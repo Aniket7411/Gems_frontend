@@ -62,22 +62,93 @@ const Checkout = () => {
                 })),
                 shippingAddress,
                 paymentMethod,
-                orderNotes
+                orderNotes,
+                totalAmount: cartSummary.total
             };
 
             const response = await orderAPI.createOrder(orderData);
 
             if (response.success) {
-                setOrderId(response.data.orderId);
-                setOrderPlaced(true);
-                clearCart();
+                const createdOrderId = response.data?.orderId || response.order?.id || response.orderId;
+
+                // If payment method is online, initiate payment gateway
+                if (paymentMethod === 'online') {
+                    await handleOnlinePayment(createdOrderId, cartSummary.total);
+                } else {
+                    // For COD, directly show success
+                    setOrderId(createdOrderId);
+                    clearCart();
+                    navigate(`/payment-success?orderId=${createdOrderId}&amount=${cartSummary.total}`);
+                }
             } else {
-                alert('Failed to place order. Please try again.');
+                alert(response.message || 'Failed to place order. Please try again.');
             }
         } catch (error) {
             console.error('Error placing order:', error);
-            alert('Failed to place order. Please try again.');
+            alert(error.message || 'Failed to place order. Please try again.');
         } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOnlinePayment = async (orderId, amount) => {
+        try {
+            // Load Razorpay script
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.async = true;
+            document.body.appendChild(script);
+
+            script.onload = () => {
+                const options = {
+                    key: process.env.REACT_APP_RAZORPAY_KEY || 'rzp_test_xxxxxxxxxx', // Replace with actual key
+                    amount: amount * 100, // Amount in paise
+                    currency: 'INR',
+                    name: 'Aurelane Gems',
+                    description: `Order #${orderId}`,
+                    image: '/logo192.png',
+                    order_id: orderId,
+                    handler: function (response) {
+                        // Payment successful
+                        clearCart();
+                        navigate(`/payment-success?orderId=${orderId}&paymentId=${response.razorpay_payment_id}&amount=${amount}`);
+                    },
+                    prefill: {
+                        name: `${shippingAddress.firstName} ${shippingAddress.lastName}`,
+                        email: shippingAddress.email,
+                        contact: shippingAddress.phone
+                    },
+                    notes: {
+                        orderId: orderId,
+                        orderNotes: orderNotes
+                    },
+                    theme: {
+                        color: '#059669'
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            // Payment cancelled
+                            setLoading(false);
+                            navigate(`/payment-failure?orderId=${orderId}&message=Payment cancelled by user`);
+                        }
+                    }
+                };
+
+                const razorpay = new window.Razorpay(options);
+                razorpay.on('payment.failed', function (response) {
+                    // Payment failed
+                    navigate(`/payment-failure?orderId=${orderId}&message=${response.error.description}&reason=${response.error.reason}`);
+                });
+                razorpay.open();
+            };
+
+            script.onerror = () => {
+                alert('Failed to load payment gateway. Please try again.');
+                setLoading(false);
+            };
+        } catch (error) {
+            console.error('Payment error:', error);
+            alert('Payment initialization failed. Please try again.');
             setLoading(false);
         }
     };
@@ -249,7 +320,7 @@ const Checkout = () => {
                                         </div>
                                     </div>
                                 </label>
-                                <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                                <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 relative">
                                     <input
                                         type="radio"
                                         name="paymentMethod"
@@ -262,9 +333,13 @@ const Checkout = () => {
                                         <FaCreditCard className="w-6 h-6 text-emerald-600" />
                                         <div>
                                             <h3 className="font-semibold text-gray-900">Online Payment</h3>
-                                            <p className="text-sm text-gray-600">Pay securely with card or UPI</p>
+                                            <p className="text-sm text-gray-600">Pay securely with card, UPI, or Net Banking</p>
+                                            <p className="text-xs text-emerald-600 mt-1">Powered by Razorpay</p>
                                         </div>
                                     </div>
+                                    <span className="absolute top-2 right-2 px-2 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-full font-medium">
+                                        Secure
+                                    </span>
                                 </label>
                             </div>
                         </div>

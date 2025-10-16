@@ -96,7 +96,7 @@ const GemCard = ({ gem, onAddToCart, onToggleWishlist, isWishlisted = false }) =
                 {/* Action Buttons */}
                 <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <button
-                        onClick={() => onToggleWishlist && onToggleWishlist(gem.id)}
+                        onClick={() => onToggleWishlist && onToggleWishlist(gem._id || gem.id)}
                         className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 ${isWishlisted
                             ? 'bg-red-500 text-white'
                             : 'bg-white text-gray-600 hover:bg-red-500 hover:text-white'
@@ -105,7 +105,7 @@ const GemCard = ({ gem, onAddToCart, onToggleWishlist, isWishlisted = false }) =
                         <FaHeart className="w-4 h-4" />
                     </button>
                     <Link
-                        to={`/gems/${gem._id || gem.id}`}
+                        to={`/gem/${gem._id || gem.id}`}
                         className="w-10 h-10 bg-white text-gray-600 rounded-full flex items-center justify-center hover:bg-blue-500 hover:text-white transition-colors duration-200"
                     >
                         <FaEye className="w-4 h-4" />
@@ -163,7 +163,9 @@ const GemCard = ({ gem, onAddToCart, onToggleWishlist, isWishlisted = false }) =
                 {/* Additional Info */}
                 <div className="mt-4 pt-4 border-t border-gray-100">
                     <div className="flex items-center justify-between text-sm text-gray-500">
-                        <span>ID: {gem._id}</span>
+                        <span className="truncate mr-2">
+                            {gem.sizeWeight && gem.sizeUnit ? `${gem.sizeWeight} ${gem.sizeUnit}` : 'Premium Quality'}
+                        </span>
                         <span className="flex items-center space-x-1">
                             <div className={`w-2 h-2 rounded-full ${gem.availability ? 'bg-green-500' : 'bg-red-500'}`}></div>
                             <span>{gem.availability ? 'Available' : 'Unavailable'}</span>

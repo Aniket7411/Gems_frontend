@@ -190,14 +190,19 @@ const Shop = () => {
     // Handle add to cart
     const handleAddToCart = (gem) => {
         addToCart({
-            id: gem.id,
+            id: gem._id || gem.id, // Use _id from MongoDB or id
             name: gem.name,
             price: gem.price,
             discount: gem.discount,
             discountType: gem.discountType,
             image: gem.images?.[0] || null,
-            category: gem.category
+            category: gem.category,
+            sizeWeight: gem.sizeWeight,
+            sizeUnit: gem.sizeUnit
         });
+
+        // Show success message
+        alert(`${gem.name} added to cart!`);
     };
 
     // Handle wishlist toggle

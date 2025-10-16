@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// const API_BASE_URL = 'http://localhost:5000/api';
-const API_BASE_URL = 'https://gems-backend-u.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
+// const API_BASE_URL = 'https://gems-backend-u.onrender.com/api';
 
 
 // Create axios instance
@@ -249,8 +249,18 @@ export const orderAPI = {
     },
 
     // Cancel order
-    cancelOrder: async (orderId) => {
-        return apiClient.put(`/orders/${orderId}/cancel`);
+    cancelOrder: async (orderId, reason) => {
+        return apiClient.put(`/orders/${orderId}/cancel`, { reason });
+    },
+
+    // Get order tracking details
+    trackOrder: async (orderId) => {
+        return apiClient.get(`/orders/${orderId}/track`);
+    },
+
+    // Get order invoice
+    getOrderInvoice: async (orderId) => {
+        return apiClient.get(`/orders/${orderId}/invoice`, { responseType: 'blob' });
     }
 };
 
@@ -264,6 +274,34 @@ export const otpAPI = {
     // Verify OTP
     verifyOTP: async (phoneNumber, otp) => {
         return apiClient.post('/otp/verify', { phoneNumber, otp });
+    }
+};
+
+// Wishlist API functions
+export const wishlistAPI = {
+    // Add item to wishlist
+    addToWishlist: async (gemId) => {
+        return apiClient.post('/wishlist/add', { gemId });
+    },
+
+    // Get wishlist items
+    getWishlist: async () => {
+        return apiClient.get('/wishlist');
+    },
+
+    // Remove item from wishlist
+    removeFromWishlist: async (gemId) => {
+        return apiClient.delete(`/wishlist/remove/${gemId}`);
+    },
+
+    // Clear wishlist
+    clearWishlist: async () => {
+        return apiClient.delete('/wishlist/clear');
+    },
+
+    // Check if item is in wishlist
+    isInWishlist: async (gemId) => {
+        return apiClient.get(`/wishlist/check/${gemId}`);
     }
 };
 
@@ -295,6 +333,16 @@ export const adminAPI = {
     // Delete seller
     deleteSeller: async (sellerId) => {
         return apiClient.delete(`/admin/sellers/${sellerId}`);
+    },
+
+    // Get all orders (admin)
+    getAllOrders: async (params = {}) => {
+        return apiClient.get('/admin/orders', { params });
+    },
+
+    // Get dashboard stats
+    getDashboardStats: async () => {
+        return apiClient.get('/admin/dashboard/stats');
     }
 };
 
@@ -303,8 +351,5 @@ export const healthCheck = async () => {
     return apiClient.get('/health');
 };
 
-const api = { authAPI, gemAPI, cartAPI, orderAPI, otpAPI, adminAPI, healthCheck };
+const api = { authAPI, gemAPI, cartAPI, orderAPI, otpAPI, wishlistAPI, adminAPI, healthCheck };
 export default api;
-
-
-
