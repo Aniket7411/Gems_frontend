@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../../services/api';
+import { FaArrowLeft, FaEnvelope, FaCheckCircle } from 'react-icons/fa';
 
 const ForgotPassword = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
     setEmail(e.target.value);
@@ -18,6 +21,7 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setMessage('');
 
     if (!email) {
       setError('Please enter your email address');
@@ -36,6 +40,11 @@ const ForgotPassword = () => {
 
       if (response.success) {
         setSuccess(true);
+        setMessage('Password reset email sent! Check your inbox.');
+        // Auto redirect after 3 seconds
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
       } else {
         setError(response.message || 'Failed to send reset email');
       }
@@ -48,29 +57,34 @@ const ForgotPassword = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+      <div className="forgot-password-container">
+        <div className="forgot-password-card">
           <div className="text-center">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-              <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
+              <FaCheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Check your email
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              We've sent password reset instructions to <strong>{email}</strong>
+            <p className="text-gray-600 mb-2">
+              We've sent password reset instructions to
             </p>
-            <p className="mt-4 text-center text-sm text-gray-500">
+            <p className="text-emerald-600 font-semibold mb-4">
+              {email}
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
               Please check your email and follow the instructions to reset your password.
             </p>
-            <div className="mt-6">
+            <div className="space-y-3">
+              <p className="text-sm text-gray-400">
+                Redirecting to login in 3 seconds...
+              </p>
               <Link
                 to="/login"
-                className="font-medium text-emerald-600 hover:text-indigo-500"
+                className="inline-flex items-center text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
               >
-                Back to login
+                <FaArrowLeft className="mr-2" />
+                Back to login now
               </Link>
             </div>
           </div>
@@ -80,27 +94,36 @@ const ForgotPassword = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div className="forgot-password-container">
+      <div className="forgot-password-card">
+        <div className="text-center mb-8">
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 mb-6">
+            <FaEnvelope className="h-8 w-8 text-emerald-600" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
             Forgot your password?
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="text-gray-600">
             Enter your email address and we'll send you instructions to reset your password.
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-              {error}
+            <div className="error-message">
+              ❌ {error}
             </div>
           )}
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email address
+          {message && (
+            <div className="success-message">
+              ✅ {message}
+            </div>
+          )}
+
+          <div className="form-group">
+            <label htmlFor="email" className="form-label">
+              Email Address
             </label>
             <input
               id="email"
@@ -110,26 +133,33 @@ const ForgotPassword = () => {
               required
               value={email}
               onChange={handleChange}
-              className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              className="form-input"
               placeholder="Enter your email address"
+              disabled={loading}
             />
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Sending...' : 'Send reset instructions'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Sending...
+              </div>
+            ) : (
+              'Send Reset Instructions'
+            )}
+          </button>
 
-          <div className="text-center">
+          <div className="back-to-login">
             <Link
               to="/login"
-              className="font-medium text-emerald-600 hover:text-indigo-500"
+              className="btn-link"
             >
+              <FaArrowLeft className="mr-2" />
               Back to login
             </Link>
           </div>

@@ -21,6 +21,7 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailure from './pages/PaymentFailure';
 import OrderTracking from './pages/OrderTracking';
 import Wishlist from './pages/Wishlist';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // Auth Components
 import Login from './components/auth/Login';
@@ -145,12 +146,18 @@ function App() {
                 }
               />
               <Route
+                path="/reset-password"
+                element={
+                  <PublicRoute>
+                    <ResetPasswordPage />
+                  </PublicRoute>
+                }
+              />
+              <Route
                 path="/reset-password/:token"
                 element={
                   <PublicRoute>
-                    <AuthLayout>
-                      <ResetPassword />
-                    </AuthLayout>
+                    <ResetPassword />
                   </PublicRoute>
                 }
               />

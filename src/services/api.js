@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// const API_BASE_URL = 'http://localhost:5000/api';
-const API_BASE_URL = 'https://gems-backend-u.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
+// const API_BASE_URL = 'https://gems-backend-u.onrender.com/api';
 
 
 // Create axios instance
@@ -86,12 +86,35 @@ export const authAPI = {
 
     // Forgot password
     forgotPassword: async (email) => {
-        return apiClient.post('/auth/forgot-password', { email });
+        try {
+            const response = await apiClient.post('/auth/forgot-password', { email });
+            return response;
+        } catch (error) {
+            console.error('Forgot password error:', error);
+            return { success: false, message: 'Network error. Please check your connection.' };
+        }
     },
 
     // Reset password
     resetPassword: async (token, password) => {
-        return apiClient.post(`/auth/reset-password/${token}`, { password });
+        try {
+            const response = await apiClient.put(`/auth/reset-password/${token}`, { password });
+            return response;
+        } catch (error) {
+            console.error('Reset password error:', error);
+            return { success: false, message: 'Network error. Please check your connection.' };
+        }
+    },
+
+    // Verify reset token
+    verifyResetToken: async (token) => {
+        try {
+            const response = await apiClient.get(`/auth/reset-password/${token}`);
+            return response;
+        } catch (error) {
+            console.error('Verify token error:', error);
+            return { success: false, message: 'Invalid or expired reset token.' };
+        }
     },
 
     // Verify email

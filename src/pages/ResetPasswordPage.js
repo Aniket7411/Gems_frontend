@@ -1,74 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
-import { authAPI } from '../../services/api';
-import { FaEye, FaEyeSlash, FaArrowLeft, FaCheckCircle, FaLock } from 'react-icons/fa';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { authAPI } from '../services/api';
+import { FaArrowLeft, FaCheckCircle, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
-const ResetPassword = () => {
-    const { token } = useParams();
+const ResetPasswordPage = () => {
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        password: '',
-        confirmPassword: '',
-    });
+
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState(false);
     const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
+    const [token, setToken] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [tokenValid, setTokenValid] = useState(true);
+    const [success, setSuccess] = useState(false);
     const [verifyingToken, setVerifyingToken] = useState(true);
 
     useEffect(() => {
-        if (!token) {
-            setError('Invalid reset link');
-            setTokenValid(false);
-            setVerifyingToken(false);
-            return;
-        }
+        const tokenParam = searchParams.get('token');
+        const errorParam = searchParams.get('error');
 
-        // Verify token on component mount
-        const verifyToken = async () => {
-            try {
-                const response = await authAPI.verifyResetToken(token);
-                if (!response.success) {
-                    setError(response.message || 'Invalid or expired reset token');
-                    setTokenValid(false);
-                }
-            } catch (err) {
-                setError('Failed to verify reset token');
-                setTokenValid(false);
-            } finally {
-                setVerifyingToken(false);
+        if (errorParam) {
+            if (errorParam === 'invalid_token') {
+                setError('Invalid or expired reset token');
+            } else if (errorParam === 'server_error') {
+                setError('Server error. Please try again later.');
+            } else {
+                setError('An error occurred with your reset link.');
             }
-        };
-
-        verifyToken();
-    }, [token]);
-
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
-        // Clear error when user starts typing
-        if (error) setError('');
-    };
-
-    const validateForm = () => {
-        const { password, confirmPassword } = formData;
-
-        if (password.length < 6) {
-            setError('Password must be at least 6 characters long');
-            return false;
+            setVerifyingToken(false);
+        } else if (tokenParam) {
+            setToken(tokenParam);
+            verifyToken(tokenParam);
+        } else {
+            setError('No reset token provided');
+            setVerifyingToken(false);
         }
+    }, [searchParams]);
 
-        if (password !== confirmPassword) {
-            setError('Passwords do not match');
-            return false;
+    const verifyToken = async (tokenToVerify) => {
+        try {
+            const response = await authAPI.verifyResetToken(tokenToVerify);
+            if (!response.success) {
+                setError(response.message || 'Invalid or expired reset token');
+            }
+        } catch (err) {
+            setError('Failed to verify reset token');
+        } finally {
+            setVerifyingToken(false);
         }
-
-        return true;
     };
 
     const handleSubmit = async (e) => {
@@ -77,26 +59,39 @@ const ResetPassword = () => {
         setError('');
         setMessage('');
 
-        if (!validateForm()) {
+        // Validation
+        if (!password || password.length < 6) {
+            setError('Password must be at least 6 characters long');
+            setLoading(false);
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            setLoading(false);
+            return;
+        }
+
+        if (!token) {
+            setError('No reset token available');
             setLoading(false);
             return;
         }
 
         try {
-            const response = await authAPI.resetPassword(token, formData.password);
+            const result = await authAPI.resetPassword(token, password);
 
-            if (response.success) {
+            if (result.success) {
                 setSuccess(true);
                 setMessage('Password reset successfully! Redirecting to login...');
-                // Redirect to login after 3 seconds
                 setTimeout(() => {
                     navigate('/login');
                 }, 3000);
             } else {
-                setError(response.message || 'Failed to reset password');
+                setError(result.message || 'Failed to reset password');
             }
-        } catch (err) {
-            setError(err.message || 'An error occurred while resetting password');
+        } catch (error) {
+            setError('Something went wrong. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -122,7 +117,7 @@ const ResetPassword = () => {
         );
     }
 
-    if (!tokenValid) {
+    if (error && !token) {
         return (
             <div className="reset-password-container">
                 <div className="reset-password-card">
@@ -136,7 +131,7 @@ const ResetPassword = () => {
                             Invalid Reset Link
                         </h2>
                         <p className="text-gray-600 mb-6">
-                            {error || 'The password reset link is invalid or has expired.'}
+                            {error}
                         </p>
                         <button
                             onClick={() => navigate('/forgot-password')}
@@ -168,12 +163,12 @@ const ResetPassword = () => {
                             {message}
                         </p>
                         <div className="space-y-3">
-                            <Link
-                                to="/login"
+                            <button
+                                onClick={() => navigate('/login')}
                                 className="btn-primary"
                             >
                                 Go to Login
-                            </Link>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -220,10 +215,10 @@ const ResetPassword = () => {
                                 type={showPassword ? "text" : "password"}
                                 autoComplete="new-password"
                                 required
-                                value={formData.password}
-                                onChange={handleChange}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="form-input pr-10"
-                                placeholder="Enter your new password"
+                                placeholder="Enter new password"
                                 disabled={loading}
                                 minLength={6}
                             />
@@ -244,7 +239,7 @@ const ResetPassword = () => {
 
                     <div className="form-group">
                         <label htmlFor="confirmPassword" className="form-label">
-                            Confirm New Password
+                            Confirm Password
                         </label>
                         <div className="relative">
                             <input
@@ -253,10 +248,10 @@ const ResetPassword = () => {
                                 type={showConfirmPassword ? "text" : "password"}
                                 autoComplete="new-password"
                                 required
-                                value={formData.confirmPassword}
-                                onChange={handleChange}
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
                                 className="form-input pr-10"
-                                placeholder="Confirm your new password"
+                                placeholder="Confirm new password"
                                 disabled={loading}
                                 minLength={6}
                             />
@@ -277,13 +272,13 @@ const ResetPassword = () => {
 
                     <button
                         type="submit"
-                        disabled={loading}
                         className="btn-primary"
+                        disabled={loading}
                     >
                         {loading ? (
                             <div className="flex items-center justify-center">
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                Resetting password...
+                                Resetting...
                             </div>
                         ) : (
                             'Reset Password'
@@ -291,13 +286,13 @@ const ResetPassword = () => {
                     </button>
 
                     <div className="back-to-login">
-                        <Link
-                            to="/login"
+                        <button
+                            onClick={() => navigate('/login')}
                             className="btn-link"
                         >
                             <FaArrowLeft className="mr-2" />
                             Back to login
-                        </Link>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -305,8 +300,4 @@ const ResetPassword = () => {
     );
 };
 
-export default ResetPassword;
-
-
-
-
+export default ResetPasswordPage;
