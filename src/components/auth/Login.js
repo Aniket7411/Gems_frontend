@@ -104,13 +104,17 @@ const Login = () => {
                                 />
                                 <button
                                     type="button"
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center z-10"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setShowPassword(!showPassword);
+                                    }}
                                 >
                                     {showPassword ? (
-                                        <FaEyeSlash className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                                        <FaEyeSlash className="h-5 w-5 text-gray-500 hover:text-gray-700" />
                                     ) : (
-                                        <FaEye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                                        <FaEye className="h-5 w-5 text-gray-500 hover:text-gray-700" />
                                     )}
                                 </button>
                             </div>

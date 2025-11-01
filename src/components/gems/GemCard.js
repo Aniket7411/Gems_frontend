@@ -67,9 +67,9 @@ const GemCard = ({ gem, onAddToCart, onToggleWishlist, isWishlisted = false }) =
         >
             {/* Image Section */}
             <div className="relative h-64 overflow-hidden">
-                {gem.images && gem.images.length > 0 ? (
+                {(gem.images && gem.images.length > 0) || gem.heroImage || gem.allImages?.[0] ? (
                     <img
-                        src={gem.images[0]}
+                        src={gem.images?.[0] || gem.heroImage || gem.allImages?.[0]}
                         alt={gem.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
@@ -122,7 +122,7 @@ const GemCard = ({ gem, onAddToCart, onToggleWishlist, isWishlisted = false }) =
                     </span>
                     <div className="flex items-center space-x-1">
                         <FaStar className="w-4 h-4 text-yellow-400" />
-                        <span className="text-sm text-gray-600">4.8</span>
+                        <span className="text-sm text-gray-600">{gem.averageRating || gem.rating || 0}</span>
                     </div>
                 </div>
 

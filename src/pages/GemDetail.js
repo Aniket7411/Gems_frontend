@@ -32,6 +32,9 @@ const GemDetail = () => {
             setError(null);
             const response = await gemAPI.getGemById(id);
 
+
+
+
             if (response.success) {
                 setGem(response.data || response.gem);
             } else {
@@ -123,7 +126,7 @@ const GemDetail = () => {
                 price: gem.price,
                 discount: gem.discount,
                 discountType: gem.discountType,
-                image: gem.allImages?.[0] || gem.images?.[0] || null,
+                image: gem.allImages?.[0] || gem.heroImage || gem.images?.[0] || null,
                 category: gem.category,
                 sizeWeight: gem.sizeWeight,
                 sizeUnit: gem.sizeUnit,
@@ -251,9 +254,9 @@ const GemDetail = () => {
                     <div className="space-y-4">
                         {/* Main Image */}
                         <div className="aspect-square bg-white rounded-2xl shadow-lg overflow-hidden">
-                            {gem.allImages && gem.allImages.length > 0 ? (
+                            {(gem.allImages && gem.allImages.length > 0) || gem.heroImage ? (
                                 <img
-                                    src={gem.allImages[selectedImage]}
+                                    src={gem.allImages?.[selectedImage] || gem.heroImage}
                                     alt={gem.name}
                                     className="w-full h-full object-cover"
                                 />
@@ -292,11 +295,14 @@ const GemDetail = () => {
                         {/* Title and Rating */}
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 mb-2">{gem.name}</h1>
+                            {gem.hindiName && (
+                                <h2 className="text-xl font-semibold text-emerald-700 mb-2">{gem.hindiName}</h2>
+                            )}
                             <div className="flex items-center space-x-4 mb-4">
                                 <div className="flex items-center space-x-1">
                                     <FaStar className="w-5 h-5 text-yellow-400" />
-                                    <span className="text-lg font-semibold">4.8</span>
-                                    <span className="text-gray-500">(127 reviews)</span>
+                                    <span className="text-lg font-semibold">{gem.averageRating || gem.rating || 0}</span>
+                                    <span className="text-gray-500">({gem.totalReviews || gem.reviews?.length || 0} reviews)</span>
                                 </div>
                                 <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">
                                     {gem.category}
@@ -338,9 +344,20 @@ const GemDetail = () => {
                                 <p className="text-gray-600">{gem.sizeWeight} {gem.sizeUnit}</p>
                             </div>
                             <div className="bg-gray-50 p-4 rounded-lg">
+                                <h4 className="font-semibold text-gray-900 mb-1">Color</h4>
+                                <p className="text-gray-600">{gem.color || 'N/A'}</p>
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-lg">
                                 <h4 className="font-semibold text-gray-900 mb-1">Stock</h4>
                                 <p className="text-gray-600">{gem.stock || 'Available'} pieces</p>
                             </div>
+                            {gem.planet && (
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <h4 className="font-semibold text-gray-900 mb-1">Associated Planet</h4>
+                                    <p className="text-gray-600">{gem.planet}</p>
+                                    {gem.planetHindi && <p className="text-gray-500 text-sm">{gem.planetHindi}</p>}
+                                </div>
+                            )}
                             {gem.origin && (
                                 <div className="bg-gray-50 p-4 rounded-lg">
                                     <h4 className="font-semibold text-gray-900 mb-1">Origin</h4>
@@ -353,10 +370,33 @@ const GemDetail = () => {
                                     <p className="text-gray-600">{gem.certification}</p>
                                 </div>
                             )}
+                            {gem.deliveryDays && (
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <h4 className="font-semibold text-gray-900 mb-1">Delivery</h4>
+                                    <p className="text-gray-600">{gem.deliveryDays} days</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Astrological Information */}
-                        {gem.whomToUse && gem.whomToUse.length > 0 && (
+                        {gem.suitableFor && gem.suitableFor.length > 0 && (
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Suitable For</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {gem.suitableFor.map((person, index) => (
+                                        <span
+                                            key={index}
+                                            className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm"
+                                        >
+                                            {person}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Old whomToUse field support (fallback) */}
+                        {(!gem.suitableFor || gem.suitableFor.length === 0) && gem.whomToUse && gem.whomToUse.length > 0 && (
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Suitable For</h3>
                                 <div className="flex flex-wrap gap-2">
@@ -384,6 +424,30 @@ const GemDetail = () => {
                                         </li>
                                     ))}
                                 </ul>
+                            </div>
+                        )}
+
+                        {/* Seller Information */}
+                        {gem.seller && (
+                            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Sold By</h3>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-semibold text-gray-900">{gem.seller.shopName || gem.seller.fullName}</p>
+                                        <p className="text-sm text-gray-600">{gem.seller.fullName}</p>
+                                        {gem.seller.rating && (
+                                            <div className="flex items-center gap-1 mt-1">
+                                                <FaStar className="w-4 h-4 text-yellow-400" />
+                                                <span className="text-sm font-medium">{gem.seller.rating}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {gem.seller.isVerified && (
+                                        <div className="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                                            ✓ Verified
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
