@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const rings = [
     { name: "Blue Sapphire", src: "./ringimages/bluesaffire.jpg" },
@@ -18,11 +19,11 @@ const rings = [
 
 const RingSection = () => {
     return (
-        <div 
-        
-        
-        className="bg-gradient-to-t from-green-400 via-green-50 to-blue-200  py-10 px-2">
-            <h2 className="text-3xl font-bold text-center text-[#000] mb-4">
+        <div
+
+
+            className="bg-gradient-to-br from-emerald-50 via-teal-50 to-blue-50 py-10 px-2">
+            <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-emerald-700 to-teal-800 bg-clip-text text-transparent mb-4">
                 Create Your Dream Jewelry
             </h2>
 
@@ -30,14 +31,17 @@ const RingSection = () => {
                 {rings.map((ring, index) => (
                     <div
                         key={index}
-                        className="w-[45%] sm:w-1/3 md:w-1/4 lg:w-1/5 flex flex-col items-center bg-gray-50 p-4 rounded-lg shadow-md hover:scale-105 transition-transform duration-300"
+                        className="w-[45%] sm:w-1/3 md:w-1/4 lg:w-1/5 flex flex-col items-center bg-white p-4 rounded-lg shadow-md hover:scale-105 transition-all duration-300 border border-emerald-100 hover:border-emerald-300 hover:shadow-lg"
                     >
+
+                        <Link to="/shop">
                         <img
                             src={ring.src}
                             alt={ring.name}
                             className="w-40 h-40 object-cover rounded-md"
                         />
-                        <p className="mt-3 font-medium text-gray-700 text-center">{ring.name}</p>
+                        </Link>
+                        <p className="mt-3 font-medium text-emerald-800 text-center">{ring.name}</p>
                     </div>
                 ))}
             </div>

@@ -14,20 +14,15 @@ const GemsCarousel = () => {
   return (
     <div className="gems-carousel-container">
       <div className="gems-track">
-        {gems.map((gem, index) => (
-          <div key={index} className="gem-item">
-            <img src={gem.src} alt={gem.name} />
-            <p>{gem.name}</p>
-          </div>
-        ))}
-
-        {/* Duplicate for infinite loop */}
-        {gems.map((gem, index) => (
-          <div key={index + "-copy"} className="gem-item">
-            <img src={gem.src} alt={gem.name} />
-            <p>{gem.name}</p>
-          </div>
-        ))}
+        {/* Render multiple copies for seamless infinite loop */}
+        {[...Array(3)].map((_, copyIndex) =>
+          gems.map((gem, index) => (
+            <div key={`${copyIndex}-${index}`} className="gem-item">
+              <img src={gem.src} alt={gem.name} />
+              <p>{gem.name}</p>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

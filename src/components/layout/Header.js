@@ -8,7 +8,7 @@ import { useCart } from "../../contexts/CartContext";
 import { CgProfile } from "react-icons/cg";
 
 
-console.log("dsbhbdshb", JSON.parse(localStorage.getItem('user'))?.role);
+// Debug log for user role
 
 const dummyGems = [
   "Ruby",
