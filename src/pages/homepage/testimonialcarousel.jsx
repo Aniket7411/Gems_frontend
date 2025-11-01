@@ -68,7 +68,7 @@ const TestimonialCarousel = () => {
 
     return (
         <motion.section
-            className="py-20 bg-gradient-to-r from-emerald-600 to-teal-700"
+            className="py-10 bg-gradient-to-r from-emerald-600 to-teal-700"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -76,7 +76,7 @@ const TestimonialCarousel = () => {
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <motion.div
-                    className="text-center mb-16"
+                    className="text-center mb-8"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { gemAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 import GemCard from '../components/gems/GemCard';
@@ -9,6 +9,7 @@ import { FaSpinner, FaExclamationTriangle, FaSearch } from 'react-icons/fa';
 
 const Shop = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { addToCart } = useCart();
     const [gems, setGems] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -21,7 +22,7 @@ const Shop = () => {
     const [filters, setFilters] = useState({
         page: 1,
         limit: 12,
-        search: '',
+        search: searchParams.get('query') || '',
         category: [], // Multiple categories
         minPrice: '',
         maxPrice: '',
@@ -30,7 +31,7 @@ const Shop = () => {
 
     // Temporary filter inputs (before apply)
     const [tempFilters, setTempFilters] = useState({
-        search: '',
+        search: searchParams.get('query') || '',
         category: [],
         minPrice: '',
         maxPrice: '',

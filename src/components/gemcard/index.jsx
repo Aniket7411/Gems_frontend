@@ -109,7 +109,7 @@ const GemCards = () => {
 
     return (
         <motion.section
-            className="py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 relative overflow-hidden"
+            className="py-8 sm:py-12 lg:py-16 bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 relative overflow-hidden"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -124,16 +124,16 @@ const GemCards = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 {/* Header */}
                 <motion.div
-                    className="text-center mb-8 sm:mb-12 lg:mb-16"
+                    className="text-center mb-6 sm:mb-8 lg:mb-10"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.8 }}
                 >
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 px-2">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 px-2">
                         Explore Our Precious Gems
                     </h1>
-                    <p className="text-base sm:text-lg lg:text-xl text-white/80 max-w-3xl mx-auto px-4">
+                    <p className="text-sm sm:text-base lg:text-lg text-white/80 max-w-3xl mx-auto px-4">
                         Discover the mystical power and timeless beauty of authentic gemstones, each carefully selected for their spiritual significance and exceptional quality.
                     </p>
                 </motion.div>
@@ -152,7 +152,7 @@ const GemCards = () => {
                         >
                             <div className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 hover:border-white/40 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-purple-500/25 flex flex-col h-full">
                                 <motion.div
-                                    className="flex justify-center items-center p-6 xl:p-8 flex-shrink-0 h-44 xl:h-48"
+                                    className="flex justify-center items-center p-4 xl:p-5 flex-shrink-0 h-32 xl:h-36"
                                     whileHover={{ scale: 1.1, rotate: 5 }}
                                     transition={{ duration: 0.3 }}
                                 >
@@ -163,20 +163,20 @@ const GemCards = () => {
                                     />
                                 </motion.div>
 
-                                <div className="p-6 xl:p-8 flex flex-col flex-grow">
-                                    <h2 className="text-xl xl:text-2xl font-bold text-white mb-3 text-center group-hover:text-purple-300 transition-colors">
+                                <div className="p-4 xl:p-6 flex flex-col flex-grow">
+                                    <h2 className="text-lg xl:text-xl font-bold text-white mb-2 text-center group-hover:text-purple-300 transition-colors">
                                         {gem.name}
                                     </h2>
 
-                                    <p className="text-white/80 text-sm xl:text-base mb-4 leading-relaxed flex-grow line-clamp-4">
+                                    <p className="text-white/80 text-xs xl:text-sm mb-3 leading-relaxed flex-grow line-clamp-3">
                                         {gem.description}
                                     </p>
 
-                                    <div className="space-y-2 mb-6">
+                                    <div className="space-y-1.5 mb-4">
                                         {gem.benefits.map((benefit, i) => (
                                             <motion.div
                                                 key={i}
-                                                className="flex items-center text-white/90 text-sm xl:text-base"
+                                                className="flex items-center text-white/90 text-xs xl:text-sm"
                                                 initial={{ opacity: 0, x: -20 }}
                                                 whileInView={{ opacity: 1, x: 0 }}
                                                 viewport={{ once: true }}
@@ -187,14 +187,14 @@ const GemCards = () => {
                                             </motion.div>
                                         ))}
                                     </div>
-
+                                    {/* 
                                     <motion.button
                                         className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/50"
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
                                         Discover Power
-                                    </motion.button>
+                                    </motion.button> */}
                                 </div>
                             </div>
                         </motion.div>
@@ -215,7 +215,7 @@ const GemCards = () => {
                         >
                             <div className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 hover:border-white/40 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-purple-500/25 flex flex-col h-full">
                                 <motion.div
-                                    className="flex justify-center items-center p-6 flex-shrink-0 h-40"
+                                    className="flex justify-center items-center p-4 flex-shrink-0 h-32"
                                     whileHover={{ scale: 1.1, rotate: 5 }}
                                     transition={{ duration: 0.3 }}
                                 >
@@ -226,20 +226,20 @@ const GemCards = () => {
                                     />
                                 </motion.div>
 
-                                <div className="p-6 flex flex-col flex-grow">
-                                    <h2 className="text-xl font-bold text-white mb-3 text-center group-hover:text-purple-300 transition-colors">
+                                <div className="p-4 flex flex-col flex-grow">
+                                    <h2 className="text-lg font-bold text-white mb-2 text-center group-hover:text-purple-300 transition-colors">
                                         {gem.name}
                                     </h2>
 
-                                    <p className="text-white/80 text-sm mb-4 leading-relaxed flex-grow line-clamp-3">
+                                    <p className="text-white/80 text-xs mb-3 leading-relaxed flex-grow line-clamp-2">
                                         {gem.description}
                                     </p>
 
-                                    <div className="space-y-2 mb-6">
+                                    <div className="space-y-1.5 mb-4">
                                         {gem.benefits.map((benefit, i) => (
                                             <motion.div
                                                 key={i}
-                                                className="flex items-center text-white/90 text-sm"
+                                                className="flex items-center text-white/90 text-xs"
                                                 initial={{ opacity: 0, x: -20 }}
                                                 whileInView={{ opacity: 1, x: 0 }}
                                                 viewport={{ once: true }}
@@ -252,11 +252,11 @@ const GemCards = () => {
                                     </div>
 
                                     <motion.button
-                                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/50"
+                                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/50 text-sm"
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
-                                        Discover Power
+                                        Discover
                                     </motion.button>
                                 </div>
                             </div>
@@ -275,13 +275,13 @@ const GemCards = () => {
                                 {gems.map((gem, index) => (
                                     <div key={index} className="w-full flex-shrink-0 px-2 sm:px-3">
                                         <motion.div
-                                            className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 p-5 sm:p-6 min-h-[520px] sm:min-h-[540px] flex flex-col"
+                                            className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 p-4 sm:p-5 min-h-[320px] sm:min-h-[340px] flex flex-col"
                                             initial={{ opacity: 0, scale: 0.9 }}
                                             whileInView={{ opacity: 1, scale: 1 }}
                                             viewport={{ once: true }}
                                             transition={{ duration: 0.5 }}
                                         >
-                                            <div className="flex justify-center items-center mb-4 sm:mb-6 flex-shrink-0 h-32 sm:h-36">
+                                            <div className="flex justify-center items-center mb-2 sm:mb-3 flex-shrink-0 h-28 sm:h-32">
                                                 <motion.img
                                                     src={gem.image}
                                                     alt={gem.name}
@@ -291,37 +291,37 @@ const GemCards = () => {
                                                 />
                                             </div>
 
-                                            <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 text-center">
+                                            <h2 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 text-center">
                                                 {gem.name}
                                             </h2>
 
-                                            <p className="text-white/80 text-sm sm:text-base mb-4 sm:mb-6 leading-relaxed flex-grow">
+                                            <p className="text-white/80 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed flex-grow line-clamp-3">
                                                 {gem.description}
                                             </p>
 
-                                            <div className="space-y-2 sm:space-y-3 mb-5 sm:mb-6">
+                                            <div className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-5">
                                                 {gem.benefits.map((benefit, i) => (
                                                     <motion.div
                                                         key={i}
-                                                        className="flex items-center text-white/90 text-sm sm:text-base"
+                                                        className="flex items-center text-white/90 text-xs sm:text-sm"
                                                         initial={{ opacity: 0, x: -20 }}
                                                         whileInView={{ opacity: 1, x: 0 }}
                                                         viewport={{ once: true }}
                                                         transition={{ duration: 0.5, delay: i * 0.1 }}
                                                     >
-                                                        <span className="text-purple-400 mr-2 sm:mr-3">✨</span>
+                                                        <span className="text-purple-400 mr-2">✨</span>
                                                         {benefit}
                                                     </motion.div>
                                                 ))}
                                             </div>
 
-                                            <motion.button
+                                            {/* <motion.button
                                                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 sm:py-3.5 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg"
                                                 whileHover={{ scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
                                             >
                                                 Discover Power
-                                            </motion.button>
+                                            </motion.button> */}
                                         </motion.div>
                                     </div>
                                 ))}

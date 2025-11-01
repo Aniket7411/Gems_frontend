@@ -3,25 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { CiSearch } from "react-icons/ci";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { FaShoppingCart } from "react-icons/fa";
-import { authAPI } from "../../services/api";
+import { authAPI, gemAPI } from "../../services/api";
 import { useCart } from "../../contexts/CartContext";
 import { CgProfile } from "react-icons/cg";
-
-
-// Debug log for user role
-
-const dummyGems = [
-  "Ruby",
-  "Emerald",
-  "Sapphire",
-  "Diamond",
-  "Amethyst",
-  "Topaz",
-  "Opal",
-  "Garnet",
-  "Pearl",
-  "Aquamarine",
-];
 
 const Header = () => {
   const navigate = useNavigate();
@@ -33,21 +17,33 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const handleLogout = () => {
     authAPI.logout();
     navigate("/login");
   };
 
-  const handleSearchChange = (e) => {
+  // Fetch gem suggestions from API
+  const handleSearchChange = async (e) => {
     const value = e.target.value;
     setSearchTerm(value);
 
-    if (value.trim()) {
-      const filtered = dummyGems.filter((gem) =>
-        gem.toLowerCase().includes(value.toLowerCase())
-      );
-      setSuggestions(filtered);
+    if (value.trim() && value.length >= 2) {
+      setIsSearching(true);
+      try {
+        const response = await gemAPI.getGems({ search: value, limit: 5 });
+        if (response.success) {
+          const gems = response.data?.gems || response.gems || [];
+          const gemNames = gems.map(gem => gem.name);
+          setSuggestions(gemNames);
+        }
+      } catch (error) {
+        console.error('Error fetching gem suggestions:', error);
+        setSuggestions([]);
+      } finally {
+        setIsSearching(false);
+      }
     } else {
       setSuggestions([]);
     }
@@ -56,13 +52,105 @@ const Header = () => {
   const handleSearchSelect = (gem) => {
     setSearchTerm(gem);
     setSuggestions([]);
-    navigate(`/shop?query=${gem}`); // redirect to shop page with query
+    setMobileMenuOpen(false);
+    navigate(`/shop?query=${encodeURIComponent(gem)}`);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      setSuggestions([]);
+      setMobileMenuOpen(false);
+      navigate(`/shop?query=${encodeURIComponent(searchTerm.trim())}`);
+    }
   };
 
   return (
     <header className="bg-white shadow-md border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-2 py-2 sm:px-6 lg:px-6">
-        <div className="flex justify-between items-center h-16">
+        {/* Mobile Header - Logo and Search Bar */}
+        <div className="md:hidden mb-2">
+          <div className="flex items-center gap-2">
+            {/* Logo - smaller on mobile */}
+            <div className="flex-shrink-0">
+              <Link to="/" className="flex items-center">
+                <div className="h-16 w-16 rounded-lg flex items-center justify-center">
+                  <img src="/images/aurelane.png" alt="Aurelane Logo" className="h-full w-full object-contain" />
+                </div>
+              </Link>
+            </div>
+
+            {/* Mobile Search Bar */}
+            <div className="flex-1 relative">
+              <form onSubmit={handleSearchSubmit}>
+                <div className="flex items-center border-2 border-gray-300 rounded-full px-3 py-2 bg-gray-50 hover:border-emerald-400 focus-within:border-emerald-600 transition-colors">
+                  <CiSearch className="text-gray-500 text-lg flex-shrink-0" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    placeholder="Search gems..."
+                    className="ml-2 bg-transparent outline-none w-full text-sm"
+                  />
+                </div>
+              </form>
+
+              {suggestions.length > 0 && (
+                <ul className="absolute mt-1 w-full bg-white border-2 border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto z-50">
+                  {isSearching && <li className="px-4 py-3 text-gray-500 text-sm text-center">Searching...</li>}
+                  {suggestions.map((gem, idx) => (
+                    <li
+                      key={idx}
+                      className="px-4 py-3 cursor-pointer hover:bg-emerald-50 hover:text-emerald-700 transition-colors border-b border-gray-100 last:border-b-0"
+                      onClick={() => handleSearchSelect(gem)}
+                    >
+                      <div className="flex items-center">
+                        <CiSearch className="text-gray-400 mr-2" />
+                        <span className="font-medium">{gem}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Cart and Menu Icons */}
+            <div className="flex items-center space-x-2">
+              <Link to="/cart" className="relative text-gray-600 hover:text-emerald-600 p-1">
+                <FaShoppingCart size={22} />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                    {cartItemCount}
+                  </span>
+                )}
+              </Link>
+
+              {isAuthenticated && (
+                <Link
+                  to={
+                    user?.role === "admin" ? "/admin/sellers" :
+                      user?.role === "seller" ? "/seller-dashboard" :
+                        "/my-orders"
+                  }
+                  className="text-gray-600 hover:text-emerald-600 p-1"
+                  title="My Account"
+                >
+                  <CgProfile size={26} />
+                </Link>
+              )}
+
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="text-gray-600 hover:text-emerald-600 p-1"
+              >
+                {mobileMenuOpen ? <FaTimes size={26} /> : <FaBars size={26} />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Header */}
+        <div className="hidden md:flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
@@ -129,23 +217,26 @@ const Header = () => {
 
           {/* Search bar */}
           <div className="relative hidden md:block w-64">
-            <div className="flex items-center border rounded-full px-3 py-1 bg-gray-50">
-              <CiSearch className="text-gray-500 text-lg" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={handleSearchChange}
-                placeholder="Search gems..."
-                className="ml-2 bg-transparent outline-none w-full"
-              />
-            </div>
+            <form onSubmit={handleSearchSubmit}>
+              <div className="flex items-center border rounded-full px-3 py-1 bg-gray-50">
+                <CiSearch className="text-gray-500 text-lg" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  placeholder="Search gems..."
+                  className="ml-2 bg-transparent outline-none w-full"
+                />
+              </div>
+            </form>
 
             {suggestions.length > 0 && (
               <ul className="absolute mt-1 w-full bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
+                {isSearching && <li className="px-4 py-2 text-gray-500 text-sm">Searching...</li>}
                 {suggestions.map((gem, idx) => (
                   <li
                     key={idx}
-                    className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-2 cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSearchSelect(gem)}
                   >
                     {gem}
@@ -217,42 +308,6 @@ const Header = () => {
                 </Link>
               </>
             )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center space-x-3">
-            {/* Cart Icon for Mobile */}
-            <Link to="/cart" className="relative text-gray-600 hover:text-emerald-600">
-              <FaShoppingCart size={22} />
-              {cartItemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                  {cartItemCount}
-                </span>
-              )}
-            </Link>
-
-            {/* Profile Icon for Mobile */}
-            {isAuthenticated && (
-              <Link
-                to={
-                  user?.role === "admin" ? "/admin/sellers" :
-                    user?.role === "seller" ? "/seller-dashboard" :
-                      "/my-orders"
-                }
-                className="text-gray-600 hover:text-emerald-600"
-                title="My Account"
-              >
-                <CgProfile size={26} />
-              </Link>
-            )}
-
-            {/* Hamburger Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-gray-600 hover:text-emerald-600 p-1"
-            >
-              {mobileMenuOpen ? <FaTimes size={26} /> : <FaBars size={26} />}
-            </button>
           </div>
         </div>
       </div>
@@ -398,36 +453,6 @@ const Header = () => {
                 )}
               </div>
             )}
-
-            {/* Mobile Search */}
-            <div className="relative mb-3">
-              <div className="flex items-center border rounded-full px-4 py-2 bg-gray-50">
-                <CiSearch className="text-gray-500 text-xl" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  placeholder="Search gems..."
-                  className="ml-2 bg-transparent outline-none w-full text-sm"
-                />
-              </div>
-              {suggestions.length > 0 && (
-                <ul className="absolute mt-1 w-full bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
-                  {suggestions.map((gem, idx) => (
-                    <li
-                      key={idx}
-                      className="px-4 py-2 cursor-pointer hover:bg-gray-100 text-sm"
-                      onClick={() => {
-                        handleSearchSelect(gem);
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      {gem}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
 
             {/* Auth Section */}
             <div className="pt-3 border-t border-gray-200">

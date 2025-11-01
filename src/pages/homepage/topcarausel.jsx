@@ -49,19 +49,25 @@ export default function GemInquirySection() {
   };
 
   return (
-    <div
-      className="w-full min-h-screen  bg-center relative flex items-center"
-        style={{ backgroundImage: "url('./gemimages/bgquery.png')" }}
-      // style={{ backgroundImage: "url('./gemimages/astroquery.jpg')" }}
+    <div className="w-full min-h-screen bg-black relative flex items-center overflow-hidden">
+      {/* Background Video */}
+      <video
+        src="./images/gemsvideo.mp4"
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      ></video>
 
-    >
-      {/* Overlay for readability */}
-      <div className="absolute inset-0 "></div>
+      {/* Dark Overlay for readability */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/30 "></div>
 
-      <div className="relative z-10 w-full gap-4 flex flex-col lg:flex-row items-center justify-between px-6 lg:px-20 py-16">
+      {/* Content Container */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto gap-4 flex flex-col lg:flex-row items-center justify-between px-6 lg:px-20 py-16">
         {/* LEFT SIDE - FORM */}
-        <div className="lg:w-1/2 w-full bg-white  rounded-lg p-8 shadow-lg mb-8 lg:mb-0">
-          <h2 className="text-3xl font-bold text-green-700 mb-4 text-center lg:text-left">
+        <div className="lg:w-1/2 w-full bg-white/95 backdrop-blur-sm rounded-xl p-8 shadow-2xl mb-8 lg:mb-0 border border-emerald-100">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-emerald-700 to-teal-800 bg-clip-text text-transparent mb-4 text-center lg:text-left">
             Ask About Your Gem
           </h2>
           <p className="text-gray-700 mb-6 text-center lg:text-left">
@@ -69,8 +75,8 @@ export default function GemInquirySection() {
           </p>
 
           {submitted ? (
-            <div className="text-green-700 font-semibold text-center">
-              Thank you! Your inquiry has been submitted.
+            <div className="text-emerald-700 font-semibold text-center py-4">
+              ✅ Thank you! Your inquiry has been submitted.
             </div>
           ) : (
             <form className="space-y-4" onSubmit={handleSubmit}>
@@ -80,7 +86,7 @@ export default function GemInquirySection() {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Your Name"
-                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
               />
               <input
                 type="email"
@@ -88,7 +94,7 @@ export default function GemInquirySection() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Your Email"
-                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
               />
               <input
                 type="text"
@@ -96,19 +102,19 @@ export default function GemInquirySection() {
                 value={formData.gemstone}
                 onChange={handleChange}
                 placeholder="Gemstone Interested In"
-                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
               />
               <textarea
                 name="details"
                 value={formData.details}
                 onChange={handleChange}
                 placeholder="Additional Details"
-                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-green-600 text-white p-3 rounded-md font-semibold hover:bg-green-700 transition"
+                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-3 rounded-md font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl"
               >
                 {loading ? "Submitting..." : "Submit Inquiry"}
               </button>
@@ -117,30 +123,17 @@ export default function GemInquirySection() {
         </div>
 
         {/* RIGHT SIDE - CONTENT */}
-        <div className="lg:w-1/2 w-full relative overflow-hidden rounded-xl shadow-lg">
-          {/* Background Video */}
-          <video
-            src="./images/gemsvideo.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover rounded-xl"
-          ></video>
-
-          {/* Dark Overlay for Readability */}
-          <div className="absolute inset-0 bg-black/50 rounded-xl" />
-
+        <div className="lg:w-1/2 w-full relative">
           {/* Text Content */}
-          <div className="absolute inset-0 flex flex-col justify-center px-6 lg:px-10 text-white space-y-4">
-            <h2 className="text-4xl font-extrabold tracking-wide">
-              Unlock the Beauty of <span className="text-green-400">Natural Gems</span>
+          <div className="flex flex-col justify-center px-6 lg:px-10 text-white space-y-6">
+            <h2 className="text-4xl lg:text-5xl font-extrabold tracking-wide">
+              Unlock the Beauty of <span className="text-emerald-300">Natural Gems</span>
             </h2>
-            <p className="text-lg text-gray-200 leading-relaxed">
+            <p className="text-lg lg:text-xl text-gray-100 leading-relaxed">
               Each gemstone holds a story — of passion, power, and purity. From rare sapphires to fiery rubies,
               we bring you treasures crafted by nature and polished to perfection.
             </p>
-            <p className="text-gray-300">
+            <p className="text-base text-gray-200">
               Share your desire, and let our gem experts guide you to a piece that reflects your soul.
             </p>
           </div>
