@@ -15,6 +15,19 @@ const Dashboard = () => {
 
         const currentUser = authAPI.getCurrentUser();
         setUser(currentUser);
+        
+        // Redirect based on role
+        if (currentUser?.role === 'admin') {
+            navigate('/admin-dashboard');
+            return;
+        } else if (currentUser?.role === 'seller') {
+            navigate('/seller-dashboard');
+            return;
+        } else if (currentUser?.role === 'buyer' || !currentUser?.role) {
+            navigate('/my-orders');
+            return;
+        }
+        
         setLoading(false);
     }, [navigate]);
 

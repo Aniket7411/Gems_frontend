@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authAPI } from '../../services/api';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Login = () => {
+    const location = useLocation();
+    const isSellerLogin = location.pathname === '/seller-login';
+
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -31,8 +34,15 @@ const Login = () => {
             const response = await authAPI.login(formData);
 
             if (response.success) {
-                // Redirect to dashboard or home page
-                navigate('/');
+                // Redirect based on user role
+                const user = response.user || JSON.parse(localStorage.getItem('user') || '{}');
+                if (user.role === 'seller') {
+                    navigate('/seller-dashboard');
+                } else if (user.role === 'admin') {
+                    navigate('/admin-dashboard');
+                } else {
+                    navigate('/');
+                }
             } else {
                 setError(response.message || 'Login failed');
             }
@@ -48,12 +58,12 @@ const Login = () => {
             <div className="max-w-md w-full space-y-4">
                 <div>
                     <h2 className=" text-center text-3xl font-extrabold text-gray-900">
-                        Sign in to your account
+                        {isSellerLogin ? 'Sign in to your seller account' : 'Sign in to your account'}
                     </h2>
                     <p className="mt-2 text-center text-sm text-gray-600">
                         Or{' '}
                         <Link
-                            to="/register"
+                            to={isSellerLogin ? "/seller" : "/register"}
                             className="font-medium text-emerald-600 hover:text-indigo-500"
                         >
                             create a new account

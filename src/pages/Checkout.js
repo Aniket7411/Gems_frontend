@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { orderAPI } from '../services/api';
@@ -28,6 +28,7 @@ const Checkout = () => {
 
     const [paymentMethod, setPaymentMethod] = useState('cod');
     const [orderNotes, setOrderNotes] = useState('');
+    const [showAddressModal, setShowAddressModal] = useState(false);
 
     const cartSummary = getCartSummary();
 
@@ -45,51 +46,6 @@ const Checkout = () => {
         }));
     };
 
-    const handlePlaceOrder = async () => {
-        if (!validateForm()) return;
-
-        setLoading(true);
-        try {
-            const orderData = {
-                items: cartItems.map(item => ({
-                    gemId: item.id,
-                    quantity: item.quantity,
-                    price: item.discount && item.discount > 0
-                        ? item.discountType === 'percentage'
-                            ? item.price - (item.price * item.discount) / 100
-                            : item.price - item.discount
-                        : item.price
-                })),
-                shippingAddress,
-                paymentMethod,
-                orderNotes,
-                totalAmount: cartSummary.total
-            };
-
-            const response = await orderAPI.createOrder(orderData);
-
-            if (response.success) {
-                const createdOrderId = response.data?.orderId || response.order?.id || response.orderId;
-
-                // If payment method is online, initiate payment gateway
-                if (paymentMethod === 'online') {
-                    await handleOnlinePayment(createdOrderId, cartSummary.total);
-                } else {
-                    // For COD, directly show success
-                    setOrderId(createdOrderId);
-                    clearCart();
-                    navigate(`/payment-success?orderId=${createdOrderId}&amount=${cartSummary.total}`);
-                }
-            } else {
-                alert(response.message || 'Failed to place order. Please try again.');
-            }
-        } catch (error) {
-            console.error('Error placing order:', error);
-            alert(error.message || 'Failed to place order. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleOnlinePayment = async (orderId, amount) => {
         try {
@@ -162,6 +118,60 @@ const Checkout = () => {
             }
         }
         return true;
+    };
+
+    const handlePlaceOrder = () => {
+        if (!validateForm()) return;
+        setShowAddressModal(true);
+    };
+
+    const handleConfirmAddress = () => {
+        setShowAddressModal(false);
+        proceedWithOrder();
+    };
+
+    const proceedWithOrder = async () => {
+        setLoading(true);
+        try {
+            const orderData = {
+                items: cartItems.map(item => ({
+                    gemId: item.id,
+                    quantity: item.quantity,
+                    price: item.discount && item.discount > 0
+                        ? item.discountType === 'percentage'
+                            ? item.price - (item.price * item.discount) / 100
+                            : item.price - item.discount
+                        : item.price
+                })),
+                shippingAddress,
+                paymentMethod,
+                orderNotes,
+                totalAmount: cartSummary.total
+            };
+
+            const response = await orderAPI.createOrder(orderData);
+
+            if (response.success) {
+                const createdOrderId = response.data?.orderId || response.order?.id || response.orderId;
+
+                // If payment method is online, initiate payment gateway
+                if (paymentMethod === 'online') {
+                    await handleOnlinePayment(createdOrderId, cartSummary.total);
+                } else {
+                    // For COD, directly show success
+                    setOrderId(createdOrderId);
+                    clearCart();
+                    navigate(`/payment-success?orderId=${createdOrderId}&amount=${cartSummary.total}`);
+                }
+            } else {
+                alert(response.message || 'Failed to place order. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error placing order:', error);
+            alert(error.message || 'Failed to place order. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (orderPlaced) {
@@ -442,6 +452,55 @@ const Checkout = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Address Confirmation Modal */}
+            <AnimatePresence>
+                {showAddressModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6"
+                        >
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Confirm Delivery Address</h2>
+
+                            <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-2">
+                                <p className="font-semibold text-gray-900">
+                                    {shippingAddress.firstName} {shippingAddress.lastName}
+                                </p>
+                                <p className="text-gray-600 text-sm">
+                                    {shippingAddress.address}
+                                </p>
+                                <p className="text-gray-600 text-sm">
+                                    {shippingAddress.city}, {shippingAddress.state} - {shippingAddress.pincode}
+                                </p>
+                                <p className="text-gray-600 text-sm">
+                                    {shippingAddress.phone}
+                                </p>
+                                <p className="text-gray-600 text-sm">
+                                    {shippingAddress.email}
+                                </p>
+                            </div>
+
+                            <div className="flex space-x-3">
+                                <button
+                                    onClick={() => setShowAddressModal(false)}
+                                    className="flex-1 border border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                                >
+                                    Edit Address
+                                </button>
+                                <button
+                                    onClick={handleConfirmAddress}
+                                    className="flex-1 bg-emerald-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
+                                >
+                                    Confirm & Place Order
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

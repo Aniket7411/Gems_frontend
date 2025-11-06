@@ -121,7 +121,7 @@ const GemCards = () => {
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl"></div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="max-w-7xl flex flex-col mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 {/* Header */}
                 <motion.div
                     className="text-center mb-6 sm:mb-8 lg:mb-10"
@@ -139,18 +139,18 @@ const GemCards = () => {
                 </motion.div>
 
                 {/* Desktop Grid - 3 columns */}
-                <div className="hidden lg:grid lg:grid-cols-3 gap-6 xl:gap-8">
+                <div className="hidden lg:flex lg:flex-wrap lg:justify-center gap-6 xl:gap-8">
                     {gems.map((gem, index) => (
                         <motion.div
                             key={index}
-                            className="group"
+                            className="group w-full lg:w-[30%] xl:w-[30%] max-w-sm"
                             initial={{ opacity: 0, y: 50 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.8, delay: index * 0.1 }}
                             whileHover={{ y: -10 }}
                         >
-                            <div className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 hover:border-white/40 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-purple-500/25 flex flex-col h-full">
+                            <div className="bg-white/10 backdrop-blur-lg  rounded-3xl overflow-hidden border border-white/20 hover:border-white/40 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-purple-500/25 flex flex-col h-full">
                                 <motion.div
                                     className="flex justify-center items-center p-4 xl:p-5 flex-shrink-0 h-32 xl:h-36"
                                     whileHover={{ scale: 1.1, rotate: 5 }}
@@ -202,11 +202,11 @@ const GemCards = () => {
                 </div>
 
                 {/* Tablet Grid - 2 columns */}
-                <div className="hidden md:grid lg:hidden md:grid-cols-2 gap-6">
+                <div className="hidden md:flex lg:hidden md:flex-wrap md:justify-center gap-6">
                     {gems.map((gem, index) => (
                         <motion.div
                             key={index}
-                            className="group"
+                            className="group w-full max-w-sm md:max-w-md"
                             initial={{ opacity: 0, y: 50 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}

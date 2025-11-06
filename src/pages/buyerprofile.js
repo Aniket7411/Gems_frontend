@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaEdit, FaSave, FaTimes, FaBox, FaTruck, FaCheckCircle, FaTimesCircle, FaArrowLeft } from 'react-icons/fa';
+import { FaEdit, FaSave, FaTimes, FaBox, FaTruck, FaCheckCircle, FaTimesCircle, FaArrowLeft, FaPlus, FaTrash, FaMapMarkerAlt } from 'react-icons/fa';
 import { authAPI, orderAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -32,6 +32,21 @@ const BuyerProfile = () => {
     const [orders, setOrders] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
+    // Address Management States
+    const [addresses, setAddresses] = useState([]);
+    const [showAddAddress, setShowAddAddress] = useState(false);
+    const [editingAddress, setEditingAddress] = useState(null);
+    const [newAddress, setNewAddress] = useState({
+        label: '',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: '',
+        pincode: '',
+        country: 'India',
+        isPrimary: false
+    });
+
     useEffect(() => {
         if (!isAuthenticated) {
             navigate('/login');
@@ -39,6 +54,7 @@ const BuyerProfile = () => {
         }
         loadUserProfile();
         loadUserOrders();
+        loadAddresses();
     }, [isAuthenticated]);
 
     const loadUserProfile = async () => {
@@ -119,6 +135,18 @@ const BuyerProfile = () => {
             setOrders([]);
         } finally {
             setLoadingOrders(false);
+        }
+    };
+
+    const loadAddresses = async () => {
+        try {
+            const response = await authAPI.getAddresses();
+            if (response.success) {
+                setAddresses(response.addresses || []);
+            }
+        } catch (error) {
+            console.error('Error loading addresses:', error);
+            setAddresses([]);
         }
     };
 
@@ -211,6 +239,122 @@ const BuyerProfile = () => {
         setIsEditingProfile(false);
     };
 
+    // Address Management Handlers
+    const handleNewAddressChange = (e) => {
+        const { name, value } = e.target;
+        setNewAddress({
+            ...newAddress,
+            [name]: value
+        });
+    };
+
+    const handleAddAddress = async () => {
+        try {
+            const response = await authAPI.addAddress(newAddress);
+            if (response.success) {
+                alert('Address added successfully!');
+                setShowAddAddress(false);
+                setNewAddress({
+                    label: '',
+                    addressLine1: '',
+                    addressLine2: '',
+                    city: '',
+                    state: '',
+                    pincode: '',
+                    country: 'India',
+                    isPrimary: false
+                });
+                loadAddresses();
+            } else {
+                alert(response.message || 'Failed to add address');
+            }
+        } catch (error) {
+            console.error('Error adding address:', error);
+            alert(error.message || 'Failed to add address');
+        }
+    };
+
+    const handleEditAddress = (address) => {
+        setEditingAddress(address);
+        setNewAddress({ ...address });
+        setShowAddAddress(true);
+    };
+
+    const handleUpdateAddress = async () => {
+        try {
+            const response = await authAPI.updateAddress(editingAddress._id || editingAddress.id, newAddress);
+            if (response.success) {
+                alert('Address updated successfully!');
+                setShowAddAddress(false);
+                setEditingAddress(null);
+                setNewAddress({
+                    label: '',
+                    addressLine1: '',
+                    addressLine2: '',
+                    city: '',
+                    state: '',
+                    pincode: '',
+                    country: 'India',
+                    isPrimary: false
+                });
+                loadAddresses();
+            } else {
+                alert(response.message || 'Failed to update address');
+            }
+        } catch (error) {
+            console.error('Error updating address:', error);
+            alert(error.message || 'Failed to update address');
+        }
+    };
+
+    const handleDeleteAddress = async (addressId) => {
+        if (!window.confirm('Are you sure you want to delete this address?')) {
+            return;
+        }
+        try {
+            const response = await authAPI.deleteAddress(addressId);
+            if (response.success) {
+                alert('Address deleted successfully!');
+                loadAddresses();
+            } else {
+                alert(response.message || 'Failed to delete address');
+            }
+        } catch (error) {
+            console.error('Error deleting address:', error);
+            alert(error.message || 'Failed to delete address');
+        }
+    };
+
+    const handleSetPrimaryAddress = async (addressId) => {
+        try {
+            const response = await authAPI.setPrimaryAddress(addressId);
+            if (response.success) {
+                alert('Primary address updated!');
+                loadAddresses();
+            } else {
+                alert(response.message || 'Failed to set primary address');
+            }
+        } catch (error) {
+            console.error('Error setting primary address:', error);
+            alert(error.message || 'Failed to set primary address');
+        }
+    };
+
+    const handleCancelAddress = () => {
+        setShowAddAddress(false);
+        setEditingAddress(null);
+        setNewAddress({
+            label: '',
+            addressLine1: '',
+            addressLine2: '',
+            city: '',
+            state: '',
+            pincode: '',
+            country: 'India',
+            isPrimary: false
+        });
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -241,9 +385,10 @@ const BuyerProfile = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-                    {/* Left Column - User Profile */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 sticky top-4">
+                    {/* Left Column - User Profile & Addresses */}
+                    <div className="lg:col-span-1 space-y-6">
+                        {/* Profile Section */}
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-lg sm:text-xl font-semibold text-gray-900">My Profile</h2>
                                 {!isEditingProfile ? (
@@ -331,75 +476,197 @@ const BuyerProfile = () => {
                                     )}
                                 </div>
 
-                                {/* Address */}
-                                <div>
-                                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                                        Shipping Address
-                                    </label>
-                                    {isEditingProfile ? (
-                                        <div className="space-y-2">
+                            </div>
+                        </div>
+
+                        {/* Addresses Section */}
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">My Addresses</h2>
+                                <button
+                                    onClick={() => {
+                                        setEditingAddress(null);
+                                        setNewAddress({
+                                            label: '',
+                                            addressLine1: '',
+                                            addressLine2: '',
+                                            city: '',
+                                            state: '',
+                                            pincode: '',
+                                            country: 'India',
+                                            isPrimary: false
+                                        });
+                                        setShowAddAddress(!showAddAddress);
+                                    }}
+                                    className="text-emerald-600 hover:text-emerald-700 flex items-center text-sm sm:text-base"
+                                >
+                                    <FaPlus className="mr-1" /> {showAddAddress ? 'Cancel' : 'Add'}
+                                </button>
+                            </div>
+
+                            {/* Add/Edit Address Form */}
+                            {showAddAddress && (
+                                <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                                        {editingAddress ? 'Edit Address' : 'Add New Address'}
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <input
+                                            type="text"
+                                            name="label"
+                                            value={newAddress.label}
+                                            onChange={handleNewAddressChange}
+                                            placeholder="Address Label (Home, Office, etc.)"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                                        />
+                                        <input
+                                            type="text"
+                                            name="addressLine1"
+                                            value={newAddress.addressLine1}
+                                            onChange={handleNewAddressChange}
+                                            placeholder="Address Line 1 *"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                                            required
+                                        />
+                                        <input
+                                            type="text"
+                                            name="addressLine2"
+                                            value={newAddress.addressLine2}
+                                            onChange={handleNewAddressChange}
+                                            placeholder="Address Line 2"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                                        />
+                                        <div className="grid grid-cols-2 gap-2">
                                             <input
                                                 type="text"
-                                                name="address.addressLine1"
-                                                value={editedProfile.address.addressLine1}
-                                                onChange={handleProfileChange}
-                                                placeholder="Address Line 1"
+                                                name="city"
+                                                value={newAddress.city}
+                                                onChange={handleNewAddressChange}
+                                                placeholder="City *"
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                                                required
                                             />
                                             <input
                                                 type="text"
-                                                name="address.addressLine2"
-                                                value={editedProfile.address.addressLine2}
-                                                onChange={handleProfileChange}
-                                                placeholder="Address Line 2 (Optional)"
+                                                name="state"
+                                                value={newAddress.state}
+                                                onChange={handleNewAddressChange}
+                                                placeholder="State *"
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                                                required
                                             />
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <input
-                                                    type="text"
-                                                    name="address.city"
-                                                    value={editedProfile.address.city}
-                                                    onChange={handleProfileChange}
-                                                    placeholder="City"
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    name="address.state"
-                                                    value={editedProfile.address.state}
-                                                    onChange={handleProfileChange}
-                                                    placeholder="State"
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
-                                                />
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <input
-                                                    type="text"
-                                                    name="address.pincode"
-                                                    value={editedProfile.address.pincode}
-                                                    onChange={handleProfileChange}
-                                                    placeholder="Pincode"
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    name="address.country"
-                                                    value={editedProfile.address.country}
-                                                    onChange={handleProfileChange}
-                                                    placeholder="Country"
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
-                                                />
-                                            </div>
                                         </div>
-                                    ) : (
-                                        <div className="text-sm sm:text-base text-gray-900">
-                                            <p>{userProfile.address.addressLine1}</p>
-                                            {userProfile.address.addressLine2 && <p>{userProfile.address.addressLine2}</p>}
-                                            <p>{userProfile.address.city}, {userProfile.address.state}</p>
-                                            <p>{userProfile.address.pincode}, {userProfile.address.country}</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <input
+                                                type="text"
+                                                name="pincode"
+                                                value={newAddress.pincode}
+                                                onChange={handleNewAddressChange}
+                                                placeholder="Pincode *"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                                                required
+                                            />
+                                            <input
+                                                type="text"
+                                                name="country"
+                                                value={newAddress.country}
+                                                onChange={handleNewAddressChange}
+                                                placeholder="Country *"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                                                required
+                                            />
                                         </div>
-                                    )}
+                                        <div className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                id="isPrimary"
+                                                checked={newAddress.isPrimary}
+                                                onChange={(e) => setNewAddress({ ...newAddress, isPrimary: e.target.checked })}
+                                                className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                                            />
+                                            <label htmlFor="isPrimary" className="ml-2 block text-sm text-gray-900">
+                                                Set as primary address
+                                            </label>
+                                        </div>
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={editingAddress ? handleUpdateAddress : handleAddAddress}
+                                                className="flex-1 bg-emerald-600 text-white py-2 px-4 rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+                                            >
+                                                {editingAddress ? 'Update' : 'Add'} Address
+                                            </button>
+                                            <button
+                                                onClick={handleCancelAddress}
+                                                className="flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
+                            )}
+
+                            {/* Addresses List */}
+                            <div className="space-y-3">
+                                {addresses.length === 0 ? (
+                                    <div className="text-center py-6 text-sm text-gray-500">
+                                        <FaMapMarkerAlt className="mx-auto mb-2 text-2xl" />
+                                        No addresses saved yet
+                                    </div>
+                                ) : (
+                                    addresses.map((address) => (
+                                        <div
+                                            key={address._id || address.id}
+                                            className={`border rounded-lg p-3 ${address.isPrimary ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'
+                                                }`}
+                                        >
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="flex-1">
+                                                    {address.label && (
+                                                        <span className="text-xs font-semibold text-gray-900 uppercase">
+                                                            {address.label}
+                                                        </span>
+                                                    )}
+                                                    {address.isPrimary && (
+                                                        <span className="ml-2 px-2 py-1 bg-emerald-600 text-white text-xs rounded-full">
+                                                            Primary
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="flex space-x-1">
+                                                    <button
+                                                        onClick={() => handleEditAddress(address)}
+                                                        className="text-blue-600 hover:text-blue-700 text-sm"
+                                                    >
+                                                        <FaEdit />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteAddress(address._id || address.id)}
+                                                        className="text-red-600 hover:text-red-700 text-sm"
+                                                    >
+                                                        <FaTrash />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="text-xs sm:text-sm text-gray-700">
+                                                <p>{address.addressLine1}</p>
+                                                {address.addressLine2 && <p>{address.addressLine2}</p>}
+                                                <p>
+                                                    {address.city}, {address.state} - {address.pincode}
+                                                </p>
+                                                <p>{address.country}</p>
+                                            </div>
+                                            {!address.isPrimary && (
+                                                <button
+                                                    onClick={() => handleSetPrimaryAddress(address._id || address.id)}
+                                                    className="mt-2 text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                                                >
+                                                    Set as Primary
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </div>

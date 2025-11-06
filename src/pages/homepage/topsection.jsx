@@ -21,6 +21,26 @@ const TopSection = () => {
             <h1 style={{ fontSize: "3rem", fontWeight: "bold" }}>
                 Aurelane
             </h1>
+            <p style={{ 
+                fontSize: "1.1rem", 
+                marginTop: "8px", 
+                marginBottom: "8px",
+                fontWeight: "500",
+                letterSpacing: "0.5px",
+                opacity: "0.95"
+            }}>
+                India's fastest growing international gem exporter
+            </p>
+            <div
+                style={{
+                    width: "120px",
+                    height: "4px",
+                    background: "linear-gradient(90deg, rgba(16, 185, 129, 0.8), rgba(5, 150, 105, 0.8))",
+                    borderRadius: "2px",
+                    marginBottom: "10px",
+                    boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)"
+                }}
+            ></div>
             <p style={{ maxWidth: "600px", fontSize: "1.2rem", marginTop: "10px" }}>
                 Discover the timeless beauty of precious gemstones. At Aurelane, we bring you handpicked elegance, crafted to shine with sophistication and grace.
             </p>

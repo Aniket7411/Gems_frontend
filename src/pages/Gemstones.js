@@ -314,31 +314,7 @@ const Gemstones = () => {
                 </p>
               </motion.div>
 
-              {/* CTA Section */}
-              <motion.div
-                variants={tabVariants}
-                initial="hidden"
-                animate="visible"
-                transition={{ delay: 0.7 }}
-                className="mt-8 text-center"
-              >
-                <div className="bg-gradient-to-r from-emerald-600 to-blue-600 rounded-2xl p-8">
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    Ready to Experience the Power of {activeGemstone.name}?
-                  </h3>
-                  <p className="text-emerald-100 mb-6 max-w-2xl mx-auto">
-                    Consult with our expert astrologers to find the perfect gemstone for your birth chart and life goals.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button className="px-8 py-3 bg-white text-emerald-600 font-semibold rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-105">
-                      Consult Astrologer
-                    </button>
-                    <button className="px-8 py-3 border-2 border-white text-white font-semibold rounded-full hover:bg-white hover:text-emerald-600 transition-all duration-300 transform hover:scale-105">
-                      View Collection
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
+         
             </div>
           </motion.div>
         </AnimatePresence>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { gemAPI, authAPI } from '../services/api';
-import { FaPlus, FaEdit, FaTrash, FaEye, FaExclamationTriangle } from 'react-icons/fa';
+import { gemAPI, authAPI, orderAPI } from '../services/api';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaExclamationTriangle, FaShoppingBag, FaRupeeSign } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 const SellerDashboard = () => {
@@ -15,6 +15,11 @@ const SellerDashboard = () => {
         outOfStock: 0,
         totalValue: 0
     });
+    const [orderStats, setOrderStats] = useState({
+        totalOrders: 0,
+        pendingOrders: 0,
+        totalRevenue: 0
+    });
 
     const user = authAPI.getCurrentUser();
 
@@ -24,6 +29,7 @@ const SellerDashboard = () => {
             return;
         }
         fetchSellerGems();
+        fetchOrderStats();
     }, []);
 
     const fetchSellerGems = async () => {
@@ -77,6 +83,21 @@ const SellerDashboard = () => {
         }
     };
 
+    const fetchOrderStats = async () => {
+        try {
+            const response = await orderAPI.getSellerOrderStats();
+            if (response.success) {
+                setOrderStats(response.stats || {
+                    totalOrders: 0,
+                    pendingOrders: 0,
+                    totalRevenue: 0
+                });
+            }
+        } catch (err) {
+            console.error('Error fetching order stats:', err);
+        }
+    };
+
     const getStockStatus = (stock) => {
         if (!stock || stock === 0) {
             return { label: 'Out of Stock', color: 'bg-red-100 text-red-800' };
@@ -107,8 +128,24 @@ const SellerDashboard = () => {
                     <p className="text-gray-600">Welcome back, {user?.name}!</p>
                 </div>
 
+                {/* Quick Actions */}
+                <div className="flex flex-wrap gap-4 mb-6">
+                    <button
+                        onClick={() => navigate('/seller-orders')}
+                        className="flex items-center space-x-2 bg-white text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors shadow-md border border-gray-200"
+                    >
+                        <FaShoppingBag />
+                        <span>View Orders</span>
+                        {orderStats.pendingOrders > 0 && (
+                            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                {orderStats.pendingOrders}
+                            </span>
+                        )}
+                    </button>
+                </div>
+
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-6 mb-8">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -119,9 +156,9 @@ const SellerDashboard = () => {
                                 <p className="text-sm text-gray-600 mb-1">Total Gems</p>
                                 <p className="text-3xl font-bold text-gray-900">{stats.totalGems}</p>
                             </div>
-                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                            {/* <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                                 <span className="text-2xl">💎</span>
-                            </div>
+                            </div> */}
                         </div>
                     </motion.div>
 
@@ -136,9 +173,9 @@ const SellerDashboard = () => {
                                 <p className="text-sm text-gray-600 mb-1">Low Stock</p>
                                 <p className="text-3xl font-bold text-yellow-600">{stats.lowStockGems}</p>
                             </div>
-                            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                            {/* <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
                                 <FaExclamationTriangle className="text-yellow-600 text-xl" />
-                            </div>
+                            </div> */}
                         </div>
                     </motion.div>
 
@@ -153,9 +190,9 @@ const SellerDashboard = () => {
                                 <p className="text-sm text-gray-600 mb-1">Out of Stock</p>
                                 <p className="text-3xl font-bold text-red-600">{stats.outOfStock}</p>
                             </div>
-                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                            {/* <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                                 <span className="text-2xl">⚠️</span>
-                            </div>
+                            </div> */}
                         </div>
                     </motion.div>
 
@@ -170,9 +207,63 @@ const SellerDashboard = () => {
                                 <p className="text-sm text-gray-600 mb-1">Inventory Value</p>
                                 <p className="text-2xl font-bold text-emerald-600">₹{stats.totalValue.toLocaleString()}</p>
                             </div>
-                            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
+                            {/* <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
                                 <span className="text-2xl">💰</span>
+                            </div> */}
+                        </div>
+                    </motion.div>
+
+                    {/* Order Stats */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="bg-white rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow"
+                        onClick={() => navigate('/seller-orders')}
+                    >
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-600 mb-1">Total Orders</p>
+                                <p className="text-2xl font-bold text-blue-600">{orderStats.totalOrders}</p>
                             </div>
+                            {/* <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <FaShoppingBag className="text-blue-600 text-xl" />
+                            </div> */}
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="bg-white rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow"
+                        onClick={() => navigate('/seller-orders?status=pending')}
+                    >
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-600 mb-1">Pending Orders</p>
+                                <p className="text-2xl font-bold text-yellow-600">{orderStats.pendingOrders}</p>
+                            </div>
+                            {/* <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                                <span className="text-2xl">⏳</span>
+                            </div> */}
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="bg-white rounded-2xl shadow-lg p-6"
+                    >
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
+                                <p className="text-xl font-bold text-emerald-600">₹{orderStats.totalRevenue?.toLocaleString() || 0}</p>
+                            </div>
+                            {/* <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
+                                <FaRupeeSign className="text-emerald-600 text-xl" />
+                            </div> */}
                         </div>
                     </motion.div>
                 </div>
@@ -259,7 +350,7 @@ const SellerDashboard = () => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">
-                                                        {gem.category}
+                                                        {gem.category || gem.name || 'N/A'}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

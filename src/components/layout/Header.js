@@ -74,7 +74,7 @@ const Header = () => {
             {/* Logo - smaller on mobile */}
             <div className="flex-shrink-0">
               <Link to="/" className="flex items-center">
-                <div className="h-16 w-16 rounded-lg flex items-center justify-center">
+                <div className="h-20 w-20 rounded-lg flex items-center justify-center">
                   <img src="/images/aurelane.png" alt="Aurelane Logo" className="h-full w-full object-contain" />
                 </div>
               </Link>
@@ -195,22 +195,38 @@ const Header = () => {
             </Link>
             {isAuthenticated && (
               <>
-                <Link
-                  to="/dashboard"
-                  className="text-gray-600 hover:text-emerald-600 font-medium transition"
-                >
-                  Dashboard
-                </Link>
-
-                {
-                  JSON.parse(localStorage.getItem('user'))?.role === "seller" && <Link
-                    to="/add-gem"
+                {user?.role === "admin" && (
+                  <Link
+                    to="/admin-dashboard"
                     className="text-gray-600 hover:text-emerald-600 font-medium transition"
                   >
-                    Add Gem
+                    Admin Dashboard
                   </Link>
-                }
-
+                )}
+                {user?.role === "seller" && (
+                  <>
+                    <Link
+                      to="/seller-dashboard"
+                      className="text-gray-600 hover:text-emerald-600 font-medium transition"
+                    >
+                      Seller Dashboard
+                    </Link>
+                    <Link
+                      to="/add-gem"
+                      className="text-gray-600 hover:text-emerald-600 font-medium transition"
+                    >
+                      Add Gem
+                    </Link>
+                  </>
+                )}
+                {(user?.role === "buyer" || !user?.role) && (
+                  <Link
+                    to="/my-orders"
+                    className="text-gray-600 hover:text-emerald-600 font-medium transition"
+                  >
+                    My Orders
+                  </Link>
+                )}
               </>
             )}
           </nav>
@@ -266,13 +282,14 @@ const Header = () => {
 
             <Link
               to={
-                JSON.parse(localStorage.getItem('user'))?.role === "admin"
-                  ? "/admin/sellers"
+                user?.role === "admin"
+                  ? "/admin-dashboard"
                   : user?.role === "seller"
-                    ? "/seller-detail"
+                    ? "/seller-dashboard"
                     : "/user-detail"
               }
               className="text-gray-600 hover:text-emerald-600 font-medium transition"
+              title={user?.role === "admin" ? "Admin Dashboard" : user?.role === "seller" ? "Seller Dashboard" : "My Profile"}
             >
               <CgProfile size={24} />
             </Link>
@@ -380,20 +397,12 @@ const Header = () => {
                 {user?.role === "admin" ? (
                   <>
                     <Link
-                      to="/admin/sellers"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
-                    >
-                      <span className="text-lg">🏪</span>
-                      <span>Manage Sellers</span>
-                    </Link>
-                    <Link
-                      to="/dashboard"
+                      to="/admin-dashboard"
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
                     >
                       <span className="text-lg">📊</span>
-                      <span>Dashboard</span>
+                      <span>Admin Dashboard</span>
                     </Link>
                   </>
                 ) : user?.role === "seller" ? (
@@ -405,6 +414,14 @@ const Header = () => {
                     >
                       <span className="text-lg">📊</span>
                       <span>My Dashboard</span>
+                    </Link>
+                    <Link
+                      to="/seller-orders"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors"
+                    >
+                      <span className="text-lg">📦</span>
+                      <span>My Orders</span>
                     </Link>
                     <Link
                       to="/add-gem"

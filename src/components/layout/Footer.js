@@ -7,12 +7,11 @@ const Footer = () => {
                 {/* Company Info */}
                 <div className="col-span-1 md:col-span-2">
                     <div className="flex items-center mb-4">
-                        <div className="h-20 w-20 rounded-lg flex items-center justify-center">
+                        <div className="h-28 w-28 rounded-lg flex items-center justify-center">
                                 <img src="/images/aurelane.png" alt="Aurelane Logo" />
 
                         </div>
 
-                        <span className="ml-2 text-xl font-bold">Aurelane</span>
                     </div>
                     <p className=" text-sm mb-4">
                         Your trusted platform for jewelry management and authentication.

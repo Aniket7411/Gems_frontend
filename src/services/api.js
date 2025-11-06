@@ -195,6 +195,32 @@ export const authAPI = {
     getBuyerProfile: async () => {
         return await apiClient.get('/user/profile');
     },
+
+    // Address Management
+    // Get all addresses
+    getAddresses: async () => {
+        return apiClient.get('/user/addresses');
+    },
+
+    // Add address
+    addAddress: async (addressData) => {
+        return apiClient.post('/user/addresses', addressData);
+    },
+
+    // Update address
+    updateAddress: async (addressId, addressData) => {
+        return apiClient.put(`/user/addresses/${addressId}`, addressData);
+    },
+
+    // Delete address
+    deleteAddress: async (addressId) => {
+        return apiClient.delete(`/user/addresses/${addressId}`);
+    },
+
+    // Set primary address
+    setPrimaryAddress: async (addressId) => {
+        return apiClient.put(`/user/addresses/${addressId}/primary`);
+    }
 };
 
 // Gem API functions
@@ -311,6 +337,33 @@ export const orderAPI = {
     // Get order invoice
     getOrderInvoice: async (orderId) => {
         return apiClient.get(`/orders/${orderId}/invoice`, { responseType: 'blob' });
+    },
+
+    // Seller-specific order functions
+    // Get seller orders
+    getSellerOrders: async (params = {}) => {
+        const filteredParams = Object.keys(params).reduce((acc, key) => {
+            if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+                acc[key] = params[key];
+            }
+            return acc;
+        }, {});
+        return apiClient.get('/seller/orders', { params: filteredParams });
+    },
+
+    // Get seller order by ID
+    getSellerOrderById: async (orderId) => {
+        return apiClient.get(`/seller/orders/${orderId}`);
+    },
+
+    // Update order status
+    updateOrderStatus: async (orderId, status, trackingData = {}) => {
+        return apiClient.put(`/seller/orders/${orderId}/status`, { status, ...trackingData });
+    },
+
+    // Get seller order stats
+    getSellerOrderStats: async () => {
+        return apiClient.get('/seller/orders/stats');
     }
 };
 
@@ -324,6 +377,45 @@ export const otpAPI = {
     // Verify OTP
     verifyOTP: async (phoneNumber, otp) => {
         return apiClient.post('/otp/verify', { phoneNumber, otp });
+    }
+};
+
+// Review API functions
+export const reviewAPI = {
+    // Submit a review
+    submitReview: async (gemId, reviewData) => {
+        return apiClient.post(`/reviews/${gemId}`, reviewData);
+    },
+
+    // Get reviews for a gem
+    getGemReviews: async (gemId, params = {}) => {
+        const filteredParams = Object.keys(params).reduce((acc, key) => {
+            if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+                acc[key] = params[key];
+            }
+            return acc;
+        }, {});
+        return apiClient.get(`/reviews/gem/${gemId}`, { params: filteredParams });
+    },
+
+    // Get user's reviews
+    getUserReviews: async () => {
+        return apiClient.get('/reviews/user');
+    },
+
+    // Update a review
+    updateReview: async (reviewId, reviewData) => {
+        return apiClient.put(`/reviews/${reviewId}`, reviewData);
+    },
+
+    // Delete a review
+    deleteReview: async (reviewId) => {
+        return apiClient.delete(`/reviews/${reviewId}`);
+    },
+
+    // Check if user has reviewed a gem
+    hasReviewed: async (gemId) => {
+        return apiClient.get(`/reviews/check/${gemId}`);
     }
 };
 
@@ -380,14 +472,80 @@ export const adminAPI = {
         return apiClient.put(`/admin/sellers/${sellerId}/status`, { status });
     },
 
+    // Block/Unblock seller
+    blockSeller: async (sellerId) => {
+        return apiClient.put(`/admin/sellers/${sellerId}/block`);
+    },
+
+    unblockSeller: async (sellerId) => {
+        return apiClient.put(`/admin/sellers/${sellerId}/unblock`);
+    },
+
     // Delete seller
     deleteSeller: async (sellerId) => {
         return apiClient.delete(`/admin/sellers/${sellerId}`);
     },
 
+    // Get all buyers with filters
+    getBuyers: async (params = {}) => {
+        const filteredParams = Object.keys(params).reduce((acc, key) => {
+            if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+                acc[key] = params[key];
+            }
+            return acc;
+        }, {});
+        return apiClient.get('/admin/buyers', { params: filteredParams });
+    },
+
+    // Get buyer by ID
+    getBuyerById: async (buyerId) => {
+        return apiClient.get(`/admin/buyers/${buyerId}`);
+    },
+
+    // Block/Unblock buyer
+    blockBuyer: async (buyerId) => {
+        return apiClient.put(`/admin/buyers/${buyerId}/block`);
+    },
+
+    unblockBuyer: async (buyerId) => {
+        return apiClient.put(`/admin/buyers/${buyerId}/unblock`);
+    },
+
+    // Get all products (admin)
+    getAllProducts: async (params = {}) => {
+        const filteredParams = Object.keys(params).reduce((acc, key) => {
+            if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+                acc[key] = params[key];
+            }
+            return acc;
+        }, {});
+        return apiClient.get('/admin/products', { params: filteredParams });
+    },
+
+    // Get product by ID (admin)
+    getProductById: async (productId) => {
+        return apiClient.get(`/admin/products/${productId}`);
+    },
+
+    // Delete product (admin)
+    deleteProduct: async (productId) => {
+        return apiClient.delete(`/admin/products/${productId}`);
+    },
+
     // Get all orders (admin)
     getAllOrders: async (params = {}) => {
-        return apiClient.get('/admin/orders', { params });
+        const filteredParams = Object.keys(params).reduce((acc, key) => {
+            if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+                acc[key] = params[key];
+            }
+            return acc;
+        }, {});
+        return apiClient.get('/admin/orders', { params: filteredParams });
+    },
+
+    // Get order by ID (admin)
+    getOrderById: async (orderId) => {
+        return apiClient.get(`/admin/orders/${orderId}`);
     },
 
     // Get dashboard stats
@@ -401,5 +559,5 @@ export const healthCheck = async () => {
     return apiClient.get('/health');
 };
 
-const api = { authAPI, gemAPI, cartAPI, orderAPI, otpAPI, wishlistAPI, adminAPI, healthCheck };
+const api = { authAPI, gemAPI, cartAPI, orderAPI, otpAPI, reviewAPI, wishlistAPI, adminAPI, healthCheck };
 export default api;

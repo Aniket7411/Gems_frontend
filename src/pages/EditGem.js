@@ -68,11 +68,31 @@ const EditGem = () => {
     };
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setGemData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        const { name, value, type } = e.target;
+        
+        if (type === 'number') {
+            // Handle number inputs with proper rounding
+            let processedValue = value;
+            
+            // For integer fields (stock), round to nearest integer
+            if (name === 'stock') {
+                processedValue = value === '' ? '' : Math.round(parseFloat(value) || 0);
+            }
+            // For decimal fields (price, discount, sizeWeight), round to 2 decimal places
+            else if (name === 'price' || name === 'discount' || name === 'sizeWeight') {
+                processedValue = value === '' ? '' : Math.round((parseFloat(value) || 0) * 100) / 100;
+            }
+            
+            setGemData(prev => ({
+                ...prev,
+                [name]: processedValue
+            }));
+        } else {
+            setGemData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -191,8 +211,17 @@ const EditGem = () => {
                                 name="price"
                                 value={gemData.price}
                                 onChange={handleChange}
+                                onBlur={(e) => {
+                                    // Round to 2 decimal places on blur
+                                    const value = parseFloat(e.target.value);
+                                    if (!isNaN(value)) {
+                                        const rounded = Math.round(value * 100) / 100;
+                                        setGemData(prev => ({ ...prev, price: rounded }));
+                                    }
+                                }}
                                 required
                                 min="0"
+                                step="1"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                 placeholder="75000"
                             />
@@ -208,8 +237,17 @@ const EditGem = () => {
                                 name="stock"
                                 value={gemData.stock}
                                 onChange={handleChange}
+                                onBlur={(e) => {
+                                    // Round to nearest integer on blur
+                                    const value = parseFloat(e.target.value);
+                                    if (!isNaN(value)) {
+                                        const rounded = Math.round(value);
+                                        setGemData(prev => ({ ...prev, stock: rounded }));
+                                    }
+                                }}
                                 required
                                 min="0"
+                                step="1"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                 placeholder="10"
                             />
@@ -258,7 +296,16 @@ const EditGem = () => {
                                 name="discount"
                                 value={gemData.discount}
                                 onChange={handleChange}
+                                onBlur={(e) => {
+                                    // Round to 2 decimal places on blur
+                                    const value = parseFloat(e.target.value);
+                                    if (!isNaN(value)) {
+                                        const rounded = Math.round(value * 100) / 100;
+                                        setGemData(prev => ({ ...prev, discount: rounded }));
+                                    }
+                                }}
                                 min="0"
+                                step="0.01"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                 placeholder="10"
                             />

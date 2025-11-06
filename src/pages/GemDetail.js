@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { gemAPI, wishlistAPI } from '../services/api';
+import { motion, AnimatePresence } from 'framer-motion';
+import { gemAPI, wishlistAPI, reviewAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { FaHeart, FaShoppingCart, FaStar, FaArrowLeft, FaShare, FaCheck, FaTruck, FaCertificate } from 'react-icons/fa';
+import GemCard from '../components/gems/GemCard';
 
 const GemDetail = () => {
     const { id } = useParams();
@@ -18,13 +19,64 @@ const GemDetail = () => {
     const [quantity, setQuantity] = useState(1);
     const [isWishlisted, setIsWishlisted] = useState(false);
     const [addingToCart, setAddingToCart] = useState(false);
+    const [reviews, setReviews] = useState([]);
+    const [loadingReviews, setLoadingReviews] = useState(false);
+    const [showAllBenefits, setShowAllBenefits] = useState(false);
+    const [showAllSuitableFor, setShowAllSuitableFor] = useState(false);
+    const [relatedProducts, setRelatedProducts] = useState([]);
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [modalImageIndex, setModalImageIndex] = useState(0);
 
     useEffect(() => {
         fetchGemDetails();
         if (isAuthenticated) {
             checkWishlistStatus();
         }
+        fetchReviews();
     }, [id, isAuthenticated]);
+
+    // Keyboard support and body scroll lock for image modal
+    useEffect(() => {
+        if (!showImageModal) {
+            document.body.style.overflow = '';
+            return;
+        }
+
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = 'hidden';
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                setShowImageModal(false);
+            } else if (e.key === 'ArrowLeft') {
+                const allImages = [];
+                if (gem?.heroImage) allImages.push(gem.heroImage);
+                if (gem?.additionalImages && gem.additionalImages.length > 0) {
+                    allImages.push(...gem.additionalImages);
+                }
+                const imagesToShow = allImages.length > 0 ? allImages : (gem?.allImages || []);
+                if (imagesToShow.length > 1) {
+                    setModalImageIndex((prev) => prev === 0 ? imagesToShow.length - 1 : prev - 1);
+                }
+            } else if (e.key === 'ArrowRight') {
+                const allImages = [];
+                if (gem?.heroImage) allImages.push(gem.heroImage);
+                if (gem?.additionalImages && gem.additionalImages.length > 0) {
+                    allImages.push(...gem.additionalImages);
+                }
+                const imagesToShow = allImages.length > 0 ? allImages : (gem?.allImages || []);
+                if (imagesToShow.length > 1) {
+                    setModalImageIndex((prev) => prev === imagesToShow.length - 1 ? 0 : prev + 1);
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            document.body.style.overflow = '';
+        };
+    }, [showImageModal, gem]);
 
     const fetchGemDetails = async () => {
         try {
@@ -36,7 +88,20 @@ const GemDetail = () => {
 
 
             if (response.success) {
-                setGem(response.data || response.gem);
+                const gemData = response.data || response.gem;
+                // Combine heroImage and additionalImages for gallery
+                const allImages = [];
+                if (gemData.heroImage) allImages.push(gemData.heroImage);
+                if (gemData.additionalImages && gemData.additionalImages.length > 0) {
+                    allImages.push(...gemData.additionalImages);
+                }
+                // Update gem with combined images
+                setGem({ ...gemData, allImages });
+
+                // Handle related products
+                if (response.relatedProducts && Array.isArray(response.relatedProducts)) {
+                    setRelatedProducts(response.relatedProducts);
+                }
             } else {
                 setError('Gem not found');
             }
@@ -56,6 +121,20 @@ const GemDetail = () => {
             }
         } catch (err) {
             console.error('Error checking wishlist:', err);
+        }
+    };
+
+    const fetchReviews = async () => {
+        setLoadingReviews(true);
+        try {
+            const response = await reviewAPI.getGemReviews(id);
+            if (response.success) {
+                setReviews(response.reviews || response.data || []);
+            }
+        } catch (err) {
+            console.error('Error fetching reviews:', err);
+        } finally {
+            setLoadingReviews(false);
         }
     };
 
@@ -213,115 +292,200 @@ const GemDetail = () => {
         );
     }
 
+    const handleRelatedProductAddToCart = (relatedGem) => {
+        addToCart({
+            id: relatedGem._id || relatedGem.id,
+            name: relatedGem.name,
+            price: relatedGem.price,
+            discount: relatedGem.discount,
+            discountType: relatedGem.discountType,
+            image: relatedGem.heroImage || relatedGem.images?.[0] || null,
+            category: relatedGem.category,
+            sizeWeight: relatedGem.sizeWeight,
+            sizeUnit: relatedGem.sizeUnit,
+            quantity: 1
+        });
+    };
+
+    const handleRelatedProductWishlist = async (relatedGem) => {
+        if (!isAuthenticated) {
+            alert('Please login to add items to wishlist');
+            navigate('/login');
+            return;
+        }
+        // Handle wishlist toggle for related product
+        try {
+            const gemId = relatedGem._id || relatedGem.id;
+            const response = await wishlistAPI.addToWishlist(gemId);
+            if (response.success) {
+                alert('Added to wishlist!');
+            }
+        } catch (error) {
+            console.error('Error adding to wishlist:', error);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50">
-            {/* Header */}
-            <div className="bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center space-x-4">
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="flex items-center space-x-2 text-gray-600 hover:text-emerald-600 transition-colors"
-                        >
-                            <FaArrowLeft className="w-4 h-4" />
-                            <span>Back</span>
-                        </button>
-                        <div className="flex-1">
-                            <h1 className="text-2xl font-bold text-gray-900">{gem.name}</h1>
-                            <p className="text-gray-600">{gem.category}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <button className="p-2 text-gray-600 hover:text-emerald-600 transition-colors">
-                                <FaShare className="w-5 h-5" />
-                            </button>
-                            <button
-                                onClick={handleToggleWishlist}
-                                className={`p-2 transition-colors ${isWishlisted ? 'text-red-500' : 'text-gray-600 hover:text-red-500'
-                                    }`}
-                                title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-                            >
-                                <FaHeart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
+                {/* Back Button - Simplified */}
+                <div className="mb-4">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="flex items-center space-x-2 text-gray-600 hover:text-emerald-600 transition-colors"
+                    >
+                        <FaArrowLeft className="w-4 h-4" />
+                        <span className="text-sm font-medium">Back</span>
+                    </button>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
                     {/* Image Gallery */}
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4 lg:sticky lg:top-4 lg:self-start relative z-10">
                         {/* Main Image */}
-                        <div className="aspect-square bg-white rounded-2xl shadow-lg overflow-hidden">
-                            {(gem.allImages && gem.allImages.length > 0) || gem.heroImage ? (
-                                <img
-                                    src={gem.allImages?.[selectedImage] || gem.heroImage}
-                                    alt={gem.name}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div className={`w-full h-full bg-gradient-to-br ${getGemGradient(gem.category)} flex items-center justify-center`}>
-                                    <span className="text-8xl">{getGemEmoji(gem.category)}</span>
-                                </div>
-                            )}
-                        </div>
+                        <motion.div
+                            className="aspect-square sm:aspect-square bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden border border-gray-200 relative z-10 max-h-[400px] sm:max-h-none"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.3 }}
+                            key={selectedImage}
+                        >
+                            {(() => {
+                                // Get all images: heroImage + additionalImages
+                                const allImages = [];
+                                if (gem.heroImage) allImages.push(gem.heroImage);
+                                if (gem.additionalImages && gem.additionalImages.length > 0) {
+                                    allImages.push(...gem.additionalImages);
+                                }
+
+                                if (allImages.length > 0) {
+                                    return (
+                                        <img
+                                            src={allImages[selectedImage]}
+                                            alt={gem.name}
+                                            className="w-full h-full object-cover transition-opacity duration-300 cursor-zoom-in"
+                                            onClick={() => {
+                                                setModalImageIndex(selectedImage);
+                                                setShowImageModal(true);
+                                            }}
+                                        />
+                                    );
+                                } else if (gem.allImages && gem.allImages.length > 0) {
+                                    return (
+                                        <img
+                                            src={gem.allImages[selectedImage]}
+                                            alt={gem.name}
+                                            className="w-full h-full object-cover transition-opacity duration-300 cursor-zoom-in"
+                                            onClick={() => {
+                                                setModalImageIndex(selectedImage);
+                                                setShowImageModal(true);
+                                            }}
+                                        />
+                                    );
+                                } else {
+                                    return (
+                                        <div className={`w-full h-full bg-gradient-to-br ${getGemGradient(gem.category || gem.name)} flex items-center justify-center`}>
+                                            <span className="text-6xl sm:text-8xl">{getGemEmoji(gem.category || gem.name)}</span>
+                                        </div>
+                                    );
+                                }
+                            })()}
+                        </motion.div>
 
                         {/* Thumbnail Images */}
-                        {gem.allImages && gem.allImages.length > 1 && (
-                            <div className="grid grid-cols-4 gap-2">
-                                {gem.allImages.map((image, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => setSelectedImage(index)}
-                                        className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${selectedImage === index
-                                            ? 'border-emerald-500 ring-2 ring-emerald-200'
-                                            : 'border-gray-200 hover:border-emerald-300'
-                                            }`}
-                                    >
-                                        <img
-                                            src={image}
-                                            alt={`${gem.name} ${index + 1}`}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        {(() => {
+                            // Get all images: heroImage + additionalImages
+                            const allImages = [];
+                            if (gem.heroImage) allImages.push(gem.heroImage);
+                            if (gem.additionalImages && gem.additionalImages.length > 0) {
+                                allImages.push(...gem.additionalImages);
+                            }
+
+                            // Fallback to allImages if available
+                            const imagesToShow = allImages.length > 0 ? allImages : (gem.allImages || []);
+
+                            if (imagesToShow.length > 1) {
+                                return (
+                                    <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-3 relative z-10">
+                                        {imagesToShow.map((image, index) => (
+                                            <motion.button
+                                                key={index}
+                                                onClick={() => setSelectedImage(index)}
+                                                className={`aspect-square rounded-lg overflow-hidden border-2 transition-all duration-200 relative z-10 ${selectedImage === index
+                                                    ? 'border-emerald-500 ring-2 ring-emerald-200 scale-105 shadow-md'
+                                                    : 'border-gray-200 hover:border-emerald-300 hover:shadow-sm'
+                                                    }`}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                <img
+                                                    src={image}
+                                                    alt={`${gem.name} ${index + 1}`}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </motion.button>
+                                        ))}
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
                     </div>
 
                     {/* Product Details */}
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-5 relative z-0">
                         {/* Title and Rating */}
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{gem.name}</h1>
-                            {gem.hindiName && (
-                                <h2 className="text-xl font-semibold text-emerald-700 mb-2">{gem.hindiName}</h2>
-                            )}
-                            <div className="flex items-center space-x-4 mb-4">
-                                <div className="flex items-center space-x-1">
-                                    <FaStar className="w-5 h-5 text-yellow-400" />
-                                    <span className="text-lg font-semibold">{gem.averageRating || gem.rating || 0}</span>
-                                    <span className="text-gray-500">({gem.totalReviews || gem.reviews?.length || 0} reviews)</span>
+                        <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100 relative z-0">
+                            <div className="flex items-start justify-between mb-3">
+                                <div className="flex-1">
+                                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{gem.name}</h1>
+                                    {gem.hindiName && (
+                                        <h2 className="text-lg sm:text-xl font-semibold text-emerald-700 mb-3">{gem.hindiName}</h2>
+                                    )}
                                 </div>
-                                <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">
-                                    {gem.category}
-                                </span>
+                                <div className="flex items-center space-x-2 flex-shrink-0 ml-4">
+                                    <button
+                                        onClick={handleToggleWishlist}
+                                        className={`p-2 rounded-lg transition-colors ${isWishlisted
+                                            ? 'bg-red-50 text-red-500'
+                                            : 'bg-gray-50 text-gray-600 hover:bg-red-50 hover:text-red-500'
+                                            }`}
+                                        title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                                    >
+                                        <FaHeart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
+                                    </button>
+                                    <button
+                                        className="p-2 rounded-lg bg-gray-50 text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        title="Share"
+                                    >
+                                        <FaShare className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                            <div className="flex flex-wrap items-center gap-3 mb-3">
+                                <div className="flex items-center space-x-1">
+                                    <FaStar className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 fill-current" />
+                                    <span className="text-base sm:text-lg font-semibold">{gem.averageRating || gem.rating || 0}</span>
+                                    <span className="text-sm text-gray-500">({gem.totalReviews || gem.reviews?.length || 0} reviews)</span>
+                                </div>
+                                {gem.category && (
+                                    <span className="bg-emerald-100 text-emerald-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
+                                        {gem.category}
+                                    </span>
+                                )}
+                            </div>
 
-                        {/* Price */}
-                        <div className="space-y-2">
-                            <div className="flex items-center space-x-4">
-                                <span className="text-3xl font-bold text-gray-900">
+                            {/* Price */}
+                            <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-100">
+                                <span className="text-3xl sm:text-4xl font-bold text-gray-900">
                                     {formatPrice(calculatePrice())}
                                 </span>
                                 {gem.discount && gem.discount > 0 && (
                                     <>
-                                        <span className="text-xl text-gray-500 line-through">
+                                        <span className="text-xl sm:text-2xl text-gray-500 line-through">
                                             {formatPrice(gem.price)}
                                         </span>
-                                        <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm font-medium">
+                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
                                             {gem.discountType === 'percentage' ? `${gem.discount}% OFF` : `₹${gem.discount} OFF`}
                                         </span>
                                     </>
@@ -329,146 +493,151 @@ const GemDetail = () => {
                             </div>
                         </div>
 
-                        {/* Description */}
-                        {gem.description && (
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
-                                <p className="text-gray-600 leading-relaxed">{gem.description}</p>
+                        {/* Quick Specs */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                <h4 className="font-semibold text-xs text-gray-500 mb-1">Weight</h4>
+                                <p className="text-sm font-bold text-gray-900">{gem.sizeWeight} {gem.sizeUnit}</p>
                             </div>
-                        )}
-
-                        {/* Specifications */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                                <h4 className="font-semibold text-gray-900 mb-1">Weight</h4>
-                                <p className="text-gray-600">{gem.sizeWeight} {gem.sizeUnit}</p>
+                            <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                <h4 className="font-semibold text-xs text-gray-500 mb-1">Color</h4>
+                                <p className="text-sm font-bold text-gray-900">{gem.color || 'N/A'}</p>
                             </div>
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                                <h4 className="font-semibold text-gray-900 mb-1">Color</h4>
-                                <p className="text-gray-600">{gem.color || 'N/A'}</p>
-                            </div>
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                                <h4 className="font-semibold text-gray-900 mb-1">Stock</h4>
-                                <p className="text-gray-600">{gem.stock || 'Available'} pieces</p>
+                            <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                <h4 className="font-semibold text-xs text-gray-500 mb-1">Stock</h4>
+                                <p className="text-sm font-bold text-gray-900">{gem.stock || 0} pieces</p>
                             </div>
                             {gem.planet && (
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h4 className="font-semibold text-gray-900 mb-1">Associated Planet</h4>
-                                    <p className="text-gray-600">{gem.planet}</p>
-                                    {gem.planetHindi && <p className="text-gray-500 text-sm">{gem.planetHindi}</p>}
+                                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                    <h4 className="font-semibold text-xs text-gray-500 mb-1">Planet</h4>
+                                    <p className="text-sm font-bold text-gray-900">{gem.planet}</p>
                                 </div>
                             )}
                             {gem.origin && (
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h4 className="font-semibold text-gray-900 mb-1">Origin</h4>
-                                    <p className="text-gray-600">{gem.origin}</p>
-                                </div>
-                            )}
-                            {gem.certification && (
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h4 className="font-semibold text-gray-900 mb-1">Certification</h4>
-                                    <p className="text-gray-600">{gem.certification}</p>
+                                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                    <h4 className="font-semibold text-xs text-gray-500 mb-1">Origin</h4>
+                                    <p className="text-sm font-bold text-gray-900">{gem.origin}</p>
                                 </div>
                             )}
                             {gem.deliveryDays && (
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h4 className="font-semibold text-gray-900 mb-1">Delivery</h4>
-                                    <p className="text-gray-600">{gem.deliveryDays} days</p>
+                                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                    <h4 className="font-semibold text-xs text-gray-500 mb-1">Delivery</h4>
+                                    <p className="text-sm font-bold text-gray-900">{gem.deliveryDays} days</p>
                                 </div>
                             )}
                         </div>
 
-                        {/* Astrological Information */}
-                        {gem.suitableFor && gem.suitableFor.length > 0 && (
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Suitable For</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {gem.suitableFor.map((person, index) => (
-                                        <span
-                                            key={index}
-                                            className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm"
-                                        >
-                                            {person}
-                                        </span>
-                                    ))}
-                                </div>
+                        {/* Description */}
+                        {gem.description && (
+                            <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
+                                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">About This Gem</h3>
+                                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{gem.description}</p>
                             </div>
                         )}
 
-                        {/* Old whomToUse field support (fallback) */}
-                        {(!gem.suitableFor || gem.suitableFor.length === 0) && gem.whomToUse && gem.whomToUse.length > 0 && (
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Suitable For</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {gem.whomToUse.map((zodiac, index) => (
-                                        <span
-                                            key={index}
-                                            className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm"
-                                        >
-                                            {zodiac}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Benefits */}
+                        {/* Benefits - Collapsible */}
                         {gem.benefits && gem.benefits.length > 0 && (
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Benefits</h3>
+                            <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
+                                <button
+                                    onClick={() => setShowAllBenefits(!showAllBenefits)}
+                                    className="w-full flex items-center justify-between mb-3"
+                                >
+                                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">Benefits</h3>
+                                    <span className="text-emerald-600 text-sm font-medium">
+                                        {showAllBenefits ? 'Show Less' : `Show All (${gem.benefits.length})`}
+                                    </span>
+                                </button>
                                 <ul className="space-y-2">
-                                    {gem.benefits.map((benefit, index) => (
-                                        <li key={index} className="flex items-center space-x-2">
-                                            <FaCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                                            <span className="text-gray-600">{benefit}</span>
+                                    {(showAllBenefits ? gem.benefits : gem.benefits.slice(0, 5)).map((benefit, index) => (
+                                        <li key={index} className="flex items-start space-x-2">
+                                            <FaCheck className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                                            <span className="text-sm sm:text-base text-gray-600">{benefit}</span>
                                         </li>
                                     ))}
                                 </ul>
                             </div>
                         )}
 
+                        {/* Suitable For - Collapsible */}
+                        {(gem.suitableFor && gem.suitableFor.length > 0) || (gem.whomToUse && gem.whomToUse.length > 0) ? (
+                            <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
+                                <button
+                                    onClick={() => setShowAllSuitableFor(!showAllSuitableFor)}
+                                    className="w-full flex items-center justify-between mb-3"
+                                >
+                                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">Suitable For</h3>
+                                    <span className="text-emerald-600 text-sm font-medium">
+                                        {showAllSuitableFor ? 'Show Less' : `Show All (${(gem.suitableFor || gem.whomToUse || []).length})`}
+                                    </span>
+                                </button>
+                                <div className="flex flex-wrap gap-2">
+                                    {(showAllSuitableFor
+                                        ? (gem.suitableFor || gem.whomToUse || [])
+                                        : (gem.suitableFor || gem.whomToUse || []).slice(0, 6)
+                                    ).map((person, index) => (
+                                        <span
+                                            key={index}
+                                            className="bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium"
+                                        >
+                                            {person}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : null}
+
                         {/* Seller Information */}
                         {gem.seller && (
-                            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Sold By</h3>
+                            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 sm:p-5 shadow-sm">
+                                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">Sold By</h3>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="font-semibold text-gray-900">{gem.seller.shopName || gem.seller.fullName}</p>
-                                        <p className="text-sm text-gray-600">{gem.seller.fullName}</p>
+                                        <p className="font-bold text-base sm:text-lg text-gray-900">{gem.seller.shopName || gem.seller.fullName}</p>
+                                        {gem.seller.shopName && (
+                                            <p className="text-sm text-gray-600 mt-1">{gem.seller.fullName}</p>
+                                        )}
                                         {gem.seller.rating && (
-                                            <div className="flex items-center gap-1 mt-1">
-                                                <FaStar className="w-4 h-4 text-yellow-400" />
-                                                <span className="text-sm font-medium">{gem.seller.rating}</span>
+                                            <div className="flex items-center gap-1 mt-2">
+                                                <FaStar className="w-4 h-4 text-yellow-400 fill-current" />
+                                                <span className="text-sm font-semibold">{gem.seller.rating}</span>
+                                                <span className="text-xs text-gray-500">Seller Rating</span>
                                             </div>
                                         )}
                                     </div>
                                     {gem.seller.isVerified && (
-                                        <div className="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                                            ✓ Verified
+                                        <div className="bg-emerald-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1">
+                                            <FaCheck className="w-3 h-3" />
+                                            Verified
                                         </div>
                                     )}
                                 </div>
+                                {gem.certification && (
+                                    <div className="mt-3 pt-3 border-t border-emerald-200 flex items-center gap-2">
+                                        <FaCertificate className="w-4 h-4 text-emerald-600" />
+                                        <span className="text-sm text-gray-700">Certified: {gem.certification}</span>
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {/* Quantity and Add to Cart */}
-                        <div className="space-y-4">
-                            <div className="flex items-center space-x-4">
-                                <span className="font-semibold text-gray-900">Quantity:</span>
-                                <div className="flex items-center border rounded-lg">
+                        <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="font-semibold text-sm sm:text-base text-gray-900">Quantity:</span>
+                                <div className="flex items-center border-2 border-gray-200 rounded-lg">
                                     <button
                                         onClick={() => handleQuantityChange(quantity - 1)}
-                                        className="px-3 py-2 text-gray-600 hover:text-gray-800"
+                                        className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 text-base font-semibold transition-colors"
                                         disabled={quantity <= 1}
                                     >
-                                        -
+                                        −
                                     </button>
-                                    <span className="px-4 py-2 border-x min-w-[3rem] text-center">
+                                    <span className="px-4 sm:px-6 py-2 border-x border-gray-200 min-w-[3rem] sm:min-w-[4rem] text-center text-base sm:text-lg font-bold">
                                         {quantity}
                                     </span>
                                     <button
                                         onClick={() => handleQuantityChange(quantity + 1)}
-                                        className="px-3 py-2 text-gray-600 hover:text-gray-800"
+                                        className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 text-base font-semibold transition-colors"
                                         disabled={gem.stock && quantity >= gem.stock}
                                     >
                                         +
@@ -476,12 +645,12 @@ const GemDetail = () => {
                                 </div>
                             </div>
 
-                            <div className="flex space-x-4">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <button
                                     onClick={handleAddToCart}
                                     disabled={!gem.availability || addingToCart}
-                                    className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${gem.availability && !addingToCart
-                                        ? 'bg-emerald-600 text-white hover:bg-emerald-700 transform hover:scale-105'
+                                    className={`flex-1 py-3.5 px-6 rounded-lg font-bold text-base transition-all duration-200 flex items-center justify-center space-x-2 shadow-md ${gem.availability && !addingToCart
+                                        ? 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-lg transform hover:scale-[1.02]'
                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         }`}
                                 >
@@ -493,8 +662,8 @@ const GemDetail = () => {
                                 <button
                                     onClick={handleBuyNow}
                                     disabled={!gem.availability || addingToCart}
-                                    className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${gem.availability && !addingToCart
-                                        ? 'bg-gray-900 text-white hover:bg-gray-800'
+                                    className={`flex-1 sm:flex-none py-3.5 px-6 rounded-lg font-bold text-base transition-all duration-200 shadow-md ${gem.availability && !addingToCart
+                                        ? 'bg-gray-900 text-white hover:bg-gray-800 hover:shadow-lg transform hover:scale-[1.02]'
                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         }`}
                                 >
@@ -504,31 +673,261 @@ const GemDetail = () => {
                         </div>
 
                         {/* Features */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-gray-50 rounded-xl p-4 border border-gray-100">
                             <div className="flex items-center space-x-3">
-                                <FaTruck className="w-6 h-6 text-emerald-600" />
+                                <div className="bg-emerald-100 p-2 rounded-lg">
+                                    <FaTruck className="w-5 h-5 text-emerald-600" />
+                                </div>
                                 <div>
-                                    <h4 className="font-semibold text-gray-900">Free Shipping</h4>
-                                    <p className="text-sm text-gray-600">On orders over ₹50,000</p>
+                                    <h4 className="font-semibold text-sm text-gray-900">Free Shipping</h4>
+                                    <p className="text-xs text-gray-600">On orders over ₹50,000</p>
                                 </div>
                             </div>
                             <div className="flex items-center space-x-3">
-                                <FaTruck className="w-6 h-6 text-emerald-600" />
+                                <div className="bg-emerald-100 p-2 rounded-lg">
+                                    <FaCheck className="w-5 h-5 text-emerald-600" />
+                                </div>
                                 <div>
-                                    <h4 className="font-semibold text-gray-900">Secure Payment</h4>
-                                    <p className="text-sm text-gray-600">100% secure checkout</p>
+                                    <h4 className="font-semibold text-sm text-gray-900">Secure Payment</h4>
+                                    <p className="text-xs text-gray-600">100% secure checkout</p>
                                 </div>
                             </div>
                             <div className="flex items-center space-x-3">
-                                <FaCertificate className="w-6 h-6 text-emerald-600" />
+                                <div className="bg-emerald-100 p-2 rounded-lg">
+                                    <FaCertificate className="w-5 h-5 text-emerald-600" />
+                                </div>
                                 <div>
-                                    <h4 className="font-semibold text-gray-900">Authentic</h4>
-                                    <p className="text-sm text-gray-600">Certified gemstones</p>
+                                    <h4 className="font-semibold text-sm text-gray-900">Authentic</h4>
+                                    <p className="text-xs text-gray-600">Certified gemstones</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                {/* Reviews Section */}
+                {reviews.length > 0 && (
+                    <div className="mt-8 sm:mt-12 bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8">
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Customer Reviews</h3>
+                        <div className="space-y-4 sm:space-y-6">
+                            {reviews.slice(0, 5).map((review, index) => (
+                                <motion.div
+                                    key={review._id || review.id || index}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    className="border-b border-gray-200 pb-4 sm:pb-6 last:border-b-0 last:pb-0"
+                                >
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="flex-1">
+                                            <div className="flex items-center space-x-2 mb-2">
+                                                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <span className="text-emerald-600 font-semibold text-xs sm:text-sm">
+                                                        {review.user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-gray-900 text-xs sm:text-sm">
+                                                        {review.user?.name || 'Anonymous'}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {new Date(review.createdAt || review.date).toLocaleDateString('en-IN', {
+                                                            day: 'numeric',
+                                                            month: 'long',
+                                                            year: 'numeric'
+                                                        })}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center space-x-1 mb-2">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <FaStar
+                                                        key={star}
+                                                        className={`text-xs sm:text-sm ${star <= (review.rating || 5)
+                                                            ? 'text-yellow-400 fill-current'
+                                                            : 'text-gray-300'
+                                                            }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
+                                        {review.comment || review.review}
+                                    </p>
+                                </motion.div>
+                            ))}
+                        </div>
+                        {reviews.length > 5 && (
+                            <button
+                                onClick={() => navigate(`/gem/${id}/reviews`)}
+                                className="mt-4 sm:mt-6 text-emerald-600 hover:text-emerald-700 font-medium text-xs sm:text-sm"
+                            >
+                                View All {reviews.length} Reviews →
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {loadingReviews && (
+                    <div className="mt-8 sm:mt-12 bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600 text-xs sm:text-sm">Loading reviews...</p>
+                    </div>
+                )}
+
+                {/* Related Products Section */}
+                {relatedProducts && relatedProducts.length > 0 && (
+                    <div className="mt-12 sm:mt-16">
+                        <div className="flex items-center justify-between mb-6 sm:mb-8">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Related Products</h2>
+                            <button
+                                onClick={() => navigate('/shop')}
+                                className="text-emerald-600 hover:text-emerald-700 font-medium text-sm sm:text-base flex items-center gap-2"
+                            >
+                                View All
+                                <FaArrowLeft className="w-4 h-4 rotate-180" />
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                            {relatedProducts.map((relatedGem) => (
+                                <GemCard
+                                    key={relatedGem._id || relatedGem.id}
+                                    gem={relatedGem}
+                                    onAddToCart={handleRelatedProductAddToCart}
+                                    onToggleWishlist={handleRelatedProductWishlist}
+                                    isWishlisted={false}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Image Zoom Modal */}
+                <AnimatePresence>
+                    {showImageModal && gem && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4"
+                            onClick={() => setShowImageModal(false)}
+                        >
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="relative max-w-7xl w-full max-h-[90vh] flex flex-col items-center"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Close Button */}
+                            <button
+                                onClick={() => setShowImageModal(false)}
+                                className="absolute top-2 right-2 sm:top-4 sm:right-4 text-white hover:text-gray-300 transition-colors z-10 bg-black/70 hover:bg-black/90 rounded-full p-2 sm:p-3 backdrop-blur-sm shadow-lg"
+                                aria-label="Close"
+                            >
+                                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+
+                            {/* Main Image */}
+                            {(() => {
+                                const allImages = [];
+                                if (gem.heroImage) allImages.push(gem.heroImage);
+                                if (gem.additionalImages && gem.additionalImages.length > 0) {
+                                    allImages.push(...gem.additionalImages);
+                                }
+                                const imagesToShow = allImages.length > 0 ? allImages : (gem.allImages || []);
+
+                                return (
+                                    <>
+                                        <motion.div 
+                                            key={modalImageIndex}
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ duration: 0.3 }}
+                                            className="relative w-full h-[60vh] sm:h-[70vh] md:h-[80vh] flex items-center justify-center mb-3 sm:mb-4"
+                                        >
+                                            <img
+                                                src={imagesToShow[modalImageIndex]}
+                                                alt={`${gem.name} - Image ${modalImageIndex + 1}`}
+                                                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                                            />
+                                        </motion.div>
+
+                                        {/* Thumbnail Navigation */}
+                                        {imagesToShow.length > 1 && (
+                                            <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 max-w-full px-4">
+                                                {imagesToShow.map((image, index) => (
+                                                    <button
+                                                        key={index}
+                                                        onClick={() => setModalImageIndex(index)}
+                                                        className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                                                            modalImageIndex === index
+                                                                ? 'border-emerald-500 ring-2 ring-emerald-300 scale-110'
+                                                                : 'border-gray-600 hover:border-gray-400'
+                                                        }`}
+                                                    >
+                                                        <img
+                                                            src={image}
+                                                            alt={`Thumbnail ${index + 1}`}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Navigation Arrows */}
+                                        {imagesToShow.length > 1 && (
+                                            <>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setModalImageIndex((prev) => 
+                                                            prev === 0 ? imagesToShow.length - 1 : prev - 1
+                                                        );
+                                                    }}
+                                                    className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-2 sm:p-3 text-white transition-all"
+                                                    aria-label="Previous image"
+                                                >
+                                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setModalImageIndex((prev) => 
+                                                            prev === imagesToShow.length - 1 ? 0 : prev + 1
+                                                        );
+                                                    }}
+                                                    className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-2 sm:p-3 text-white transition-all"
+                                                    aria-label="Next image"
+                                                >
+                                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                    </svg>
+                                                </button>
+                                            </>
+                                        )}
+
+                                        {/* Image Counter */}
+                                        {imagesToShow.length > 1 && (
+                                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm">
+                                                {modalImageIndex + 1} / {imagesToShow.length}
+                                            </div>
+                                        )}
+                                    </>
+                                );
+                            })()}
+                        </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );

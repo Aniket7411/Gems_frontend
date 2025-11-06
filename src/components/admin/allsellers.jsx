@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adminAPI } from '../../services/api';
+import { adminAPI, authAPI } from '../../services/api';
+import { FaBan, FaCheckCircle } from 'react-icons/fa';
 
 const AdminSellers = () => {
   const [sellers, setSellers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [processingId, setProcessingId] = useState(null);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -17,6 +19,17 @@ const AdminSellers = () => {
 
   // Fetch sellers from API
   useEffect(() => {
+    if (!authAPI.isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
+    const user = authAPI.getCurrentUser();
+    if (user?.role !== 'admin') {
+      navigate('/');
+      return;
+    }
+
     const fetchSellers = async () => {
       setLoading(true);
       try {
@@ -64,7 +77,7 @@ const AdminSellers = () => {
     };
 
     fetchSellers();
-  }, [pagination.page, searchTerm, filterStatus]);
+  }, [pagination.page, searchTerm, filterStatus, navigate]);
 
   const handleViewSeller = (sellerId) => {
     navigate(`/admin/sellers/${sellerId}`);
@@ -74,13 +87,87 @@ const AdminSellers = () => {
     setPagination(prev => ({ ...prev, page: newPage }));
   };
 
-  const getStatusBadge = (status) => {
+  const handleBlock = async (sellerId) => {
+    if (!window.confirm('Are you sure you want to block this seller?')) {
+      return;
+    }
+
+    try {
+      setProcessingId(sellerId);
+      const response = await adminAPI.blockSeller(sellerId);
+      if (response.success) {
+        alert('Seller blocked successfully');
+        // Refresh sellers list
+        const sellersResponse = await adminAPI.getSellers({
+          page: pagination.page,
+          limit: pagination.limit,
+          search: searchTerm || undefined,
+          status: filterStatus !== 'all' ? filterStatus : undefined
+        });
+        if (sellersResponse.success) {
+          setSellers(sellersResponse.sellers || []);
+        }
+      } else {
+        alert(response.message || 'Failed to block seller');
+      }
+    } catch (error) {
+      console.error('Error blocking seller:', error);
+      alert('Failed to block seller');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleUnblock = async (sellerId) => {
+    if (!window.confirm('Are you sure you want to unblock this seller?')) {
+      return;
+    }
+
+    try {
+      setProcessingId(sellerId);
+      const response = await adminAPI.unblockSeller(sellerId);
+      if (response.success) {
+        alert('Seller unblocked successfully');
+        // Refresh sellers list
+        const sellersResponse = await adminAPI.getSellers({
+          page: pagination.page,
+          limit: pagination.limit,
+          search: searchTerm || undefined,
+          status: filterStatus !== 'all' ? filterStatus : undefined
+        });
+        if (sellersResponse.success) {
+          setSellers(sellersResponse.sellers || []);
+        }
+      } else {
+        alert(response.message || 'Failed to unblock seller');
+      }
+    } catch (error) {
+      console.error('Error unblocking seller:', error);
+      alert('Failed to unblock seller');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const getStatusBadge = (seller) => {
+    const isBlocked = seller.isBlocked || seller.status === 'blocked' || seller.status === 'suspended';
+    const status = seller.status || 'active';
+    
     const statusStyles = {
       active: 'bg-green-100 text-green-800',
       pending: 'bg-yellow-100 text-yellow-800',
       suspended: 'bg-red-100 text-red-800',
+      blocked: 'bg-red-100 text-red-800',
       inactive: 'bg-gray-100 text-gray-800'
     };
+
+    if (isBlocked) {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          Blocked
+        </span>
+      );
+    }
 
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusStyles[status] || statusStyles.inactive}`}>
@@ -114,8 +201,18 @@ const AdminSellers = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Seller Management</h1>
-          <p className="text-gray-600 mt-2">Manage and view all registered gem sellers</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Seller Management</h1>
+              <p className="text-gray-600 mt-2">Manage and view all registered gem sellers</p>
+            </div>
+            <button
+              onClick={() => navigate('/admin-dashboard')}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Back to Dashboard
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -283,15 +380,36 @@ const AdminSellers = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(seller.status || seller.isVerified ? 'active' : 'pending')}
+                      {getStatusBadge(seller)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => handleViewSeller(seller._id)}
-                        className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md transition-colors duration-150"
-                      >
-                        View Details
-                      </button>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleViewSeller(seller._id)}
+                          className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md transition-colors duration-150"
+                        >
+                          View Details
+                        </button>
+                        {(seller.isBlocked || seller.status === 'blocked' || seller.status === 'suspended') ? (
+                          <button
+                            onClick={() => handleUnblock(seller._id)}
+                            disabled={processingId === seller._id}
+                            className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                          >
+                            <FaCheckCircle />
+                            <span>Unblock</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleBlock(seller._id)}
+                            disabled={processingId === seller._id}
+                            className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                          >
+                            <FaBan />
+                            <span>Block</span>
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

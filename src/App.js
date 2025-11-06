@@ -8,6 +8,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import SellerDashboard from './pages/SellerDashboard';
+import SellerOrders from './pages/SellerOrders';
 import AddGem from './pages/AddGem';
 import EditGem from './pages/EditGem';
 import GemDetail from './pages/GemDetail';
@@ -22,6 +23,10 @@ import PaymentFailure from './pages/PaymentFailure';
 import OrderTracking from './pages/OrderTracking';
 import Wishlist from './pages/Wishlist';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminBuyers from './pages/AdminBuyers';
+import AdminProducts from './pages/AdminProducts';
+import AdminOrders from './pages/AdminOrders';
 
 // Auth Components
 import Login from './components/auth/Login';
@@ -45,9 +50,20 @@ const ProtectedRoute = ({ children }) => {
   return authAPI.isAuthenticated() ? children : <Navigate to="/login" />;
 };
 
-// Public Route Component (redirect to dashboard if already authenticated)
+// Public Route Component (redirect based on role if already authenticated)
 const PublicRoute = ({ children }) => {
-  return !authAPI.isAuthenticated() ? children : <Navigate to="/dashboard" />;
+  if (!authAPI.isAuthenticated()) {
+    return children;
+  }
+
+  const user = authAPI.getCurrentUser();
+  if (user?.role === 'admin') {
+    return <Navigate to="/admin-dashboard" />;
+  } else if (user?.role === 'seller') {
+    return <Navigate to="/seller-dashboard" />;
+  } else {
+    return <Navigate to="/my-orders" />;
+  }
 };
 
 function App() {
@@ -86,6 +102,16 @@ function App() {
                 }
               />
               <Route
+                path="/seller-login"
+                element={
+                  <PublicRoute>
+                    <AuthLayout>
+                      <Login />
+                    </AuthLayout>
+                  </PublicRoute>
+                }
+              />
+              <Route
                 path="/admin"
                 element={
                   <PublicRoute>
@@ -93,6 +119,16 @@ function App() {
                       <AdminLogin />
                     </AuthLayout>
                   </PublicRoute>
+                }
+              />
+              <Route
+                path="/admin-dashboard"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <AdminDashboard />
+                    </MainLayout>
+                  </ProtectedRoute>
                 }
               />
               <Route
@@ -116,6 +152,36 @@ function App() {
                 }
               />
               <Route
+                path="/admin/buyers"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <AdminBuyers />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/products"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <AdminProducts />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/orders"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <AdminOrders />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/seller-detail"
                 element={
                   <ProtectedRoute>
@@ -127,6 +193,16 @@ function App() {
               />
               <Route
                 path="/register"
+                element={
+                  <PublicRoute>
+                    <AuthLayout>
+                      <Register />
+                    </AuthLayout>
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/seller"
                 element={
                   <PublicRoute>
                     <AuthLayout>
@@ -189,6 +265,16 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <SellerDashboard />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/seller-orders"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <SellerOrders />
                     </MainLayout>
                   </ProtectedRoute>
                 }

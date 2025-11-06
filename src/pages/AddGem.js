@@ -14,6 +14,8 @@ const AddGem = () => {
         benefits: [],
         suitableFor: [],
         price: '',
+        discount: 0,
+        discountType: 'percentage',
         sizeWeight: '',
         sizeUnit: 'carat',
         stock: '',
@@ -125,6 +127,23 @@ const AddGem = () => {
                     [name]: checked
                 }));
             }
+        } else if (type === 'number') {
+            // Handle number inputs with proper rounding
+            let processedValue = value;
+
+            // For integer fields (stock, deliveryDays), round to nearest integer
+            if (name === 'stock' || name === 'deliveryDays') {
+                processedValue = value === '' ? '' : Math.round(parseFloat(value) || 0);
+            }
+            // For decimal fields (price, discount, sizeWeight), round to 2 decimal places
+            else if (name === 'price' || name === 'discount' || name === 'sizeWeight') {
+                processedValue = value === '' ? '' : Math.round((parseFloat(value) || 0) * 100) / 100;
+            }
+
+            setFormData(prev => ({
+                ...prev,
+                [name]: processedValue
+            }));
         } else {
             setFormData(prev => ({
                 ...prev,
@@ -244,6 +263,8 @@ const AddGem = () => {
                 benefits: formData.benefits,
                 suitableFor: formData.suitableFor,
                 price: parseFloat(formData.price),
+                discount: parseFloat(formData.discount) || 0,
+                discountType: formData.discountType,
                 sizeWeight: parseFloat(formData.sizeWeight),
                 sizeUnit: formData.sizeUnit,
                 stock: formData.stock ? parseInt(formData.stock) : null,
@@ -270,6 +291,8 @@ const AddGem = () => {
                     benefits: [],
                     suitableFor: [],
                     price: '',
+                    discount: 0,
+                    discountType: 'percentage',
                     sizeWeight: '',
                     sizeUnit: 'carat',
                     stock: '',
@@ -516,11 +539,19 @@ const AddGem = () => {
                                         name="price"
                                         value={formData.price}
                                         onChange={handleInputChange}
+                                        onBlur={(e) => {
+                                            // Round to 2 decimal places on blur
+                                            const value = parseFloat(e.target.value);
+                                            if (!isNaN(value)) {
+                                                const rounded = Math.round(value * 100) / 100;
+                                                setFormData(prev => ({ ...prev, price: rounded }));
+                                            }
+                                        }}
                                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.price ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="e.g., 50000"
                                         min="0"
-                                        step="0.01"
+                                        step="1"
                                     />
                                     {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
                                 </div>
@@ -557,6 +588,55 @@ const AddGem = () => {
                                 </div>
                             </div>
 
+                            {/* Discount Fields */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                                {/* Discount */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Discount
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="discount"
+                                        value={formData.discount}
+                                        onChange={handleInputChange}
+                                        onBlur={(e) => {
+                                            // Round to 2 decimal places on blur
+                                            const value = parseFloat(e.target.value);
+                                            if (!isNaN(value)) {
+                                                const rounded = Math.round(value * 100) / 100;
+                                                setFormData(prev => ({ ...prev, discount: rounded }));
+                                            }
+                                        }}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="e.g., 10"
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        {formData.discountType === 'percentage'
+                                            ? 'Enter discount percentage (e.g., 10 for 10%)'
+                                            : 'Enter discount amount in ₹ (e.g., 1000)'}
+                                    </p>
+                                </div>
+
+                                {/* Discount Type */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Discount Type
+                                    </label>
+                                    <select
+                                        name="discountType"
+                                        value={formData.discountType}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    >
+                                        <option value="percentage">Percentage (%)</option>
+                                        <option value="fixed">Fixed Amount (₹)</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             {/* Stock and Delivery Days */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 <div>
@@ -568,9 +648,18 @@ const AddGem = () => {
                                         name="stock"
                                         value={formData.stock}
                                         onChange={handleInputChange}
+                                        onBlur={(e) => {
+                                            // Round to nearest integer on blur
+                                            const value = parseFloat(e.target.value);
+                                            if (!isNaN(value)) {
+                                                const rounded = Math.round(value);
+                                                setFormData(prev => ({ ...prev, stock: rounded }));
+                                            }
+                                        }}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                         placeholder="e.g., 10"
                                         min="0"
+                                        step="1"
                                     />
                                 </div>
 
@@ -583,10 +672,19 @@ const AddGem = () => {
                                         name="deliveryDays"
                                         value={formData.deliveryDays}
                                         onChange={handleInputChange}
+                                        onBlur={(e) => {
+                                            // Round to nearest integer on blur
+                                            const value = parseFloat(e.target.value);
+                                            if (!isNaN(value)) {
+                                                const rounded = Math.round(value);
+                                                setFormData(prev => ({ ...prev, deliveryDays: rounded }));
+                                            }
+                                        }}
                                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.deliveryDays ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="e.g., 7"
                                         min="1"
+                                        step="1"
                                     />
                                     {errors.deliveryDays && <p className="text-red-500 text-sm mt-1">{errors.deliveryDays}</p>}
                                 </div>

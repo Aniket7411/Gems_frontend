@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authAPI } from '../../services/api';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Register = () => {
+  const location = useLocation();
+  const isSellerRoute = location.pathname === '/seller';
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'buyer', // Default to buyer
+    role: isSellerRoute ? 'seller' : 'buyer',
   });
+
+  // Update role when route changes
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      role: isSellerRoute ? 'seller' : 'buyer'
+    }));
+  }, [isSellerRoute]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -70,9 +81,13 @@ const Register = () => {
 
       if (response.success) {
         setSuccess(true);
-        // Auto-redirect to dashboard after successful signup
+        // Auto-redirect based on role after successful signup
         setTimeout(() => {
-          navigate('/dashboard');
+          if (formData.role === 'seller') {
+            navigate('/seller-dashboard');
+          } else {
+            navigate('/dashboard');
+          }
         }, 2000);
       } else {
         setError(response.message || 'Registration failed');
@@ -101,7 +116,7 @@ const Register = () => {
               Welcome to our platform! You are now logged in.
             </p>
             <p className="mt-4 text-center text-sm text-gray-500">
-              Redirecting to dashboard...
+              {formData.role === 'seller' ? 'Redirecting to seller dashboard...' : 'Redirecting to dashboard...'}
             </p>
           </div>
         </div>
@@ -114,12 +129,12 @@ const Register = () => {
       <div className="max-w-md w-full space-y-4">
         <div>
           <h2 className="mt-10 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+            {isSellerRoute ? 'Create your seller account' : 'Create your account'}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{' '}
             <Link
-              to="/login"
+              to={isSellerRoute ? "/seller-login" : "/login"}
               className="font-medium text-emerald-600 hover:text-indigo-500"
             >
               sign in to your existing account
@@ -167,28 +182,6 @@ const Register = () => {
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Enter your email"
               />
-            </div>
-
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                I want to register as
-              </label>
-              <select
-                id="role"
-                name="role"
-                required
-                value={formData.role}
-                onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
-              >
-                <option value="buyer">Buyer (Customer)</option>
-                <option value="seller">Seller (Gem Provider)</option>
-              </select>
-              <p className="mt-1 text-xs text-gray-500">
-                {formData.role === 'buyer'
-                  ? 'Browse and purchase gems from our collection'
-                  : 'List and sell your gems on our platform'}
-              </p>
             </div>
 
             <div>
