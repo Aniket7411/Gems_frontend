@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { CiSearch } from "react-icons/ci";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaTimes, FaHeart, FaChevronDown, FaUser, FaBox, FaSignOutAlt, FaCog } from "react-icons/fa";
 import { FaShoppingCart } from "react-icons/fa";
 import { authAPI, gemAPI } from "../../services/api";
 import { useCart } from "../../contexts/CartContext";
@@ -18,6 +18,20 @@ const Header = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowProfileDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     authAPI.logout();
@@ -116,7 +130,14 @@ const Header = () => {
 
             {/* Cart and Menu Icons */}
             <div className="flex items-center space-x-2">
-              <Link to="/cart" className="relative text-gray-600 hover:text-emerald-600 p-1">
+              {/* Wishlist Icon - Only for buyers on mobile */}
+              {isAuthenticated && (user?.role === "buyer" || !user?.role) && (
+                <Link to="/wishlist" className="text-gray-600 hover:text-red-500 p-1" title="My Wishlist">
+                  <FaHeart size={22} />
+                </Link>
+              )}
+
+              <Link to="/cart" className="relative text-gray-600 hover:text-emerald-600 p-1" title="Cart">
                 <FaShoppingCart size={22} />
                 {cartItemCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
@@ -264,62 +285,152 @@ const Header = () => {
 
           {/* Cart and User menu */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Wishlist Icon - Only for buyers */}
+            {isAuthenticated && (user?.role === "buyer" || !user?.role) && (
+              <Link
+                to="/wishlist"
+                className="relative p-2 text-gray-600 hover:text-red-500 transition-colors"
+                title="My Wishlist"
+              >
+                <FaHeart className="w-6 h-6" />
+              </Link>
+            )}
+
             {/* Cart Icon */}
             <Link
               to="/cart"
               className="relative p-2 text-gray-600 hover:text-emerald-600 transition-colors"
+              title="Shopping Cart"
             >
               <FaShoppingCart className="w-6 h-6" />
               {cartItemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                   {cartItemCount}
                 </span>
               )}
             </Link>
 
-
-
-
-            <Link
-              to={
-                user?.role === "admin"
-                  ? "/admin-dashboard"
-                  : user?.role === "seller"
-                    ? "/seller-dashboard"
-                    : "/user-detail"
-              }
-              className="text-gray-600 hover:text-emerald-600 font-medium transition"
-              title={user?.role === "admin" ? "Admin Dashboard" : user?.role === "seller" ? "Seller Dashboard" : "My Profile"}
-            >
-              <CgProfile size={24} />
-            </Link>
-
-
-
             {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
-
-                <span className="text-sm text-gray-700">
-                  Welcome, {user?.name || "User"}
-                </span>
+              <div className="relative" ref={dropdownRef}>
+                {/* Profile Button with Dropdown */}
                 <button
-                  onClick={handleLogout}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
                 >
-                  Logout
+                  <CgProfile size={24} />
+                  <span className="text-sm font-medium">{user?.name || "User"}</span>
+                  <FaChevronDown className={`w-3 h-3 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
                 </button>
+
+                {/* Dropdown Menu */}
+                {showProfileDropdown && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
+                    {/* User Info Header */}
+                    <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-blue-50">
+                      <p className="text-sm font-semibold text-gray-900">{user?.name || "User"}</p>
+                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                      <span className="inline-block mt-2 px-2 py-0.5 bg-emerald-600 text-white text-xs rounded-full font-medium capitalize">
+                        {user?.role || "Buyer"}
+                      </span>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="py-2">
+                      {user?.role === "admin" ? (
+                        <>
+                          <Link
+                            to="/admin-dashboard"
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                          >
+                            <FaCog className="w-4 h-4" />
+                            <span className="text-sm">Admin Dashboard</span>
+                          </Link>
+                        </>
+                      ) : user?.role === "seller" ? (
+                        <>
+                          <Link
+                            to="/seller-dashboard"
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                          >
+                            <FaCog className="w-4 h-4" />
+                            <span className="text-sm">My Dashboard</span>
+                          </Link>
+                          <Link
+                            to="/seller-orders"
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                          >
+                            <FaBox className="w-4 h-4" />
+                            <span className="text-sm">My Orders</span>
+                          </Link>
+                          <Link
+                            to="/seller-detail"
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                          >
+                            <FaUser className="w-4 h-4" />
+                            <span className="text-sm">My Profile</span>
+                          </Link>
+                        </>
+                      ) : (
+                        <>
+                          <Link
+                            to="/my-orders"
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                          >
+                            <FaBox className="w-4 h-4" />
+                            <span className="text-sm">My Orders</span>
+                          </Link>
+                          <Link
+                            to="/wishlist"
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                          >
+                            <FaHeart className="w-4 h-4" />
+                            <span className="text-sm">My Wishlist</span>
+                          </Link>
+                          <Link
+                            to="/user-detail"
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                          >
+                            <FaUser className="w-4 h-4" />
+                            <span className="text-sm">My Profile</span>
+                          </Link>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Logout Button */}
+                    <div className="border-t border-gray-200 py-2">
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setShowProfileDropdown(false);
+                        }}
+                        className="flex items-center space-x-3 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors w-full"
+                      >
+                        <FaSignOutAlt className="w-4 h-4" />
+                        <span className="text-sm font-medium">Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <>
                 <Link
                   to="/login"
-                  className="text-gray-600 hover:text-emerald-600 font-medium"
+                  className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-md hover:shadow-lg"
                 >
                   Register
                 </Link>

@@ -6,12 +6,13 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { FaHeart, FaShoppingCart, FaStar, FaArrowLeft, FaShare, FaCheck, FaTruck, FaCertificate } from 'react-icons/fa';
 import GemCard from '../components/gems/GemCard';
+import axios from 'axios';
 
 const GemDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { addToCart, isInCart } = useCart();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const [gem, setGem] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -26,8 +27,10 @@ const GemDetail = () => {
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [showImageModal, setShowImageModal] = useState(false);
     const [modalImageIndex, setModalImageIndex] = useState(0);
+    const [togglingWishlist, setTogglingWishlist] = useState(false);
 
     useEffect(() => {
+        console.log('GemDetail mounted. Gem ID:', id, 'Is Authenticated:', isAuthenticated);
         fetchGemDetails();
         if (isAuthenticated) {
             checkWishlistStatus();
@@ -115,12 +118,17 @@ const GemDetail = () => {
 
     const checkWishlistStatus = async () => {
         try {
+            console.log('Checking wishlist status for gem:', id);
             const response = await wishlistAPI.isInWishlist(id);
+            console.log('Wishlist status response:', response);
             if (response.success) {
                 setIsWishlisted(response.isInWishlist || false);
+                console.log('Is wishlisted:', response.isInWishlist);
             }
         } catch (err) {
-            console.error('Error checking wishlist:', err);
+            console.error('Error checking wishlist status:', err);
+            // Set to false on error
+            setIsWishlisted(false);
         }
     };
 
@@ -232,21 +240,41 @@ const GemDetail = () => {
             return;
         }
 
+        if (togglingWishlist) {
+            console.log('Already toggling wishlist, please wait');
+            return;
+        }
+
+        setTogglingWishlist(true);
+        console.log('Toggling wishlist. Current status:', isWishlisted);
+
         try {
             if (isWishlisted) {
+                console.log('Removing from wishlist...');
                 const response = await wishlistAPI.removeFromWishlist(id);
+                console.log('Remove response:', response);
                 if (response.success) {
                     setIsWishlisted(false);
+                    alert('Removed from wishlist');
+                } else {
+                    throw new Error(response.message || 'Failed to remove from wishlist');
                 }
             } else {
+                console.log('Adding to wishlist...');
                 const response = await wishlistAPI.addToWishlist(id);
+                console.log('Add response:', response);
                 if (response.success) {
                     setIsWishlisted(true);
+                    alert('Added to wishlist');
+                } else {
+                    throw new Error(response.message || 'Failed to add to wishlist');
                 }
             }
         } catch (error) {
             console.error('Error toggling wishlist:', error);
-            alert(error.message || 'Failed to update wishlist');
+            alert(error.message || 'Failed to update wishlist. Please try again.');
+        } finally {
+            setTogglingWishlist(false);
         }
     };
 
@@ -313,20 +341,112 @@ const GemDetail = () => {
             navigate('/login');
             return;
         }
-        // Handle wishlist toggle for related product
+
+        const gemId = relatedGem._id || relatedGem.id;
+
+        console.log('Related product wishlist toggle:', { relatedGem, gemId });
+
+        if (!gemId) {
+            console.error('No gem ID found for related product:', relatedGem);
+            alert('Cannot add to wishlist - invalid gem ID');
+            return;
+        }
+
         try {
-            const gemId = relatedGem._id || relatedGem.id;
+            // For now, always try to add (we don't track wishlist state for related products)
             const response = await wishlistAPI.addToWishlist(gemId);
             if (response.success) {
                 alert('Added to wishlist!');
+            } else {
+                throw new Error(response.message || 'Failed to add to wishlist');
             }
         } catch (error) {
             console.error('Error adding to wishlist:', error);
+            alert(error.message || 'Failed to add to wishlist');
         }
     };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50">
+            {/* Debug Panel - Remove this after testing */}
+            {/* <div className="bg-yellow-100 border border-yellow-400 p-4 m-4 rounded-lg text-sm">
+                <h3 className="font-bold mb-2">Debug Info:</h3>
+                <ul className="space-y-1">
+                    <li>✓ Is Authenticated: <strong>{isAuthenticated ? 'YES' : 'NO'}</strong></li>
+                    <li>✓ User: <strong>{user?.name || 'Not logged in'}</strong></li>
+                    <li>✓ Token: <strong>{localStorage.getItem('token') ? 'Present' : 'Missing'}</strong></li>
+                    <li>✓ Is Wishlisted: <strong>{isWishlisted ? 'YES' : 'NO'}</strong></li>
+                    <li>✓ Toggling: <strong>{togglingWishlist ? 'YES' : 'NO'}</strong></li>
+                    <li>✓ Gem ID: <strong>{id}</strong></li>
+                </ul>
+                <p className="mt-2 text-xs text-gray-600">Open browser console (F12) for detailed logs</p>
+                <button
+                    onClick={async () => {
+                        console.log('=== TEST BUTTON CLICKED ===');
+                        console.log('Token from localStorage:', localStorage.getItem('token'));
+                        console.log('User from localStorage:', localStorage.getItem('user'));
+                        console.log('Is Authenticated:', isAuthenticated);
+                        console.log('Gem ID:', id);
+                        
+                        if (!isAuthenticated) {
+                            alert('You are not authenticated! Please login first.');
+                            return;
+                        }
+                        
+                        try {
+                            console.log('Attempting to add to wishlist...');
+                            const response = await wishlistAPI.addToWishlist(id);
+                            console.log('API Response:', response);
+                            alert(`Success: ${JSON.stringify(response)}`);
+                        } catch (error) {
+                            console.error('API Error:', error);
+                            alert(`Error: ${error.message}`);
+                        }
+                    }}
+                    className="mt-2 bg-blue-500 text-white px-4 py-2 rounded text-xs hover:bg-blue-600 mr-2"
+                >
+                    Test Add to Wishlist API
+                </button>
+                <button
+                    onClick={async () => {
+                        console.log('=== DIRECT AXIOS TEST ===');
+                        const token = localStorage.getItem('token');
+                        const API_BASE_URL = 'https://gems-backend-u.onrender.com/api';
+                        
+                        console.log('Token:', token);
+                        console.log('Gem ID:', id);
+                        console.log('URL:', `${API_BASE_URL}/wishlist/add`);
+                        
+                        if (!token) {
+                            alert('No token found! Please login first.');
+                            return;
+                        }
+                        
+                        try {
+                            const response = await axios.post(
+                                `${API_BASE_URL}/wishlist/add`,
+                                { gemId: id },
+                                {
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${token}`
+                                    }
+                                }
+                            );
+                            console.log('Direct axios response:', response.data);
+                            alert(`Direct Success: ${JSON.stringify(response.data)}`);
+                        } catch (error) {
+                            console.error('Direct axios error:', error);
+                            console.error('Error response:', error.response?.data);
+                            alert(`Direct Error: ${error.response?.data?.message || error.message}`);
+                        }
+                    }}
+                    className="mt-2 bg-purple-500 text-white px-4 py-2 rounded text-xs hover:bg-purple-600"
+                >
+                    Test Direct Backend Call
+                </button>
+            </div> */}
+
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
                 {/* Back Button - Simplified */}
@@ -446,13 +566,26 @@ const GemDetail = () => {
                                 <div className="flex items-center space-x-2 flex-shrink-0 ml-4">
                                     <button
                                         onClick={handleToggleWishlist}
-                                        className={`p-2 rounded-lg transition-colors ${isWishlisted
-                                            ? 'bg-red-50 text-red-500'
-                                            : 'bg-gray-50 text-gray-600 hover:bg-red-50 hover:text-red-500'
-                                            }`}
-                                        title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                                        disabled={togglingWishlist}
+                                        className={`p-2 rounded-lg transition-all duration-200 ${togglingWishlist
+                                            ? 'bg-gray-100 text-gray-400 cursor-wait'
+                                            : isWishlisted
+                                                ? 'bg-red-50 text-red-500 hover:bg-red-100'
+                                                : 'bg-gray-50 text-gray-600 hover:bg-red-50 hover:text-red-500'
+                                            } ${togglingWishlist ? 'opacity-70' : 'hover:scale-110'}`}
+                                        title={
+                                            togglingWishlist
+                                                ? 'Updating...'
+                                                : isWishlisted
+                                                    ? 'Remove from wishlist'
+                                                    : 'Add to wishlist'
+                                        }
                                     >
-                                        <FaHeart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
+                                        {togglingWishlist ? (
+                                            <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+                                        ) : (
+                                            <FaHeart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
+                                        )}
                                     </button>
                                     <button
                                         className="p-2 rounded-lg bg-gray-50 text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
@@ -814,117 +947,116 @@ const GemDetail = () => {
                             className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4"
                             onClick={() => setShowImageModal(false)}
                         >
-                        <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.8, opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="relative max-w-7xl w-full max-h-[90vh] flex flex-col items-center"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            {/* Close Button */}
-                            <button
-                                onClick={() => setShowImageModal(false)}
-                                className="absolute top-2 right-2 sm:top-4 sm:right-4 text-white hover:text-gray-300 transition-colors z-10 bg-black/70 hover:bg-black/90 rounded-full p-2 sm:p-3 backdrop-blur-sm shadow-lg"
-                                aria-label="Close"
+                            <motion.div
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.8, opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="relative max-w-7xl w-full max-h-[90vh] flex flex-col items-center"
+                                onClick={(e) => e.stopPropagation()}
                             >
-                                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+                                {/* Close Button */}
+                                <button
+                                    onClick={() => setShowImageModal(false)}
+                                    className="absolute top-2 right-2 sm:top-4 sm:right-4 text-white hover:text-gray-300 transition-colors z-10 bg-black/70 hover:bg-black/90 rounded-full p-2 sm:p-3 backdrop-blur-sm shadow-lg"
+                                    aria-label="Close"
+                                >
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
 
-                            {/* Main Image */}
-                            {(() => {
-                                const allImages = [];
-                                if (gem.heroImage) allImages.push(gem.heroImage);
-                                if (gem.additionalImages && gem.additionalImages.length > 0) {
-                                    allImages.push(...gem.additionalImages);
-                                }
-                                const imagesToShow = allImages.length > 0 ? allImages : (gem.allImages || []);
+                                {/* Main Image */}
+                                {(() => {
+                                    const allImages = [];
+                                    if (gem.heroImage) allImages.push(gem.heroImage);
+                                    if (gem.additionalImages && gem.additionalImages.length > 0) {
+                                        allImages.push(...gem.additionalImages);
+                                    }
+                                    const imagesToShow = allImages.length > 0 ? allImages : (gem.allImages || []);
 
-                                return (
-                                    <>
-                                        <motion.div 
-                                            key={modalImageIndex}
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ duration: 0.3 }}
-                                            className="relative w-full h-[60vh] sm:h-[70vh] md:h-[80vh] flex items-center justify-center mb-3 sm:mb-4"
-                                        >
-                                            <img
-                                                src={imagesToShow[modalImageIndex]}
-                                                alt={`${gem.name} - Image ${modalImageIndex + 1}`}
-                                                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-                                            />
-                                        </motion.div>
+                                    return (
+                                        <>
+                                            <motion.div
+                                                key={modalImageIndex}
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{ duration: 0.3 }}
+                                                className="relative w-full h-[60vh] sm:h-[70vh] md:h-[80vh] flex items-center justify-center mb-3 sm:mb-4"
+                                            >
+                                                <img
+                                                    src={imagesToShow[modalImageIndex]}
+                                                    alt={`${gem.name} - Image ${modalImageIndex + 1}`}
+                                                    className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                                                />
+                                            </motion.div>
 
-                                        {/* Thumbnail Navigation */}
-                                        {imagesToShow.length > 1 && (
-                                            <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 max-w-full px-4">
-                                                {imagesToShow.map((image, index) => (
-                                                    <button
-                                                        key={index}
-                                                        onClick={() => setModalImageIndex(index)}
-                                                        className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                                                            modalImageIndex === index
+                                            {/* Thumbnail Navigation */}
+                                            {imagesToShow.length > 1 && (
+                                                <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 max-w-full px-4">
+                                                    {imagesToShow.map((image, index) => (
+                                                        <button
+                                                            key={index}
+                                                            onClick={() => setModalImageIndex(index)}
+                                                            className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all ${modalImageIndex === index
                                                                 ? 'border-emerald-500 ring-2 ring-emerald-300 scale-110'
                                                                 : 'border-gray-600 hover:border-gray-400'
-                                                        }`}
+                                                                }`}
+                                                        >
+                                                            <img
+                                                                src={image}
+                                                                alt={`Thumbnail ${index + 1}`}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Navigation Arrows */}
+                                            {imagesToShow.length > 1 && (
+                                                <>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setModalImageIndex((prev) =>
+                                                                prev === 0 ? imagesToShow.length - 1 : prev - 1
+                                                            );
+                                                        }}
+                                                        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-2 sm:p-3 text-white transition-all"
+                                                        aria-label="Previous image"
                                                     >
-                                                        <img
-                                                            src={image}
-                                                            alt={`Thumbnail ${index + 1}`}
-                                                            className="w-full h-full object-cover"
-                                                        />
+                                                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                        </svg>
                                                     </button>
-                                                ))}
-                                            </div>
-                                        )}
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setModalImageIndex((prev) =>
+                                                                prev === imagesToShow.length - 1 ? 0 : prev + 1
+                                                            );
+                                                        }}
+                                                        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-2 sm:p-3 text-white transition-all"
+                                                        aria-label="Next image"
+                                                    >
+                                                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                        </svg>
+                                                    </button>
+                                                </>
+                                            )}
 
-                                        {/* Navigation Arrows */}
-                                        {imagesToShow.length > 1 && (
-                                            <>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setModalImageIndex((prev) => 
-                                                            prev === 0 ? imagesToShow.length - 1 : prev - 1
-                                                        );
-                                                    }}
-                                                    className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-2 sm:p-3 text-white transition-all"
-                                                    aria-label="Previous image"
-                                                >
-                                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setModalImageIndex((prev) => 
-                                                            prev === imagesToShow.length - 1 ? 0 : prev + 1
-                                                        );
-                                                    }}
-                                                    className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-2 sm:p-3 text-white transition-all"
-                                                    aria-label="Next image"
-                                                >
-                                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                                    </svg>
-                                                </button>
-                                            </>
-                                        )}
-
-                                        {/* Image Counter */}
-                                        {imagesToShow.length > 1 && (
-                                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm">
-                                                {modalImageIndex + 1} / {imagesToShow.length}
-                                            </div>
-                                        )}
-                                    </>
-                                );
-                            })()}
-                        </motion.div>
+                                            {/* Image Counter */}
+                                            {imagesToShow.length > 1 && (
+                                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm">
+                                                    {modalImageIndex + 1} / {imagesToShow.length}
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                })()}
+                            </motion.div>
                         </motion.div>
                     )}
                 </AnimatePresence>

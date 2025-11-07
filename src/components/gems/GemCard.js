@@ -96,7 +96,7 @@ const GemCard = ({ gem, onAddToCart, onToggleWishlist, isWishlisted = false }) =
                 {/* Action Buttons */}
                 <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <button
-                        onClick={() => onToggleWishlist && onToggleWishlist(gem._id || gem.id)}
+                        onClick={() => onToggleWishlist && onToggleWishlist(gem)}
                         className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 ${isWishlisted
                             ? 'bg-red-500 text-white'
                             : 'bg-white text-gray-600 hover:bg-red-500 hover:text-white'

@@ -14,12 +14,12 @@ const TopSection = () => {
             ></video>
             
             {/* Overlay for better text readability */}
-            <div className="absolute inset-0 bg-black bg-opacity-40 z-1"></div>
+            <div className="absolute inset-0 bg-black bg-opacity-10 z-1"></div>
             
             {/* Content */}
             <div className="relative z-10 text-center lg:text-left max-w-2xl text-white">
                 <h1 
-                    className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4"
+                    className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-2"
                     style={{ 
                         textShadow: '2px 2px 8px rgba(0,0,0,0.7)'
                     }}
@@ -27,7 +27,7 @@ const TopSection = () => {
                     Aurelane
                 </h1>
                 
-                <p className="text-lg sm:text-xl lg:text-2xl mb-4 font-medium tracking-wide opacity-95">
+                <p className="text-lg sm:text-xl lg:text-2xl mb-2 font-medium tracking-wide opacity-95">
                     India's fastest growing international gem exporter
                 </p>
                 

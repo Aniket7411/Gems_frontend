@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { gemAPI } from '../services/api';
+import { gemAPI, wishlistAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 import GemCard from '../components/gems/GemCard';
 import Pagination from '../components/gems/Pagination';
 import { FaSpinner, FaExclamationTriangle, FaSearch } from 'react-icons/fa';
@@ -11,12 +12,14 @@ const Shop = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { addToCart } = useCart();
+    const { isAuthenticated } = useAuth();
     const [gems, setGems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [pagination, setPagination] = useState({});
     const [categories, setCategories] = useState([]);
     const [wishlist, setWishlist] = useState(new Set());
+    const [loadingWishlist, setLoadingWishlist] = useState(false);
 
     // Filter states
     const [filters, setFilters] = useState({
@@ -86,11 +89,32 @@ const Shop = () => {
         }
     };
 
+    // Fetch wishlist
+    const fetchWishlist = async () => {
+        if (!isAuthenticated) return;
+        
+        try {
+            setLoadingWishlist(true);
+            const response = await wishlistAPI.getWishlist();
+            if (response.success && response.items) {
+                const wishlistIds = new Set(
+                    response.items.map(item => item.gem?._id || item.gem?.id || item.gem)
+                );
+                setWishlist(wishlistIds);
+            }
+        } catch (err) {
+            console.error('Error fetching wishlist:', err);
+        } finally {
+            setLoadingWishlist(false);
+        }
+    };
+
     // Initial load
     useEffect(() => {
         fetchGems();
         fetchCategories();
-    }, [filters]);
+        fetchWishlist();
+    }, [filters, isAuthenticated]);
 
     // Handle apply filters
     const handleApplyFilters = () => {
@@ -207,16 +231,55 @@ const Shop = () => {
     };
 
     // Handle wishlist toggle
-    const handleToggleWishlist = (gemId) => {
-        setWishlist(prev => {
-            const newWishlist = new Set(prev);
-            if (newWishlist.has(gemId)) {
-                newWishlist.delete(gemId);
+    const handleToggleWishlist = async (gem) => {
+        const gemId = gem._id || gem.id;
+        
+        if (!isAuthenticated) {
+            alert('Please login to add items to wishlist');
+            navigate('/login');
+            return;
+        }
+
+        try {
+            const isCurrentlyWishlisted = wishlist.has(gemId);
+            
+            // Optimistic update
+            setWishlist(prev => {
+                const newWishlist = new Set(prev);
+                if (isCurrentlyWishlisted) {
+                    newWishlist.delete(gemId);
+                } else {
+                    newWishlist.add(gemId);
+                }
+                return newWishlist;
+            });
+
+            // Make API call
+            if (isCurrentlyWishlisted) {
+                const response = await wishlistAPI.removeFromWishlist(gemId);
+                if (!response.success) {
+                    throw new Error(response.message || 'Failed to remove from wishlist');
+                }
             } else {
-                newWishlist.add(gemId);
+                const response = await wishlistAPI.addToWishlist(gemId);
+                if (!response.success) {
+                    throw new Error(response.message || 'Failed to add to wishlist');
+                }
             }
-            return newWishlist;
-        });
+        } catch (error) {
+            console.error('Error toggling wishlist:', error);
+            // Revert optimistic update on error
+            setWishlist(prev => {
+                const newWishlist = new Set(prev);
+                if (wishlist.has(gemId)) {
+                    newWishlist.delete(gemId);
+                } else {
+                    newWishlist.add(gemId);
+                }
+                return newWishlist;
+            });
+            alert(error.message || 'Failed to update wishlist');
+        }
     };
 
     // Loading state
@@ -483,7 +546,7 @@ const Shop = () => {
                                         <AnimatePresence>
                                             {gems.map((gem) => (
                                                 <motion.div
-                                                    key={gem.id}
+                                                    key={gem._id || gem.id}
                                                     layout
                                                     initial={{ opacity: 0, scale: 0.8 }}
                                                     animate={{ opacity: 1, scale: 1 }}
@@ -494,7 +557,7 @@ const Shop = () => {
                                                         gem={gem}
                                                         onAddToCart={handleAddToCart}
                                                         onToggleWishlist={handleToggleWishlist}
-                                                        isWishlisted={wishlist.has(gem.id)}
+                                                        isWishlisted={wishlist.has(gem._id || gem.id)}
                                                     />
                                                 </motion.div>
                                             ))}

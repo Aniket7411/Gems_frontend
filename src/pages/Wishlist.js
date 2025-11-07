@@ -27,8 +27,13 @@ const Wishlist = () => {
         setError(null);
         try {
             const response = await wishlistAPI.getWishlist();
+            console.log('Wishlist response:', response);
+
             if (response.success) {
-                setWishlistItems(response.data || response.wishlist || []);
+                // API returns items array where each item has a 'gem' property
+                const items = response.items || response.data || response.wishlist || [];
+                console.log('Wishlist items:', items);
+                setWishlistItems(items);
             } else {
                 setError('Failed to load wishlist');
             }
@@ -40,31 +45,49 @@ const Wishlist = () => {
         }
     };
 
-    const handleRemoveFromWishlist = async (gemId) => {
+    const handleRemoveFromWishlist = async (item) => {
+        const gemId = item.gem?._id || item.gem?.id || item._id || item.id;
+
+        console.log('Removing from wishlist:', { item, gemId });
+
+        if (!gemId) {
+            console.error('No gem ID found for item:', item);
+            alert('Cannot remove item - invalid ID');
+            return;
+        }
+
         try {
             const response = await wishlistAPI.removeFromWishlist(gemId);
             if (response.success) {
-                setWishlistItems(wishlistItems.filter(item => item.id !== gemId));
+                // Remove item from local state
+                setWishlistItems(wishlistItems.filter(wishlistItem => {
+                    const itemGemId = wishlistItem.gem?._id || wishlistItem.gem?.id || wishlistItem._id || wishlistItem.id;
+                    return itemGemId !== gemId;
+                }));
+                alert('Removed from wishlist');
             }
         } catch (error) {
             console.error('Error removing from wishlist:', error);
-            alert('Failed to remove from wishlist');
+            alert(error.message || 'Failed to remove from wishlist');
         }
     };
 
     const handleAddToCart = (item) => {
+        // Extract gem data (API returns { gem: {...}, addedAt: ... })
+        const gem = item.gem || item;
+
         addToCart({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            discount: item.discount,
-            discountType: item.discountType,
-            image: item.images?.[0] || null,
-            category: item.category,
-            sizeWeight: item.sizeWeight,
-            sizeUnit: item.sizeUnit
+            id: gem._id || gem.id,
+            name: gem.name,
+            price: gem.price,
+            discount: gem.discount,
+            discountType: gem.discountType,
+            image: gem.heroImage || gem.images?.[0] || null,
+            category: gem.category,
+            sizeWeight: gem.sizeWeight,
+            sizeUnit: gem.sizeUnit
         });
-        alert(`${item.name} added to cart!`);
+        alert(`${gem.name} added to cart!`);
     };
 
     const handleClearWishlist = async () => {
@@ -182,83 +205,89 @@ const Wishlist = () => {
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                 >
                     <AnimatePresence>
-                        {wishlistItems.map((item) => (
-                            <motion.div
-                                key={item.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                transition={{ duration: 0.3 }}
-                                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group"
-                            >
-                                {/* Image */}
-                                <div className="relative aspect-square bg-gray-100 overflow-hidden">
-                                    <img
-                                        src={item.images?.[0] || '/placeholder-gem.jpg'}
-                                        alt={item.name}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 cursor-pointer"
-                                        onClick={() => navigate(`/gem/${item.id}`)}
-                                    />
-                                    <button
-                                        onClick={() => handleRemoveFromWishlist(item.id)}
-                                        className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-lg text-red-500 hover:bg-red-50 transition-colors"
-                                        title="Remove from wishlist"
-                                    >
-                                        <FaTrash className="w-4 h-4" />
-                                    </button>
-                                    {item.discount > 0 && (
-                                        <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                                            {item.discountType === 'percentage' ? `${item.discount}% OFF` : `₹${item.discount} OFF`}
-                                        </div>
-                                    )}
-                                </div>
+                        {wishlistItems.map((item) => {
+                            // Extract gem data (API returns { gem: {...}, addedAt: ... })
+                            const gem = item.gem || item;
+                            const gemId = gem._id || gem.id;
 
-                                {/* Content */}
-                                <div className="p-4">
-                                    <h3
-                                        className="font-bold text-lg text-gray-900 mb-1 line-clamp-1 cursor-pointer hover:text-emerald-600 transition-colors"
-                                        onClick={() => navigate(`/gem/${item.id}`)}
-                                    >
-                                        {item.name}
-                                    </h3>
-                                    <p className="text-sm text-emerald-600 font-medium mb-2">{item.category}</p>
-
-                                    {/* Price */}
-                                    <div className="flex items-center space-x-2 mb-4">
-                                        <span className="text-xl font-bold text-gray-900">
-                                            ₹{(item.discount > 0
-                                                ? item.discountType === 'percentage'
-                                                    ? item.price - (item.price * item.discount) / 100
-                                                    : item.price - item.discount
-                                                : item.price
-                                            ).toLocaleString()}
-                                        </span>
-                                        {item.discount > 0 && (
-                                            <span className="text-sm text-gray-500 line-through">
-                                                ₹{item.price.toLocaleString()}
-                                            </span>
+                            return (
+                                <motion.div
+                                    key={gemId}
+                                    layout
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group"
+                                >
+                                    {/* Image */}
+                                    <div className="relative aspect-square bg-gray-100 overflow-hidden">
+                                        <img
+                                            src={gem.heroImage || gem.images?.[0] || '/placeholder-gem.jpg'}
+                                            alt={gem.name}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 cursor-pointer"
+                                            onClick={() => navigate(`/gem/${gemId}`)}
+                                        />
+                                        <button
+                                            onClick={() => handleRemoveFromWishlist(item)}
+                                            className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-lg text-red-500 hover:bg-red-50 transition-colors"
+                                            title="Remove from wishlist"
+                                        >
+                                            <FaTrash className="w-4 h-4" />
+                                        </button>
+                                        {gem.discount > 0 && (
+                                            <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                                                {gem.discountType === 'percentage' ? `${gem.discount}% OFF` : `₹${gem.discount} OFF`}
+                                            </div>
                                         )}
                                     </div>
 
-                                    {/* Specifications */}
-                                    {item.sizeWeight && (
-                                        <p className="text-sm text-gray-600 mb-4">
-                                            {item.sizeWeight} {item.sizeUnit}
-                                        </p>
-                                    )}
+                                    {/* Content */}
+                                    <div className="p-4">
+                                        <h3
+                                            className="font-bold text-lg text-gray-900 mb-1 line-clamp-1 cursor-pointer hover:text-emerald-600 transition-colors"
+                                            onClick={() => navigate(`/gem/${gemId}`)}
+                                        >
+                                            {gem.name}
+                                        </h3>
+                                        <p className="text-sm text-emerald-600 font-medium mb-2">{gem.category}</p>
 
-                                    {/* Add to Cart Button */}
-                                    <button
-                                        onClick={() => handleAddToCart(item)}
-                                        className="w-full bg-emerald-600 text-white py-2 px-4 rounded-lg hover:bg-emerald-700 transition-colors font-semibold flex items-center justify-center space-x-2"
-                                    >
-                                        <FaShoppingCart className="w-4 h-4" />
-                                        <span>Add to Cart</span>
-                                    </button>
-                                </div>
-                            </motion.div>
-                        ))}
+                                        {/* Price */}
+                                        <div className="flex items-center space-x-2 mb-4">
+                                            <span className="text-xl font-bold text-gray-900">
+                                                ₹{(gem.discount > 0
+                                                    ? gem.discountType === 'percentage'
+                                                        ? gem.price - (gem.price * gem.discount) / 100
+                                                        : gem.price - gem.discount
+                                                    : gem.price
+                                                ).toLocaleString()}
+                                            </span>
+                                            {gem.discount > 0 && (
+                                                <span className="text-sm text-gray-500 line-through">
+                                                    ₹{gem.price.toLocaleString()}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Specifications */}
+                                        {gem.sizeWeight && (
+                                            <p className="text-sm text-gray-600 mb-4">
+                                                {gem.sizeWeight} {gem.sizeUnit}
+                                            </p>
+                                        )}
+
+                                        {/* Add to Cart Button */}
+                                        <button
+                                            onClick={() => handleAddToCart(item)}
+                                            className="w-full bg-emerald-600 text-white py-2 px-4 rounded-lg hover:bg-emerald-700 transition-colors font-semibold flex items-center justify-center space-x-2"
+                                        >
+                                            <FaShoppingCart className="w-4 h-4" />
+                                            <span>Add to Cart</span>
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
                     </AnimatePresence>
                 </motion.div>
             </div>
