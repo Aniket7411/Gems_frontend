@@ -334,7 +334,7 @@ const GemDetail = () => {
             quantity: 1
         });
     };
-
+console.log("nbjba")
     const handleRelatedProductWishlist = async (relatedGem) => {
         if (!isAuthenticated) {
             alert('Please login to add items to wishlist');
