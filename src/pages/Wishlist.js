@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { wishlistAPI } from '../services/api';
@@ -14,15 +14,7 @@ const Wishlist = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        if (!isAuthenticated) {
-            navigate('/login');
-            return;
-        }
-        fetchWishlist();
-    }, [isAuthenticated]);
-
-    const fetchWishlist = async () => {
+    const fetchWishlist = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
@@ -43,7 +35,15 @@ const Wishlist = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+        fetchWishlist();
+    }, [isAuthenticated, navigate, fetchWishlist]);
 
     const handleRemoveFromWishlist = async (item) => {
         const gemId = item.gem?._id || item.gem?.id || item._id || item.id;

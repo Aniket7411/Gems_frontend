@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEdit, FaSave, FaTimes, FaBox, FaTruck, FaCheckCircle, FaTimesCircle, FaArrowLeft, FaPlus, FaTrash, FaMapMarkerAlt } from 'react-icons/fa';
 import { authAPI, orderAPI } from '../services/api';
@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const BuyerProfile = () => {
     const navigate = useNavigate();
-    const { user: authUser, isAuthenticated } = useAuth();
+    const { isAuthenticated } = useAuth();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [loadingOrders, setLoadingOrders] = useState(false);
@@ -47,73 +47,40 @@ const BuyerProfile = () => {
         isPrimary: false
     });
 
-    useEffect(() => {
-        if (!isAuthenticated) {
-            navigate('/login');
-            return;
+    const formatUserData = useCallback((userData) => ({
+        name: userData?.name || '',
+        email: userData?.email || '',
+        phone: userData?.phoneNumber || userData?.phone || '',
+        phoneNumber: userData?.phoneNumber || userData?.phone || '',
+        address: {
+            addressLine1: userData?.address?.addressLine1 || userData?.address?.street || '',
+            addressLine2: userData?.address?.addressLine2 || '',
+            city: userData?.address?.city || '',
+            state: userData?.address?.state || '',
+            pincode: userData?.address?.pincode || '',
+            country: userData?.address?.country || 'India'
         }
-        loadUserProfile();
-        loadUserOrders();
-        loadAddresses();
-    }, [isAuthenticated]);
+    }), []);
 
-    const loadUserProfile = async () => {
+    const loadUserProfile = useCallback(async () => {
         setLoading(true);
         try {
             // Try to get from API first
             try {
                 const response = await authAPI.getBuyerProfile();
                 if (response.success && response.user) {
-                    const userData = response.user;
-                    setUserProfile({
-                        name: userData.name || '',
-                        email: userData.email || '',
-                        phone: userData.phoneNumber || userData.phone || '',
-                        phoneNumber: userData.phoneNumber || userData.phone || '',
-                        address: {
-                            addressLine1: userData.address?.addressLine1 || userData.address?.street || '',
-                            addressLine2: userData.address?.addressLine2 || '',
-                            city: userData.address?.city || '',
-                            state: userData.address?.state || '',
-                            pincode: userData.address?.pincode || '',
-                            country: userData.address?.country || 'India'
-                        }
-                    });
-                    setEditedProfile({
-                        name: userData.name || '',
-                        email: userData.email || '',
-                        phone: userData.phoneNumber || userData.phone || '',
-                        phoneNumber: userData.phoneNumber || userData.phone || '',
-                        address: {
-                            addressLine1: userData.address?.addressLine1 || userData.address?.street || '',
-                            addressLine2: userData.address?.addressLine2 || '',
-                            city: userData.address?.city || '',
-                            state: userData.address?.state || '',
-                            pincode: userData.address?.pincode || '',
-                            country: userData.address?.country || 'India'
-                        }
-                    });
+                    const formatted = formatUserData(response.user);
+                    setUserProfile(formatted);
+                    setEditedProfile(formatted);
                 }
             } catch (apiError) {
                 // Fallback to localStorage
                 console.log('Using localStorage data:', apiError);
                 const currentUser = authAPI.getCurrentUser();
                 if (currentUser) {
-                    setUserProfile({
-                        name: currentUser.name || '',
-                        email: currentUser.email || '',
-                        phone: currentUser.phoneNumber || currentUser.phone || '',
-                        phoneNumber: currentUser.phoneNumber || currentUser.phone || '',
-                        address: {
-                            addressLine1: currentUser.address?.addressLine1 || currentUser.address?.street || '',
-                            addressLine2: currentUser.address?.addressLine2 || '',
-                            city: currentUser.address?.city || '',
-                            state: currentUser.address?.state || '',
-                            pincode: currentUser.address?.pincode || '',
-                            country: currentUser.address?.country || 'India'
-                        }
-                    });
-                    setEditedProfile({ ...userProfile });
+                    const formatted = formatUserData(currentUser);
+                    setUserProfile(formatted);
+                    setEditedProfile(formatted);
                 }
             }
         } catch (error) {
@@ -121,9 +88,9 @@ const BuyerProfile = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [formatUserData]);
 
-    const loadUserOrders = async () => {
+    const loadUserOrders = useCallback(async () => {
         setLoadingOrders(true);
         try {
             const response = await orderAPI.getOrders();
@@ -136,9 +103,9 @@ const BuyerProfile = () => {
         } finally {
             setLoadingOrders(false);
         }
-    };
+    }, []);
 
-    const loadAddresses = async () => {
+    const loadAddresses = useCallback(async () => {
         try {
             const response = await authAPI.getAddresses();
             if (response.success) {
@@ -148,7 +115,17 @@ const BuyerProfile = () => {
             console.error('Error loading addresses:', error);
             setAddresses([]);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+        loadUserProfile();
+        loadUserOrders();
+        loadAddresses();
+    }, [isAuthenticated, navigate, loadUserProfile, loadUserOrders, loadAddresses]);
 
     // Get status badge styling
     const getStatusBadge = (status) => {
