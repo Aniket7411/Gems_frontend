@@ -15,6 +15,7 @@ const MainLayout = ({ children }) => {
 
         updateHeaderHeight();
         window.addEventListener('resize', updateHeaderHeight);
+        console.log("headerHeight");
 
         return () => window.removeEventListener('resize', updateHeaderHeight);
     }, []);
